@@ -9,3 +9,5 @@ sftp-config.json
 *.a
 *.so
 *.lib
+
+*/text_based_engine
