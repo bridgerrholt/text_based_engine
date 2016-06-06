@@ -7,5 +7,5 @@ Furthermore, it assumes the binary objects (i.e. .dylib .so .o .lib .dll) to be 
 
 
 ### Xerces-C++ XML Parser
-Can be found [here](https://xerces.apache.org/xerces-c/ "Xerces-C++ front page")
+The front page can be found [here](https://xerces.apache.org/xerces-c/ "Xerces-C++ front page").
 The default makefile expects the main directory for Xerces-C++ (i.e. the directory containing the directory "src") to be called "xerces-c".
