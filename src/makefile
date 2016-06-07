@@ -11,8 +11,8 @@ program_LIBRARY_DIRS := ../../_libs/_master/lib
 program_LIBRARIES := xerces-c
 
 CPPFLAGS += $(foreach includedir,$(program_INCLUDE_DIRS),-I$(includedir))
-CPPFLAGS += -std=c++11
-LDFLAGS += $(foreach librarydir,$(program_LIBRARY_DIRS),-L$(librarydir))
+CXXFLAGS += -std=c++11 -DXERCES_STATIC_LIBRARY
+LIB_DIR += $(foreach librarydir,$(program_LIBRARY_DIRS),-L$(librarydir))
 LDFLAGS += $(foreach library,$(program_LIBRARIES),-l$(library))
 
 .PHONY: all clean distclean
@@ -20,7 +20,7 @@ LDFLAGS += $(foreach library,$(program_LIBRARIES),-l$(library))
 all: $(program_NAME)
 
 $(program_NAME): $(program_OBJS)
-	$(LINK.cc) $(program_OBJS) -o $(program_NAME) 
+	$(CXX) $(LIB_DIR) $(CXXFLAGS) -o $(program_NAME) $(program_OBJS) $(LDFLAGS)
 
 clean:
 	@- $(RM) $(program_NAME)
