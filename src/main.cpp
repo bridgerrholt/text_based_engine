@@ -1,12 +1,8 @@
 #include <iostream>
 #include <exception>
 
-#include <xercesc/util/PlatformUtils.hpp>
-
 #include "full_wrapper.h"
 #include "engine.h"
-
-using namespace xercesc;
 
 int main(int argc, char* argv[])
 {
@@ -15,10 +11,10 @@ int main(int argc, char* argv[])
     tbe::Engine      engine;
   
     if (argc < 2) {
-      throw std::runtime_error("No JSON config file specified");
+      throw std::runtime_error("No database file specified");
     }
 
-    engine.loadConfig(argv[1]);
+    engine.loadDatabase(argv[1]);
 
   }
   catch (std::exception& error) {

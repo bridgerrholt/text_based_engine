@@ -1,8 +1,8 @@
 #include "engine.h"
 
-#include <rapidjson/document.h>
+#include <stdexcept>
 
-#include <dep/load_to_string.h>
+#include <dep/check_file_exists.h>
 
 namespace tbe {
 
@@ -13,27 +13,28 @@ Engine::Engine()
 
 
 
-void
-Engine::loadConfig(com::StringRef fileName)
+Engine::~Engine()
 {
-  using namespace rapidjson;
-
-  Document document;
-  document.Parse(dep::loadToString(fileName).c_str());
-
-  assert(document.IsObject());
-
-  if (document.HasMember("paths")) {
-
-  }
+  if (databaseLoaded_)
+    sqlite3_close(database_);
 }
 
 
 
 void
-Engine::resetPaths()
+Engine::loadDatabase(com::StringRef fileName)
 {
+  if (databaseLoaded_)
+    sqlite3_close(database_);
 
+  int resultCode = sqlite3_open(fileName.c_str(), &database_);
+
+  if (resultCode != SQLITE_OK) {
+    sqlite3_close(database_);
+    throw std::runtime_error("Can't open database: " + fileName);
+  }
+
+  databaseLoaded_ = true;
 }
 
 

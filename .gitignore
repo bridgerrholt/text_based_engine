@@ -11,3 +11,5 @@ sftp-config.json
 *.lib
 
 */text_based_engine
+
+sqlite3.c

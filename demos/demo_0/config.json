@@ -1,8 +1,0 @@
-{
-  "paths": [
-    { "name": "assets", "href": "assets-test", "paths": [
-      { "name": "actors" },
-      { "name": "scenes" }
-    ]}
-  ]
-}

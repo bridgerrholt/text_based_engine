@@ -5,20 +5,22 @@
 
 #include <common/string_ref.h>
 
+#include <sqlite3.h>
+
 namespace tbe {
 
 class Engine
 {
   public:
     Engine();
+    ~Engine();
 
-    void loadConfig(com::StringRef fileName);
+    void loadDatabase(com::StringRef fileName);
 
   private:
-    void resetPaths();
+    bool databaseLoaded_;
+    sqlite3* database_;
 
-    typedef std::unordered_map<std::string, std::string> PathMap;
-    PathMap paths_;
 
 };
 
