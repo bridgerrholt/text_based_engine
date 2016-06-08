@@ -15,11 +15,14 @@ int main(int argc, char* argv[])
     }
 
     engine.loadDatabase(argv[1]);
+    engine.run();
 
   }
   catch (std::exception& error) {
     std::cout << "Main function caught an exception:\n" <<
       error.what();
+
+    return 1;
   }
 
   return 0;
