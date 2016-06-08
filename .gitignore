@@ -12,4 +12,4 @@ sftp-config.json
 
 */text_based_engine
 
-sqlite3.c
+src/sqlite3
