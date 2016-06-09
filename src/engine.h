@@ -28,6 +28,10 @@ class Engine
     void openDatabase(com::StringRef fileName);
     void closeDatabase();
 
+    static std::size_t askQuestion(
+      std::vector<std::string> const & responseOptions,
+      com::StringRef question = "");
+
     enum Query
     {
       GET_ACTORS

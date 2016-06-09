@@ -48,25 +48,18 @@ Engine::loadDatabase(com::StringRef fileName)
 void
 Engine::run()
 {
+  std::size_t actorCount = actors_.size();
+  if (actorCount == 0)
+    return;
+
   std::string input;
   std::size_t actorIndex;
   while (true) {
-    std::size_t actorCount = actors_.size();
-    for (std::size_t i = 0; i < actorCount; ++i) {
-      std::cout << i + 1 << ": " << actors_[i].name << '\n';
-    }
-    std::cout << "Who would you like to talk to?\n";
+    std::vector<std::string> actorNames;
+    for (auto i : actors_) actorNames.push_back(i.name);
 
-    while (true) {
-      std::cout << "> ";
-      std::cin >> input;
-
-      if (dep::isInt(input)) {
-        actorIndex = std::stoi(input);
-        if (actorIndex >= 1 && actorIndex <= actorCount)
-          break;
-      }
-    }
+    std::size_t actorIndex =
+      askQuestion(actorNames, "Who would you like to talk to?");
 
     break;
   }
@@ -105,6 +98,39 @@ Engine::closeDatabase()
 
   databaseOpenCalled_ = false;
   databaseOpened_ = false;
+}
+
+
+
+std::size_t
+Engine::askQuestion(
+  std::vector<std::string> const & responseOptions,
+  com::StringRef question)
+{
+  std::size_t optionCount = responseOptions.size();
+  if (optionCount == 0)
+    throw std::runtime_error("Question with no response options:\n " + question);
+
+  std::string input;
+  std::size_t index;
+
+  for (std::size_t i = 0; i < optionCount; ++i) {
+    std::cout << i + 1 << ": " << responseOptions[i] << '\n';
+  }
+  std::cout << question << '\n';
+
+  while (true) {
+    std::cout << "> ";
+    std::cin >> input;
+
+    if (dep::isInt(input)) {
+      index = std::stoi(input);
+      if (index >= 1 && index <= optionCount)
+        break;
+    }
+  }
+
+  return index;
 }
 
 
