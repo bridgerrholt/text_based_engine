@@ -12,7 +12,7 @@ class Option
     int         optionListId;
     std::string textDisplay;
     std::string textSpeak;
-    int         next;
+    int         nextId;
 };
 
 }

@@ -1,0 +1,31 @@
+NOTE: Always give your first insert and id of 1.
+
+CREATE TABLE actors (
+  id        INTEGER  PRIMARY KEY  AUTOINCREMENT,
+  name      TEXT                  NOT NULL,
+  intro_id  INTEGER               NOT NULL
+);
+
+CREATE TABLE options (
+  id              INTEGER  PRIMARY KEY  AUTOINCREMENT,
+  character_id    INTEGER               NOT NULL,
+  option_list_id  INTEGER               NOT NULL,
+  text_display    TEXT                  NOT NULL,
+  text_speak      TEXT                  NOT NULL,
+  next_id         INTEGER               NOT NULL
+);
+
+CREATE TABLE responses (
+  id          INTEGER  PRIMARY KEY  AUTOINCREMENT,
+  text_speak  TEXT                  NOT NULL,
+  next_id     INTEGER               NOT NULL
+);
+
+
+Paste each one of these into an open SQLite3 console:
+
+CREATE TABLE actors(id INTEGER PRIMARY KEY AUTOINCREMENT,name TEXT NOT NULL,intro_id INTEGER NOT NULL);
+
+CREATE TABLE options(id INTEGER PRIMARY KEY AUTOINCREMENT,character_id INTEGER NOT NULL,option_list_id INTEGER NOT NULL,text_display TEXT NOT NULL,text_speak TEXT NOT NULL,next_id INTEGER NOT NULL);
+
+CREATE TABLE responses (id INTEGER PRIMARY KEY AUTOINCREMENT,text_speak TEXT NOT NULL,next_id INTEGER NOT NULL);

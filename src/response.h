@@ -8,8 +8,8 @@ namespace tbe {
 class Response
 {
   public:
-    std::string text;
-    int         next;
+    std::string textSpeak;
+    int         nextId;
 };
 
 }

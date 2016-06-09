@@ -41,7 +41,7 @@ Engine::loadDatabase(com::StringRef fileName)
   getActors();
 
   for (auto i : actors_) {
-    std::cerr << i.name << ' ' << i.next << '\n';
+    std::cerr << i.name << ' ' << i.nextId << '\n';
   }
 }
 
@@ -68,7 +68,7 @@ Engine::run()
 
     actorIndex -= 1;
 
-    int next = actors_[actorIndex].next;
+    int next = actors_[actorIndex].nextId;
     std::cerr << next << '\n';
 
     if (next == 0) {
@@ -82,7 +82,7 @@ Engine::run()
     while (next != 0) {
       Response response = getResponse(next);
       std::cout << '\n' << actors_[actorIndex].name << ": " <<
-        response.text;
+        response.textSpeak;
 
 
       std::string inputString;
@@ -90,11 +90,11 @@ Engine::run()
 
       std::cout << "\n\n";
 
-      if (response.next == 0)
+      if (response.nextId == 0)
         break;
 
       std::string statement = "option_list_id = " +
-        std::to_string(response.next);
+        std::to_string(response.nextId);
       std::cerr << statement << '\n';
 
       std::vector<Option> options =
@@ -109,7 +109,7 @@ Engine::run()
       std::size_t optionIndex = askQuestion(optionTextList);
       std::cout << '\n' << options[optionIndex].textSpeak << "\n\n";
 
-      next = options[optionIndex].next;
+      next = options[optionIndex].nextId;
     }
 
     /*std::string statement = "next = " + std::to_string(next);
@@ -269,8 +269,8 @@ Engine::actorCallback(void* engineRef, int argc,
     if (colNameString == "name") {
       actor.name = std::string(argv[i]);
     }
-    else if (colNameString == "next") {
-      actor.next = std::stoi(argv[i]);
+    else if (colNameString == "intro_id") {
+      actor.nextId = std::stoi(argv[i]);
     }
   }
 
@@ -299,8 +299,8 @@ optionCallback(void* listRef, int argc,
       option.textDisplay = std::string(argv[i]);
     else if (colNameString == "text_speak")
       option.textSpeak = std::string(argv[i]);
-    else if (colNameString == "next")
-      option.next = std::stoi(argv[i]);
+    else if (colNameString == "next_id")
+      option.nextId = std::stoi(argv[i]);
   }
 
   ((std::vector<Option>*) listRef)->push_back(option);
@@ -322,10 +322,10 @@ responseCallback(void* responseRefVoid, int argc,
   for (int i = 0; i < argc; ++i) {
     std::string colNameString = std::string(columnNames[i]);
 
-    if (colNameString == "text")
-      responseRef->text = std::string(argv[i]);
-    else if (colNameString == "next")
-      responseRef->next = std::stoi(argv[i]);
+    if (colNameString == "text_speak")
+      responseRef->textSpeak = std::string(argv[i]);
+    else if (colNameString == "next_id")
+      responseRef->nextId = std::stoi(argv[i]);
   }
 
   return 0;
