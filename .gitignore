@@ -13,3 +13,4 @@ sftp-config.json
 */text_based_engine
 
 src/sqlite3
+src/cerrlog.txt

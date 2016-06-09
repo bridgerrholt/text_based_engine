@@ -9,7 +9,7 @@ class Actor
 {
   public:
     std::string name;
-    int         introListId;
+    int         next;
 };
 
 

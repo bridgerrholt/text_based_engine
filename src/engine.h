@@ -11,6 +11,8 @@
 
 #include "sql_query.h"
 #include "actor.h"
+#include "option.h"
+#include "response.h"
 
 namespace tbe {
 
@@ -30,7 +32,13 @@ class Engine
 
     static std::size_t askQuestion(
       std::vector<std::string> const & responseOptions,
-      com::StringRef question = "");
+      int startNum = 1);
+
+    static std::size_t askQuestion(
+      std::vector<std::string> const & responseOptions,
+      com::StringRef question,
+      int startNum = 1);
+
 
     enum Query
     {
@@ -41,9 +49,12 @@ class Engine
     void prepareSingleSqlQuery(Query query, com::StringRef queryText);
 
     static int actorCallback(void* engineRef, int argc,
-      char** argv, char** azColName);
+      char** argv, char** columnNames);
 
     void getActors();
+    std::vector<Option> getOptionList(com::StringRef conditions);
+
+    Response getResponse(int id);
 
     bool databaseOpenCalled_;
     bool databaseOpened_;
