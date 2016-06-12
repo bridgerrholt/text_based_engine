@@ -9,10 +9,9 @@
 
 #include <sqlite3.h>
 
-#include "sql_query.h"
-#include "actor.h"
-#include "option.h"
-#include "response.h"
+#include "sql_helpers/query.h"
+
+#include "sql_helpers/objects/include.h"
 
 namespace tbe {
 
@@ -40,28 +39,28 @@ class Engine
       int startNum = 1);
 
 
-    enum Query
+    enum QueryKind
     {
       GET_ACTORS
     };
 
     void prepareSqlQueries();
-    void prepareSingleSqlQuery(Query query, com::StringRef queryText);
+    void prepareSingleSqlQuery(QueryKind query, com::StringRef queryText);
 
     static int actorCallback(void* engineRef, int argc,
       char** argv, char** columnNames);
 
     void getActors();
-    std::vector<Option> getOptionList(com::StringRef conditions);
+    std::vector<sql::Option::Data> getOptionList(com::StringRef conditions);
 
-    Response getResponse(int id);
+    sql::Response::Data getResponse(int id);
 
     bool databaseOpenCalled_;
     bool databaseOpened_;
     sqlite3* database_;
 
-    std::map<Query, std::unique_ptr<SqlQuery> > sqlQueries_;
-    std::vector<Actor> actors_;
+    std::map<QueryKind, std::unique_ptr<sql::Query> > sqlQueries_;
+    std::vector<sql::Actor::Data> actors_;
 
 };
 

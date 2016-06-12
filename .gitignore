@@ -10,6 +10,8 @@ sftp-config.json
 *.so
 *.lib
 
+*.dSYM
+
 */text_based_engine
 
 src/sqlite3

@@ -38,10 +38,14 @@ Engine::loadDatabase(com::StringRef fileName)
 {
   closeDatabase();
   openDatabase(fileName);
-  getActors();
+  //getActors();
+
+  sql::Actor actor(database_);
+  actors_ = actor.run();
+
 
   for (auto i : actors_) {
-    std::cerr << i.name << ' ' << i.nextId << '\n';
+    std::cerr << i.name << ' ' << i.introId << '\n';
   }
 }
 
@@ -68,7 +72,7 @@ Engine::run()
 
     actorIndex -= 1;
 
-    int next = actors_[actorIndex].nextId;
+    int next = actors_[actorIndex].introId;
     std::cerr << next << '\n';
 
     if (next == 0) {
@@ -80,7 +84,10 @@ Engine::run()
     std::cerr << "Wants to speak\n";
 
     while (next != 0) {
-      Response response = getResponse(next);
+      sql::Response responseCall({database_,
+        "id = " + std::to_string(next)});
+      sql::Response::Data response = responseCall.run().at(0);
+      //sql::Response::Data response = getResponse(next);
       std::cout << '\n' << actors_[actorIndex].name << ": " <<
         response.textSpeak;
 
@@ -97,8 +104,11 @@ Engine::run()
         std::to_string(response.nextId);
       std::cerr << statement << '\n';
 
-      std::vector<Option> options =
-        getOptionList(statement);
+      sql::Option optionCall({database_, statement});
+
+      std::vector<sql::Option::Data> options =
+        optionCall.run();
+      //  getOptionList(statement);
 
       std::cerr << "Got options\n";
 
@@ -243,16 +253,16 @@ void
 Engine::prepareSqlQueries()
 {
   sqlQueries_.clear();
-  //prepareSingleSqlQuery(GET_ACTORS, "SELECT * FROM actors;");
+  prepareSingleSqlQuery(GET_ACTORS, "SELECT * FROM actors;");
 }
 
 
 
 void
-Engine::prepareSingleSqlQuery(Query query, com::StringRef queryText)
+Engine::prepareSingleSqlQuery(QueryKind query, com::StringRef queryText)
 {
   sqlQueries_.emplace(query,
-    std::unique_ptr<SqlQuery>(new SqlQuery(database_, queryText)));
+    std::unique_ptr<sql::Query>(new sql::Query(database_, queryText)));
 }
 
 
@@ -261,7 +271,7 @@ int
 Engine::actorCallback(void* engineRef, int argc,
   char** argv, char** columnNames)
 {
-  Actor actor = { "", 0 };
+  sql::Actor::Data actor = { "", 0 };
 
   for (int i = 0; i < argc; ++i) {
     std::string colNameString = std::string(columnNames[i]);
@@ -270,7 +280,7 @@ Engine::actorCallback(void* engineRef, int argc,
       actor.name = std::string(argv[i]);
     }
     else if (colNameString == "intro_id") {
-      actor.nextId = std::stoi(argv[i]);
+      actor.introId = std::stoi(argv[i]);
     }
   }
 
@@ -285,7 +295,7 @@ int
 optionCallback(void* listRef, int argc,
   char** argv, char** columnNames)
 {
-  Option option = { 0, 0, "", "", 0 };
+  sql::Option::Data option = { 0, 0, "", "", 0 };
   std::cerr << "optionCallback: argc=" + std::to_string(argc) << '\n';
 
   for (int i = 0; i < argc; ++i) {
@@ -303,7 +313,7 @@ optionCallback(void* listRef, int argc,
       option.nextId = std::stoi(argv[i]);
   }
 
-  ((std::vector<Option>*) listRef)->push_back(option);
+  ((std::vector<sql::Option::Data>*) listRef)->push_back(option);
 
   std::cerr << option.textDisplay << '\n';
 
@@ -317,7 +327,7 @@ responseCallback(void* responseRefVoid, int argc,
   char** argv, char** columnNames)
 {
   std::cerr << responseRefVoid << '\n';
-  Response* responseRef = (Response*) responseRefVoid;
+  sql::Response::Data* responseRef = (sql::Response::Data*) responseRefVoid;
   std::cerr << responseRef << '\n';
   for (int i = 0; i < argc; ++i) {
     std::string colNameString = std::string(columnNames[i]);
@@ -355,12 +365,12 @@ Engine::getActors()
 
 
 
-std::vector<Option>
+std::vector<sql::Option::Data>
 Engine::getOptionList(com::StringRef conditions)
 {
   assert(databaseOpened_);
 
-  std::vector<Option> optionList;
+  std::vector<sql::Option::Data> optionList;
 
   std::string sql = "SELECT * FROM options WHERE " + conditions + ';';
   std::cerr << sql << '\n';
@@ -384,12 +394,12 @@ Engine::getOptionList(com::StringRef conditions)
 
 
 
-Response
+sql::Response::Data
 Engine::getResponse(int id)
 {
   assert(databaseOpened_);
 
-  Response returnResponse;
+  sql::Response::Data returnResponse;
 
   std::string sql = "SELECT * FROM responses "
     "WHERE id = " + std::to_string(id) + ';';
