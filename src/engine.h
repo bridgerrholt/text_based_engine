@@ -12,6 +12,8 @@
 #include <map>
 #include <memory>
 
+#include <dep/wait.h>
+
 #include <common/string_ref.h>
 
 #include <sqlite3.h>
@@ -53,12 +55,15 @@ class Engine
     void closeDatabase();
 
 
+    /// Is true while a database is successfully opened.
     bool databaseOpened_;
+
+    /// Handles the currently open database.
     sqlite3* database_;
 
     std::vector<sql::Actor::Data> actors_;
 
-    size_t waitTime_;
+    dep::Wait wait_;
 
 };
 

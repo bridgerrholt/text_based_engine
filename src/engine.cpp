@@ -1,3 +1,6 @@
+/// @file engine.cpp
+/// Definition of the Engine class.
+
 #include "engine.h"
 
 #include <iostream>
@@ -16,7 +19,7 @@ namespace tbe {
 Engine::Engine() :
   databaseOpened_(false),
   database_(0),
-  waitTime_(500)
+  wait_(500)
 {
 
 }
@@ -91,7 +94,7 @@ Engine::run()
 
     // If the intro ID is 0, that indicates no conversation will take place.
     if (next == 0) {
-      std::cout << actorNames[optionIndex] <<
+      std::cout << actors_[optionIndex].name <<
         " doesn't want to speak right now.\n";
 
       // Brings it back to the actor menu.
@@ -100,15 +103,15 @@ Engine::run()
 
     std::cerr << "Wants to speak\n";
 
+    // The conversation is ongoing until one of the actions points to the ID of 0.
     while (next != 0) {
+      // Gets the ID pointed to by next.
       sql::Response responseCall({database_,
         "id = " + std::to_string(next)});
       sql::Response::Data response = responseCall.run().at(0);
-      std::cout << '\n' << actors_[actorIndex].name << ": " <<
-        response.textSpeak;
 
-      std::cout.flush();
-      dep::wait(waitTime_);
+      std::cout << '\n' << actors_[optionIndex].name << ": " <<
+        response.textSpeak << wait_;
 
       std::cout << "\n";
 
@@ -131,9 +134,7 @@ Engine::run()
       std::cerr << "Option text list\n";
 
       std::size_t optionIndex = askQuestion(optionTextList);
-      std::cout << '\n' << options[optionIndex].textSpeak << "\n";
-      std::cout.flush();
-      dep::wait(waitTime_);
+      std::cout << '\n' << options[optionIndex].textSpeak << '\n' << wait_;
 
       next = options[optionIndex].nextId;
     }
