@@ -1,3 +1,10 @@
+/** @file engine.h
+    Declaration of the Engine class.
+
+    @class tbe::Engine
+    Provides the main functionality, loads a database and runs the game.
+*/
+
 #ifndef TEXT_BASED_ENGINE_ENGINE_H
 #define TEXT_BASED_ENGINE_ENGINE_H
 
@@ -18,49 +25,40 @@ namespace tbe {
 class Engine
 {
   public:
+    /// Primary constructor.
+    /// Doesn't load anything, just sets member variables.
     Engine();
+
+    /// Unloads the database (if opened) and all active queries.
     ~Engine();
 
+    /// Opens the provided database and gathers needed data.
+    /// If a database is already open, it is closed before the new one is opened.
+    /// @param[in] fileName The path and name of the database file.
     void loadDatabase(com::StringRef fileName);
 
+    /// Runs the actual game.
     void run();
 
+
   private:
+    /** Opens the given database file.
+        Ensures the given file exists and attempts to open it.
+        If anything fails, an exception is thrown.
+        @param[in] fileName The path and name of the database file.
+    */
     void openDatabase(com::StringRef fileName);
+
+    /// Attempts to close the database.
     void closeDatabase();
 
-    static std::size_t askQuestion(
-      std::vector<std::string> const & responseOptions,
-      int startNum = 1);
 
-    static std::size_t askQuestion(
-      std::vector<std::string> const & responseOptions,
-      com::StringRef question,
-      int startNum = 1);
-
-
-    enum QueryKind
-    {
-      GET_ACTORS
-    };
-
-    void prepareSqlQueries();
-    void prepareSingleSqlQuery(QueryKind query, com::StringRef queryText);
-
-    static int actorCallback(void* engineRef, int argc,
-      char** argv, char** columnNames);
-
-    void getActors();
-    std::vector<sql::Option::Data> getOptionList(com::StringRef conditions);
-
-    sql::Response::Data getResponse(int id);
-
-    bool databaseOpenCalled_;
     bool databaseOpened_;
     sqlite3* database_;
 
-    std::map<QueryKind, std::unique_ptr<sql::Query> > sqlQueries_;
     std::vector<sql::Actor::Data> actors_;
+
+    size_t waitTime_;
 
 };
 

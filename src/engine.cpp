@@ -7,13 +7,16 @@
 
 #include <dep/check_file_exists.h>
 #include <dep/is_int.h>
+#include <dep/wait.h>
+
+#include "ask_question.h"
 
 namespace tbe {
 
 Engine::Engine() :
-  databaseOpenCalled_(false),
   databaseOpened_(false),
-  database_(0)
+  database_(0),
+  waitTime_(500)
 {
 
 }
@@ -22,10 +25,6 @@ Engine::Engine() :
 
 Engine::~Engine()
 {
-  std::cerr << "about to clear\n";
-  sqlQueries_.clear();
-  std::cerr << "cleared\n";
-
   closeDatabase();
 
   std::cerr << "Engine destructed\n";
@@ -36,13 +35,10 @@ Engine::~Engine()
 void
 Engine::loadDatabase(com::StringRef fileName)
 {
-  closeDatabase();
   openDatabase(fileName);
-  //getActors();
 
   sql::Actor actor(database_);
   actors_ = actor.run();
-
 
   for (auto i : actors_) {
     std::cerr << i.name << ' ' << i.introId << '\n';
@@ -54,30 +50,51 @@ Engine::loadDatabase(com::StringRef fileName)
 void
 Engine::run()
 {
+  // Exit the function if the database doesn't contain any characters.
   std::size_t actorCount = actors_.size();
-  if (actorCount == 0)
+  if (actorCount == 0) {
+    std::cout << "Nobody seems to be around.\n";
     return;
+  }
 
-  std::string input;
-  std::size_t actorIndex;
+  // primaryOptions is initialized before the main loop and resized every iteration.
+  std::vector<std::string> primaryOptions;
+
+  // constantOptionsCount specifies how many options remain through every iteration,
+  // primaryOptions is resized to it every iteration.
+  std::size_t constantOptionsCount = 1;
+
+  primaryOptions.push_back("QUIT");
+
+
+  // The main game loop.
+  // Upon every iteration it shows the list of actors and lets the player talk to one.
   while (true) {
-    std::vector<std::string> actorNames;
-    actorNames.push_back("QUIT");
-    for (auto i : actors_) actorNames.push_back(i.name);
+    // All the old actors are removed and all the current actors are added.
+    primaryOptions.resize(constantOptionsCount);
+    for (auto i : actors_)
+      primaryOptions.push_back(i.name);
 
-    std::size_t actorIndex =
-      askQuestion(actorNames, "Who would you like to talk to?", 0);
+    // The player selects an index of primaryOptions.
+    std::size_t optionIndex =
+      askQuestion(primaryOptions, "Who would you like to talk to?", 0);
 
-    if (actorIndex == 0) break;
+    // All the constant options are handled.
+    if (optionIndex == 0) break;
 
-    actorIndex -= 1;
+    // The index is now mapped to actors_ since the constant options are cleared.
+    optionIndex -= constantOptionsCount;
 
-    int next = actors_[actorIndex].introId;
+    // The ID of the next row to query.
+    int next = actors_[optionIndex].introId;
     std::cerr << next << '\n';
 
+    // If the intro ID is 0, that indicates no conversation will take place.
     if (next == 0) {
-      std::cout << actorNames[actorIndex] <<
+      std::cout << actorNames[optionIndex] <<
         " doesn't want to speak right now.\n";
+
+      // Brings it back to the actor menu.
       continue;
     }
 
@@ -87,15 +104,13 @@ Engine::run()
       sql::Response responseCall({database_,
         "id = " + std::to_string(next)});
       sql::Response::Data response = responseCall.run().at(0);
-      //sql::Response::Data response = getResponse(next);
       std::cout << '\n' << actors_[actorIndex].name << ": " <<
         response.textSpeak;
 
+      std::cout.flush();
+      dep::wait(waitTime_);
 
-      std::string inputString;
-      std::getline(std::cin, inputString);
-
-      std::cout << "\n\n";
+      std::cout << "\n";
 
       if (response.nextId == 0)
         break;
@@ -108,7 +123,6 @@ Engine::run()
 
       std::vector<sql::Option::Data> options =
         optionCall.run();
-      //  getOptionList(statement);
 
       std::cerr << "Got options\n";
 
@@ -117,27 +131,13 @@ Engine::run()
       std::cerr << "Option text list\n";
 
       std::size_t optionIndex = askQuestion(optionTextList);
-      std::cout << '\n' << options[optionIndex].textSpeak << "\n\n";
+      std::cout << '\n' << options[optionIndex].textSpeak << "\n";
+      std::cout.flush();
+      dep::wait(waitTime_);
 
       next = options[optionIndex].nextId;
     }
 
-    /*std::string statement = "next = " + std::to_string(next);
-    std::cerr << statement << '\n';
-
-    std::vector<Option> options =
-      getOptionList(statement);
-
-    std::cerr << "Got options\n";
-
-    std::vector<std::string> optionTextList;
-    for (auto i : options) optionTextList.push_back(i.textDisplay);
-    std::cerr << "Option text list\n";
-
-    std::size_t optionIndex = askQuestion(optionTextList);
-    std::cerr << "\n";
-
-    break;*/
   }
 }
 
@@ -146,21 +146,35 @@ Engine::run()
 void
 Engine::openDatabase(com::StringRef fileName)
 {
+  // Closes the database if it's open.
+  closeDatabase();
+
   if (!dep::checkFileExists(fileName)) {
-    throw std::runtime_error("Database file doesn't exist:\n " + fileName);
+    throw std::runtime_error(
+      "Database file can't be found:\n " +
+        fileName
+    );
   }
 
-  int resultCode = sqlite3_open(fileName.c_str(), &database_);
-  databaseOpenCalled_ = true;
+  // Attempts to open the database.
+  int resultCode = sqlite3_open_v2(
+    fileName.c_str(), &database_,
+    SQLITE_OPEN_READWRITE, 0
+  );
 
   if (resultCode != SQLITE_OK) {
+    // Resources must be freed even on failure.
     sqlite3_close(database_);
-    throw std::runtime_error("Can't open database:\n " + fileName);
+
+    throw std::runtime_error(
+      "Can't open database:\n " +
+        fileName + "\n"
+      "because:\n" +
+       sqlite3_errmsg(database_)
+    );
   }
 
-  databaseOpened_ = true;
-
-  prepareSqlQueries();
+  else databaseOpened_ = true;
 }
 
 
@@ -168,259 +182,19 @@ Engine::openDatabase(com::StringRef fileName)
 void
 Engine::closeDatabase()
 {
-  if (databaseOpenCalled_ || databaseOpened_) {
-    std::cerr << "Gonna close\n";
-    while (sqlite3_close(database_) != SQLITE_OK) {
-      std::cerr << "Failed close\n";
+  if (databaseOpened_) {
+    std::cerr << "About to close opened database\n";
+
+    // Shouldn't be anything but SQLITE_OK.
+    if (sqlite3_close_v2(database_) != SQLITE_OK) {
+      std::cerr << "Database couldn't close\n";
     }
+
+    std::cerr << "Closed database\n";
   }
 
-  std::cerr << "Closed\n";
 
-  databaseOpenCalled_ = false;
   databaseOpened_ = false;
-}
-
-
-
-void
-printResponseOptions(std::vector<std::string> const & responseOptions,
-  int startNum)
-{
-  std::cerr << "printResponseOptions\n";
-  std::size_t optionCount = responseOptions.size();
-  std::cerr << optionCount << '\n';
-  if (optionCount == 0)
-    throw std::runtime_error("Question with no response options.\n ");
-
-  for (std::size_t i = 0; i < optionCount; ++i) {
-    std::cout << startNum + i << ": " << responseOptions[i] << '\n';
-  }
-
-  std::cerr << "Outputted\n";
-}
-
-
-
-std::size_t
-getResponseIndex(std::size_t optionCount, int startNum)
-{
-  std::string input;
-  std::size_t index;
-
-  while (true) {
-    std::cout << "> ";
-    std::cin >> input;
-
-    if (dep::isInt(input)) {
-      index = std::stoi(input);
-      if (index >= startNum && index < optionCount+startNum)
-        break;
-    }
-  }
-
-  return index - startNum;
-}
-
-
-
-std::size_t
-Engine::askQuestion(
-  std::vector<std::string> const & responseOptions,
-  int startNum)
-{
-  printResponseOptions(responseOptions, startNum);
-  
-  return getResponseIndex(responseOptions.size(), startNum);
-}
-
-std::size_t
-Engine::askQuestion(
-  std::vector<std::string> const & responseOptions,
-  com::StringRef question,
-  int startNum)
-{
-  printResponseOptions(responseOptions, startNum);
-
-  std::cout << question << '\n';
-
-  return getResponseIndex(responseOptions.size(), startNum);
-}
-
-
-
-void
-Engine::prepareSqlQueries()
-{
-  sqlQueries_.clear();
-  prepareSingleSqlQuery(GET_ACTORS, "SELECT * FROM actors;");
-}
-
-
-
-void
-Engine::prepareSingleSqlQuery(QueryKind query, com::StringRef queryText)
-{
-  sqlQueries_.emplace(query,
-    std::unique_ptr<sql::Query>(new sql::Query(database_, queryText)));
-}
-
-
-
-int
-Engine::actorCallback(void* engineRef, int argc,
-  char** argv, char** columnNames)
-{
-  sql::Actor::Data actor = { "", 0 };
-
-  for (int i = 0; i < argc; ++i) {
-    std::string colNameString = std::string(columnNames[i]);
-
-    if (colNameString == "name") {
-      actor.name = std::string(argv[i]);
-    }
-    else if (colNameString == "intro_id") {
-      actor.introId = std::stoi(argv[i]);
-    }
-  }
-
-  ((Engine*) engineRef)->actors_.push_back(actor);
-
-  return 0;
-}
-
-
-
-int
-optionCallback(void* listRef, int argc,
-  char** argv, char** columnNames)
-{
-  sql::Option::Data option = { 0, 0, "", "", 0 };
-  std::cerr << "optionCallback: argc=" + std::to_string(argc) << '\n';
-
-  for (int i = 0; i < argc; ++i) {
-    std::string colNameString = std::string(columnNames[i]);
-
-    if (colNameString == "character_id")
-      option.characterId = std::stoi(argv[i]);
-    else if (colNameString == "option_list_id")
-      option.optionListId = std::stoi(argv[i]);
-    else if (colNameString == "text_display")
-      option.textDisplay = std::string(argv[i]);
-    else if (colNameString == "text_speak")
-      option.textSpeak = std::string(argv[i]);
-    else if (colNameString == "next_id")
-      option.nextId = std::stoi(argv[i]);
-  }
-
-  ((std::vector<sql::Option::Data>*) listRef)->push_back(option);
-
-  std::cerr << option.textDisplay << '\n';
-
-  return 0;
-}
-
-
-
-int
-responseCallback(void* responseRefVoid, int argc,
-  char** argv, char** columnNames)
-{
-  std::cerr << responseRefVoid << '\n';
-  sql::Response::Data* responseRef = (sql::Response::Data*) responseRefVoid;
-  std::cerr << responseRef << '\n';
-  for (int i = 0; i < argc; ++i) {
-    std::string colNameString = std::string(columnNames[i]);
-
-    if (colNameString == "text_speak")
-      responseRef->textSpeak = std::string(argv[i]);
-    else if (colNameString == "next_id")
-      responseRef->nextId = std::stoi(argv[i]);
-  }
-
-  return 0;
-}
-
-
-
-void
-Engine::getActors()
-{
-  assert(databaseOpened_);
-
-  actors_.clear();
-
-
-  char* errorMessage = 0;
-  int resultCode = sqlite3_exec(database_, "SELECT * FROM actors;",
-    actorCallback, (void*)this, &errorMessage);
-
-  if (resultCode != SQLITE_OK) {
-    std::string exceptionMessage =
-      "SQL error getting actors:\n" + std::string(errorMessage);
-    sqlite3_free(errorMessage);
-    throw std::runtime_error(exceptionMessage);
-  }
-}
-
-
-
-std::vector<sql::Option::Data>
-Engine::getOptionList(com::StringRef conditions)
-{
-  assert(databaseOpened_);
-
-  std::vector<sql::Option::Data> optionList;
-
-  std::string sql = "SELECT * FROM options WHERE " + conditions + ';';
-  std::cerr << sql << '\n';
-
-  char* errorMessage = 0;
-  int resultCode = sqlite3_exec(database_,
-    sql.c_str(),
-    optionCallback, (void*)&optionList, &errorMessage);
-
-  std::cerr << resultCode << '\n';
-
-  if (resultCode != SQLITE_OK) {
-    std::string exceptionMessage =
-      "SQL error getting options:\n" + std::string(errorMessage);
-    sqlite3_free(errorMessage);
-    throw std::runtime_error(exceptionMessage);
-  }
-  
-  return optionList;
-}
-
-
-
-sql::Response::Data
-Engine::getResponse(int id)
-{
-  assert(databaseOpened_);
-
-  sql::Response::Data returnResponse;
-
-  std::string sql = "SELECT * FROM responses "
-    "WHERE id = " + std::to_string(id) + ';';
-  std::cerr << sql << '\n';
-
-  char* errorMessage = 0;
-  int resultCode = sqlite3_exec(database_,
-    sql.c_str(),
-    responseCallback, (void*)&returnResponse, &errorMessage);
-
-  std::cerr << resultCode << '\n';
-
-  if (resultCode != SQLITE_OK) {
-    std::string exceptionMessage =
-      "SQL error getting response (id = " + std::to_string(id) +
-      "):\n" + std::string(errorMessage);
-    sqlite3_free(errorMessage);
-    throw std::runtime_error(exceptionMessage);
-  }
-  
-  return returnResponse;
 }
 
 

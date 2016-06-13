@@ -1,14 +1,15 @@
+/// @file main.cpp
+/// Creates and runs the engine.
+
 #include <iostream>
 #include <exception>
 
-#include "full_wrapper.h"
 #include "engine.h"
 
 int main(int argc, char* argv[])
 {
   try {
-    tbe::FullWrapper fullWrapper;
-    tbe::Engine      engine;
+    tbe::Engine engine;
   
     if (argc < 2) {
       throw std::runtime_error("No database file specified");
