@@ -7,7 +7,8 @@
 namespace tbe {
 
 void
-printResponseOptions(std::vector<std::string> const & responseOptions,
+printResponseOptions(
+  std::vector<std::string> const & responseOptions,
   int startNum)
 {
   std::cerr << "printResponseOptions\n";
@@ -26,7 +27,9 @@ printResponseOptions(std::vector<std::string> const & responseOptions,
 
 
 std::size_t
-getResponseIndex(std::size_t optionCount,
+getResponseIndex(
+  dep::InputManager inputManager,
+  std::size_t optionCount,
   int startNum)
 {
   std::string input;
@@ -34,7 +37,7 @@ getResponseIndex(std::size_t optionCount,
 
   while (true) {
     std::cout << "> ";
-    std::cin >> input;
+    std::string input = inputManager.get().trim().str();
 
     if (dep::isInt(input)) {
       index = std::stoi(input);
@@ -49,6 +52,7 @@ getResponseIndex(std::size_t optionCount,
 
 std::size_t
 askQuestionShell(
+  dep::InputManager inputManager,
   std::vector<std::string> const & responseOptions,
   int startNum,
   com::StringRef fullOutput = "")
@@ -57,26 +61,29 @@ askQuestionShell(
 
   std::cout << fullOutput;
   
-  return getResponseIndex(responseOptions.size(), startNum);
+  return getResponseIndex(inputManager, responseOptions.size(), startNum);
 }
 
 
 
 std::size_t
 askQuestion(
+  dep::InputManager inputManager,
   std::vector<std::string> const & responseOptions,
   int startNum)
 {
-  return askQuestionShell(responseOptions, startNum);
+  return askQuestionShell(inputManager, responseOptions, startNum);
 }
 
 std::size_t
 askQuestion(
+  dep::InputManager inputManager,
   std::vector<std::string> const & responseOptions,
   com::StringRef question,
   int startNum)
 {
-  return askQuestionShell(responseOptions, startNum, question + "\n");
+  return askQuestionShell(inputManager, responseOptions,
+                          startNum, question + "\n");
 }
 
 

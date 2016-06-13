@@ -17,6 +17,8 @@
 namespace tbe {
 
 Engine::Engine() :
+  locale_(""),
+  inputManager_(locale_),
   databaseOpened_(false),
   database_(0),
   wait_(500)
@@ -80,21 +82,23 @@ Engine::run()
 
     // The player selects an index of primaryOptions.
     std::size_t optionIndex =
-      askQuestion(primaryOptions, "Who would you like to talk to?", 0);
+      askQuestion(inputManager_, primaryOptions,
+                 "Who would you like to talk to?", 0);
 
     // All the constant options are handled.
     if (optionIndex == 0) break;
 
     // The index is now mapped to actors_ since the constant options are cleared.
+    sql::Actor::Data& currentActor = actors_[optionIndex-constantOptionsCount];
     optionIndex -= constantOptionsCount;
 
     // The ID of the next row to query.
-    int next = actors_[optionIndex].introId;
+    int next = currentActor.introId;
     std::cerr << next << '\n';
 
     // If the intro ID is 0, that indicates no conversation will take place.
     if (next == 0) {
-      std::cout << actors_[optionIndex].name <<
+      std::cout << currentActor.name <<
         " doesn't want to speak right now.\n";
 
       // Brings it back to the actor menu.
@@ -110,10 +114,10 @@ Engine::run()
         "id = " + std::to_string(next)});
       sql::Response::Data response = responseCall.run().at(0);
 
-      std::cout << '\n' << actors_[optionIndex].name << ": " <<
-        response.textSpeak << wait_;
-
-      std::cout << "\n";
+      // Outputs the actor's dialogue.
+      std::cout << '\n' <<
+        currentActor.name << ": " <<
+        response.textSpeak << wait_ << '\n';
 
       if (response.nextId == 0)
         break;
@@ -133,7 +137,7 @@ Engine::run()
       for (auto i : options) optionTextList.push_back(i.textDisplay);
       std::cerr << "Option text list\n";
 
-      std::size_t optionIndex = askQuestion(optionTextList);
+      std::size_t optionIndex = askQuestion(inputManager_, optionTextList);
       std::cout << '\n' << options[optionIndex].textSpeak << '\n' << wait_;
 
       next = options[optionIndex].nextId;

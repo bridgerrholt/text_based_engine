@@ -11,12 +11,15 @@
 #include <vector>
 #include <map>
 #include <memory>
+#include <locale>
 
 #include <dep/wait.h>
 
 #include <common/string_ref.h>
 
 #include <sqlite3.h>
+
+#include <dep/input_manager.h>
 
 #include "sql_helpers/query.h"
 
@@ -54,6 +57,10 @@ class Engine
     /// Attempts to close the database.
     void closeDatabase();
 
+
+    std::locale locale_;
+
+    dep::InputManager inputManager_;
 
     /// Is true while a database is successfully opened.
     bool databaseOpened_;
