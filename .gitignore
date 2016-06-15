@@ -16,3 +16,6 @@ sftp-config.json
 
 src/sqlite3
 src/cerrlog.txt
+
+doxygen/html
+doxygen/latex

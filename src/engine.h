@@ -71,7 +71,7 @@ class Engine
 
     std::vector<sql::Actor::Data> actors_;
 
-    dep::SleepEvent<> sleepEvent_;
+    dep::SleepEventDefault sleepEvent_;
 
 };
 

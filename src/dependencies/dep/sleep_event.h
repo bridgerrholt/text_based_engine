@@ -1,22 +1,26 @@
 /// @file sleep_event.h
-/// Declaration of the class SleepEvent.
+/// Complete definitions
 
 #ifndef _DEPENDENCIES_DEP_SLEEP_EVENT_H
 #define _DEPENDENCIES_DEP_SLEEP_EVENT_H
 
-#include <iostream> // size_t
-#include <chrono>
+#include <iostream>
 #include <thread>
+#include <chrono>
 
 namespace dep {
+
+// Forward declarations
 
 template <class T>
 class SleepEvent;
 
+// SleepEvent friend functions
 template <class T>
 std::ostream&
 operator<<(std::ostream        & out,
            SleepEvent<T> const & sleepEvent);
+
 
 
 /// Contains methods for sleeping a specified amount of time.
@@ -49,6 +53,13 @@ class SleepEvent
     /// Mutable variable holding the amount of time to sleep.
     T amount_;
 };
+
+/// User-friendly default template type for SleepEvent.
+typedef SleepEvent<> SleepEventDefault;
+
+
+
+// Function definitions
 
 template <class T>
 SleepEvent<T>::SleepEvent(size_t amount) :
