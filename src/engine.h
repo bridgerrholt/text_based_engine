@@ -13,7 +13,7 @@
 #include <memory>
 #include <locale>
 
-#include <dep/wait.h>
+#include <dep/sleep_event.h>
 
 #include <common/string_ref.h>
 
@@ -50,6 +50,7 @@ class Engine
     /** Opens the given database file.
         Ensures the given file exists and attempts to open it.
         If anything fails, an exception is thrown.
+        
         @param[in] fileName The path and name of the database file.
     */
     void openDatabase(com::StringRef fileName);
@@ -70,7 +71,7 @@ class Engine
 
     std::vector<sql::Actor::Data> actors_;
 
-    dep::Wait wait_;
+    dep::SleepEvent<> sleepEvent_;
 
 };
 

@@ -10,7 +10,7 @@
 
 #include <dep/check_file_exists.h>
 #include <dep/is_int.h>
-#include <dep/wait.h>
+#include <dep/sleep_event.h>
 
 #include "ask_question.h"
 
@@ -21,7 +21,7 @@ Engine::Engine() :
   inputManager_(locale_),
   databaseOpened_(false),
   database_(0),
-  wait_(500)
+  sleepEvent_(500)
 {
 
 }
@@ -117,7 +117,7 @@ Engine::run()
       // Outputs the actor's dialogue.
       std::cout << '\n' <<
         currentActor.name << ": " <<
-        response.textSpeak << wait_ << '\n';
+        response.textSpeak << sleepEvent_ << '\n';
 
       if (response.nextId == 0)
         break;
@@ -138,7 +138,8 @@ Engine::run()
       std::cerr << "Option text list\n";
 
       std::size_t optionIndex = askQuestion(inputManager_, optionTextList);
-      std::cout << '\n' << options[optionIndex].textSpeak << '\n' << wait_;
+      std::cout << '\n' <<
+        options[optionIndex].textSpeak << '\n' << sleepEvent_;
 
       next = options[optionIndex].nextId;
     }
