@@ -14,6 +14,7 @@ Response::Response(QueryDataCore const & queryData) :
 std::vector<Response::Data>
 Response::run()
 {
+  query_.verifyColumnCount(2);
   std::vector<Data> outList;
 
   while (query_.nextRow()) {

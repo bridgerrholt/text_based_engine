@@ -1,27 +1,22 @@
 /** @file engine.h
-    Declaration of the Engine class.
+    Declaration of the tbe::Engine class.
 
     @class tbe::Engine
-    Provides the main functionality, loads a database and runs the game.
+    Provides the main functionality, loads a database and runs the dialogue.
 */
 
 #ifndef TEXT_BASED_ENGINE_ENGINE_H
 #define TEXT_BASED_ENGINE_ENGINE_H
 
 #include <vector>
-#include <map>
-#include <memory>
 #include <locale>
 
-#include <dep/sleep_event.h>
-
-#include <common/string_ref.h>
+#include <com/string_ref.h>
 
 #include <sqlite3.h>
 
 #include <dep/input_manager.h>
-
-#include "sql_helpers/query.h"
+#include <dep/sleep_event.h>
 
 #include "sql_helpers/objects/include.h"
 
@@ -59,8 +54,10 @@ class Engine
     void closeDatabase();
 
 
+    /// The program-wide locale.
     std::locale locale_;
 
+    /// Primary InputManager.
     dep::InputManager inputManager_;
 
     /// Is true while a database is successfully opened.
@@ -69,10 +66,12 @@ class Engine
     /// Handles the currently open database.
     sqlite3* database_;
 
+    /// All the actors specified in the database.
     std::vector<sql::Actor::Data> actors_;
 
+    /// The primary SleepEvent.
+    /// Secondary SleepEvents may be added in the future.
     dep::SleepEventDefault sleepEvent_;
-
 };
 
 }

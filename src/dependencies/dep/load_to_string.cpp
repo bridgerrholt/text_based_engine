@@ -1,3 +1,6 @@
+/// @file load_to_string.cpp
+/// Definition of the dep::loadToString functions.
+
 #include "load_to_string.h"
 
 #include <stdexcept>
@@ -16,7 +19,6 @@ loadToString(com::StringRef fileName)
 
   return returnString;
 }
-
 
 
 void

@@ -1,5 +1,5 @@
 /// @file engine.cpp
-/// Definition of the Engine class.
+/// Definition of the tbe::Engine class.
 
 #include "engine.h"
 
@@ -11,16 +11,24 @@
 #include <dep/check_file_exists.h>
 #include <dep/is_int.h>
 #include <dep/sleep_event.h>
+#include <dep/of_dynamic.h>
 
 #include "ask_question.h"
+
+#include "sql_helpers/mapped_query.h"
+#include "sql_helpers/types/include.h"
+#include "sql_helpers/column_list.h"
+#include "sql_helpers/database_structure.h"
 
 namespace tbe {
 
 Engine::Engine() :
-  locale_(""),
+  locale_(""), // Player's default locale
   inputManager_(locale_),
+
   databaseOpened_(false),
   database_(0),
+
   sleepEvent_(500)
 {
 
@@ -30,6 +38,8 @@ Engine::Engine() :
 
 Engine::~Engine()
 {
+  // Any member queries should be closed before the database is closed.
+
   closeDatabase();
 
   std::cerr << "Engine destructed\n";
@@ -44,6 +54,26 @@ Engine::loadDatabase(com::StringRef fileName)
 
   sql::Actor actor(database_);
   actors_ = actor.run();
+
+
+  using namespace sql;
+
+  Tables tables;
+
+  ColumnList columns;
+  columns.push(tables.actors.name);
+  columns.push(tables.actors.introId);
+
+  MappedQuery query({database_}, "actors", columns);
+
+  MappedQuery::QueryResult actors = query.run();
+
+  for (auto & i : actors) {
+    std::cerr << i.getCol<types::Text>(tables.actors.name)   .data    << ' ' <<
+                 i.getCol<types::Int> (tables.actors.introId).data << '\n';
+    //std::cerr << dep::ofDynamic<types::Text>(*i[0])->data << ' ' <<
+    //             dep::ofDynamic<types::Int> (*i[1])->data << '\n';
+  }
 
   for (auto i : actors_) {
     std::cerr << i.name << ' ' << i.introId << '\n';
@@ -66,10 +96,10 @@ Engine::run()
   std::vector<std::string> primaryOptions;
 
   // constantOptionsCount specifies how many options remain through every iteration,
-  // primaryOptions is resized to it every iteration.
+  // primaryOptions is resized to it every iteration in case actors change.
   std::size_t constantOptionsCount = 1;
 
-  primaryOptions.push_back("QUIT");
+  primaryOptions.push_back("QUIT"); // Breaks out of the main loop.
 
 
   // The main game loop.
@@ -86,6 +116,7 @@ Engine::run()
                  "Who would you like to talk to?", 0);
 
     // All the constant options are handled.
+    // QUIT
     if (optionIndex == 0) break;
 
     // The index is now mapped to actors_ since the constant options are cleared.
@@ -115,36 +146,42 @@ Engine::run()
       sql::Response::Data response = responseCall.run().at(0);
 
       // Outputs the actor's dialogue.
+      // %name%: %textSpeak%-sleep-
       std::cout << '\n' <<
         currentActor.name << ": " <<
         response.textSpeak << sleepEvent_ << '\n';
 
+      // The conversation is over if the next ID is marked as 0.
       if (response.nextId == 0)
         break;
 
-      std::string statement = "option_list_id = " +
-        std::to_string(response.nextId);
-      std::cerr << statement << '\n';
+      // Queries the next option list.
+      sql::Option optionCall({database_,
+        "option_list_id = " + std::to_string(response.nextId)
+      });
 
-      sql::Option optionCall({database_, statement});
-
+      // Runs the query, collecting the list of options.
       std::vector<sql::Option::Data> options =
         optionCall.run();
 
       std::cerr << "Got options\n";
 
+      // Lists all the textDisplay strings from the options.
       std::vector<std::string> optionTextList;
-      for (auto i : options) optionTextList.push_back(i.textDisplay);
+      for (auto i : options)
+        optionTextList.push_back(i.textDisplay);
       std::cerr << "Option text list\n";
 
+      // Prompts the user for their text option selection.
       std::size_t optionIndex = askQuestion(inputManager_, optionTextList);
       std::cout << '\n' <<
         options[optionIndex].textSpeak << '\n' << sleepEvent_;
 
+      // The ID of the next actor response.
       next = options[optionIndex].nextId;
-    }
 
-  }
+    } // Conversation
+  } // Actor selection
 }
 
 
@@ -155,6 +192,7 @@ Engine::openDatabase(com::StringRef fileName)
   // Closes the database if it's open.
   closeDatabase();
 
+  // Specifically pass if the user's provided database file path doesn't exist.
   if (!dep::checkFileExists(fileName)) {
     throw std::runtime_error(
       "Database file can't be found:\n " +
@@ -180,6 +218,7 @@ Engine::openDatabase(com::StringRef fileName)
     );
   }
 
+  // Database was opened successfully.
   else databaseOpened_ = true;
 }
 
@@ -188,6 +227,8 @@ Engine::openDatabase(com::StringRef fileName)
 void
 Engine::closeDatabase()
 {
+  // Only attempt to close if it was opened.
+  // Terrible problems arise from freeing unallocated memory even with sqlite3 functions.
   if (databaseOpened_) {
     std::cerr << "About to close opened database\n";
 
@@ -195,11 +236,12 @@ Engine::closeDatabase()
     if (sqlite3_close_v2(database_) != SQLITE_OK) {
       std::cerr << "Database couldn't close\n";
     }
-
-    std::cerr << "Closed database\n";
+    else {
+      std::cerr << "Closed database\n";
+    }
   }
 
-
+  // A database may be opened again later.
   databaseOpened_ = false;
 }
 

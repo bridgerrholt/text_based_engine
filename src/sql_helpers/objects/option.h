@@ -1,7 +1,7 @@
 #ifndef TEXT_BASED_ENGINE_SQL_HELPERS_OBJECTS_OPTION_H
 #define TEXT_BASED_ENGINE_SQL_HELPERS_OBJECTS_OPTION_H
 
-#include <common/string_ref.h>
+#include <com/string_ref.h>
 
 #include "../object_core.h"
 

@@ -1,4 +1,8 @@
-#include <common/string_ref.h>
+/// @file is_int.cpp
+/// Definition of the dep::isInt function.
+
+#include "is_int.h"
+
 #include <cstdlib>
 
 namespace dep {

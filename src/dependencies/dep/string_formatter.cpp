@@ -1,4 +1,7 @@
-#include "format_string.h"
+/// @file string_formatter.cpp
+/// Definition of the dep::StringFormatter class.
+
+#include "string_formatter.h"
 
 #include <algorithm> 
 #include <functional> 
@@ -6,8 +9,8 @@
 
 namespace dep {
 
-FormatString::FormatString(std::locale const & locale,
-                           com::StringRef      contents) :
+StringFormatter::StringFormatter(std::locale const & locale,
+                                 com::StringRef      contents) :
   locale_  (locale),
   contents_(contents)
 {
@@ -17,23 +20,25 @@ FormatString::FormatString(std::locale const & locale,
 
 
 std::string
-FormatString::str() const
+StringFormatter::str() const
 {
   return contents_;
 }
 
+
 std::string
-str(FormatString const & formatString)
+str(StringFormatter const & stringFormatter)
 {
-  return formatString.str();
+  return stringFormatter.str();
 }
+
 
 
 // Format functions
 
 // Trim family
-FormatString&
-FormatString::trimLeft()
+StringFormatter&
+StringFormatter::trimLeft()
 {
   auto begin   = contents_.begin();
   auto eraseTo = begin;
@@ -51,8 +56,8 @@ FormatString::trimLeft()
 }
 
 
-FormatString&
-FormatString::trimRight()
+StringFormatter&
+StringFormatter::trimRight()
 {
   auto end       = contents_.end();
   auto eraseFrom = end;
@@ -72,8 +77,8 @@ FormatString::trimRight()
 }
 
 
-FormatString&
-FormatString::trim()
+StringFormatter&
+StringFormatter::trim()
 {
   return this->trimLeft().trimRight();
 }

@@ -1,3 +1,6 @@
+/// @file ask_question.h
+/// Definitions of the tbe::askQuestion function and its helpers.
+
 #include "ask_question.h"
 
 #include <iostream>
@@ -50,6 +53,7 @@ getResponseIndex(
 }
 
 
+
 std::size_t
 askQuestionShell(
   dep::InputManager inputManager,
@@ -74,6 +78,7 @@ askQuestion(
 {
   return askQuestionShell(inputManager, responseOptions, startNum);
 }
+
 
 std::size_t
 askQuestion(

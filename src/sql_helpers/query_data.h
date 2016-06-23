@@ -1,10 +1,10 @@
 /// @file query_data.h
-/// Declaration of the QueryDataCore and QueryDataFull classes.
+/// Declaration of the tbe::sql::QueryDataCore and tbe::sql::QueryDataFull classes.
 
 #ifndef TEXT_BASED_ENGINE_SQL_HELPERS_QUERY_DATA_H
 #define TEXT_BASED_ENGINE_SQL_HELPERS_QUERY_DATA_H
 
-#include <common/string_ref.h>
+#include <com/string_ref.h>
 
 #include <sqlite3.h>
 

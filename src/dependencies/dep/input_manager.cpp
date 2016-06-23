@@ -1,3 +1,6 @@
+/// @file input_manager.cpp
+/// Definition of the dep::InputManager class.
+
 #include "input_manager.h"
 
 namespace dep {
@@ -10,7 +13,7 @@ InputManager::InputManager(std::locale const & locale) :
 
 
 
-FormatString
+StringFormatter
 InputManager::get()
 {
   std::string inputString;
@@ -18,11 +21,29 @@ InputManager::get()
 }
 
 
-FormatString
+StringFormatter
 InputManager::get(std::string & inputString)
 {
+  getPure(inputString);
+  return StringFormatter(locale_, inputString);
+}
+
+
+
+std::string
+InputManager::getPure()
+{
+  std::string inputString;
+  getPure(inputString);
+  
+  return inputString;
+}
+
+
+void
+InputManager::getPure(std::string & inputString)
+{
   std::getline(std::cin, inputString);
-  return FormatString(locale_, inputString);
 }
 
 

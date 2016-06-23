@@ -1,3 +1,5 @@
+/// @file query.cpp
+
 #include "query.h"
 
 #include <iostream>
@@ -35,7 +37,7 @@ Query::Query(sqlite3* database, com::StringRef queryText) :
 
 
 Query::Query(QueryDataFull const & queryData,
-  com::StringRef tableName) :
+             com::StringRef        tableName) :
 
   Query(queryData.getDatabase(), queryData.formatQueryText(tableName))
 {
@@ -49,27 +51,26 @@ Query::nextRow()
 {
   int returnCode = sqlite3_step(getHandle());
 
-  std::stringstream exceptionMessage;
-  switch (returnCode) {
-    case SQLITE_DONE :
-      return false;
+  if (returnCode == SQLITE_ROW)
+    return true;
 
-    case SQLITE_ROW :
-      return true;
-      break;
+  else if (returnCode == SQLITE_DONE)
+    return false;
 
-    case SQLITE_BUSY :
-      throw std::runtime_error("Handle (" + dep::ptrToString(getHandle()) +
-        ") is busy");
-      break;
+  else {
+    // "Handle (%handlePtr%) "
+    std::string errorMessage = getHandleString();
 
-    default:
-      throw std::runtime_error("Handle (" + dep::ptrToString(getHandle()) +
-        ") has an error (error code " + std::to_string(returnCode) + ")");
-      break;
+    if (returnCode == SQLITE_BUSY)
+      errorMessage += " is busy";
+
+    else {
+      errorMessage += " has an error (error code " +
+        std::to_string(returnCode) + ")";
+    }
+
+    throw std::runtime_error(errorMessage);
   }
-
-  return false;
 }
 
 
@@ -77,8 +78,15 @@ Query::nextRow()
 void
 Query::verifyColumnCount(int desiredCount)
 {
-  if (sqlite3_column_count(getHandle()) != desiredCount) {
-    throw std::runtime_error("Handle");
+  int columnCount = sqlite3_column_count(getHandle());
+
+  if (columnCount != desiredCount) {
+    throw std::runtime_error(
+      getHandleString() + " has " +
+      std::to_string(columnCount)  + " column(s)"
+      " instead of the desired " +
+      std::to_string(desiredCount) + " column(s)"
+    );
   }
 }
 
@@ -97,6 +105,14 @@ sqlite3_stmt*
 Query::getHandle() const
 {
   return handle_->handle;
+}
+
+
+
+std::string
+Query::getHandleString() const
+{
+  return "Handle (" + dep::ptrToString(getHandle()) + ")";
 }
 
 

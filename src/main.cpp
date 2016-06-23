@@ -21,10 +21,14 @@ int main(int argc, char* argv[])
   }
   catch (std::exception& error) {
     std::cout << "Main function caught an exception:\n" <<
-      error.what();
+      error.what() << '\n' << std::endl;
 
     return 1;
   }
+
+  /*tbe::sql::TemplateQuery<bool> tq {false};
+
+  tbe::sql::Object<bool> ob {false};*/
 
   return 0;
 }

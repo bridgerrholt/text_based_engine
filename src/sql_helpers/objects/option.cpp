@@ -16,6 +16,7 @@ Option::Option(QueryDataCore const & queryData) :
 std::vector<Option::Data>
 Option::run()
 {
+  query_.verifyColumnCount(5);
   std::vector<Data> outList;
 
   while (query_.nextRow()) {

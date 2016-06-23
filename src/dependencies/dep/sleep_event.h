@@ -1,5 +1,5 @@
 /// @file sleep_event.h
-/// Complete definitions
+/// Complete definitions of the dep::SleepEvent class and helper functions.
 
 #ifndef _DEPENDENCIES_DEP_SLEEP_EVENT_H
 #define _DEPENDENCIES_DEP_SLEEP_EVENT_H
@@ -24,34 +24,38 @@ operator<<(std::ostream        & out,
 
 
 /// Contains methods for sleeping a specified amount of time.
+/// You may use SleepEventDefault if you are using T's default type.
 template <class T = std::chrono::milliseconds>
 class SleepEvent
 {
   public:
     /// Primary constructor.
-    /// @param[in] amountSet Sets amount.
-    SleepEvent(size_t amount);
+    /// @param[in] amountSet Used to construct @ref duration_.
+    ///                      
+    SleepEvent(size_t duration);
 
-    /// Sleeps for the amount specified by @ref amount.
+    /// Sleeps for the amount specified by @ref duration_.
     void sleep() const;
 
     /// Flushes the stream and sleeps.
-    /// @param[in] out The out stream being operated on.
+    /// @param[in] out        The out stream being operated on.
     /// @param[in] sleepEvent The passed SleepEvent.
+    /// @return The modified (flushed) stream (parameter @p out).
     friend
     std::ostream& operator<< <T>(std::ostream     & out,
                                  SleepEvent const & sleepEvent);
 
-    /// Constructs @ref amount_ with the given value.
-    /// @param[in] amount Passed to the construction of @ref amount_
-    void   setAmount(size_t amount);
+    /// Constructs @ref duration_ with the given value.
+    /// @param[in] duration Passed to the construction of @ref duration_.
+    void   setDuration(size_t duration);
 
-    /// Returns the underlying amount in @ref amount_;
-    size_t getAmount() const;
+    /// Returns the underlying value in @ref duration_.
+    size_t getDuration() const;
+
 
   private:
     /// Mutable variable holding the amount of time to sleep.
-    T amount_;
+    T duration_;
 };
 
 /// User-friendly default template type for SleepEvent.
@@ -62,8 +66,8 @@ typedef SleepEvent<> SleepEventDefault;
 // Function definitions
 
 template <class T>
-SleepEvent<T>::SleepEvent(size_t amount) :
-  amount_(amount)
+SleepEvent<T>::SleepEvent(size_t duration) :
+  duration_(duration)
 {
 
 }
@@ -74,7 +78,7 @@ template <class T>
 void
 SleepEvent<T>::sleep() const
 {
-  std::this_thread::sleep_for(amount_);
+  std::this_thread::sleep_for(duration_);
 }
 
 
@@ -93,18 +97,18 @@ operator<<(std::ostream& out, SleepEvent<T> const & sleepEvent)
 
 template <class T>
 void
-SleepEvent<T>::setAmount(size_t amount)
+SleepEvent<T>::setDuration(size_t duration)
 {
-  amount_ = T(amount);
+  duration_ = T(duration);
 }
 
 
 
 template <class T>
 size_t
-SleepEvent<T>::getAmount() const
+SleepEvent<T>::getDuration() const
 {
-  return amount_.count();
+  return duration_.count();
 }
 
 
