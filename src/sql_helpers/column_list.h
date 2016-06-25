@@ -1,7 +1,16 @@
+/** @file column_list.h
+    Declaration of the tbe::sql::ColumnList class.
+
+    @class tbe::sql::ColumnList
+    Manages a list of pointers to ColumnInfo objects.
+*/
+
 #ifndef TEXT_BASED_ENGINE_SQL_HELPERS_COLUMN_LIST_H
 #define TEXT_BASED_ENGINE_SQL_HELPERS_COLUMN_LIST_H
 
 #include <vector>
+
+#include "column_list_id.h"
 
 #include "column_info.h"
 
@@ -11,20 +20,56 @@ namespace tbe {
 class ColumnList
 {
   public:
-    typedef std::vector<ColumnInfoMapped> ColumnInfoList;
+    /// The underlying list of ColumnInfo objects.
+    typedef std::vector<ColumnInfo*> ColumnInfoList;
 
+    friend void swap(ColumnList& first, ColumnList& second);
+
+    /** Primary constructor, generates a unique id.
+        No mechanism tracks ColumnList objects, so an exception will be thrown if
+        too many are created in total (the maximum number depends on the compiler but
+        is most likely extremely high).
+    */
     ColumnList();
 
-    void push(ColumnInfoMapped& column);
+    /// Creates @ref columns_ from @p columns and generates a unique id.
+    /// @param columns Gets swapped with @ref columns_.
+    ColumnList(ColumnInfoList& columns);
 
+    /// @param columns Gets copied to @ref columns_.
+    ColumnList(ColumnInfoList const & columns);
+
+    /// Copying is disallowed because of the unqiue id system.
+    ColumnList(ColumnList const & other) = delete;
+
+    /// Move operator.
+    ColumnList(ColumnList&& other);
+
+    /** Pushes a reference to the specified column and gives it this object's unique id.
+        An exception will be thrown if the column's internal map already
+        contains this object's unique id.
+
+        @param column The column to be modified and copied.
+    */
+    void push(ColumnInfo& column);
+
+    /// Returns the underlying ColumnInfoList.
     ColumnInfoList const & getColumns() const { return columns_; }
-    size_t                 getId()      const { return id_; }
+
+    /// Returns the unique id.
+    ColumnListIdSizeType   getId()      const { return id_.value; }
 
 
   private:
+    /// Constructs with a passed id.
+    ColumnList(ColumnListId const & id);
+
+    /// The underlying ColumnInfoList.
+    /// Will only ever be expanded, never shrunk.
     ColumnInfoList columns_;
 
-    size_t id_;
+    // The unique id given to each ColumnList object.
+    ColumnListId id_;
 };
 
 

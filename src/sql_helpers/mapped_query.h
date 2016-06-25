@@ -11,12 +11,12 @@
 #include "query_data.h"
 #include "dynamic_type.h"
 #include "column_list.h"
+#include "column_info.h"
 
 #include <dep/of_dynamic.h>
 
 namespace tbe {
   namespace sql {
-
 
 class MappedQuery
 {
@@ -30,10 +30,7 @@ class MappedQuery
         QueryObject(size_t columnListId);
 
         template <class T>
-        T const & getCol(ColumnInfo       const & column);
-
-        template <class T>
-        T const & getCol(ColumnInfoMapped const & column);
+        T const & getCol(ColumnInfo const & column);
 
         VarList varList;
 
@@ -53,7 +50,7 @@ class MappedQuery
     MappedQuery(
       QueryDataCore const & queryData,
       std::string   const & tableName,
-      ColumnList    const & selectColumns);
+      ColumnList          & selectColumns);
 
     QueryResult run();
 
@@ -74,14 +71,6 @@ class MappedQuery
 template <class T>
 T const &
 MappedQuery::QueryObject::getCol(ColumnInfo const & column)
-{
-  return *dep::ofDynamic<T>(*(varList.at(column.getId())));
-}
-
-
-template <class T>
-T const &
-MappedQuery::QueryObject::getCol(ColumnInfoMapped const & column)
 {
   return *dep::ofDynamic<T>(*(varList.at(column.getId(columnListId_))));
 }

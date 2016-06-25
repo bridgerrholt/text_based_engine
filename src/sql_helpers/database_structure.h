@@ -15,7 +15,7 @@ class Tables
     class Actors
     {
       public:
-        ColumnInfoMapped
+        ColumnInfo
           id      = { "id",       DynamicType::INT  },
           name    = { "name",     DynamicType::TEXT },
           introId = { "intro_id", DynamicType::INT  };

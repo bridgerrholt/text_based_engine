@@ -10,9 +10,9 @@ namespace tbe {
 MappedQuery::MappedQuery(
   QueryDataCore const & queryData,
   std::string   const & tableName,
-  ColumnList    const & selectColumns) :
+  ColumnList          & selectColumns) :
 
-  selectColumns_(selectColumns),
+  selectColumns_(std::move(selectColumns)),
 
   query_(QueryDataFull(queryData, generateSelectClause()), tableName)
 {
@@ -35,7 +35,7 @@ MappedQuery::run()
     result.emplace_back(selectColumns_.getId());
 
     for (size_t i = 0; i < selectColumns_.getColumns().size(); ++i) {
-      switch (selectColumns_.getColumns()[i].getKind()) {
+      switch (selectColumns_.getColumns()[i]->kind) {
         case DynamicType::INT :
           result.back().varList.push_back(
             std::unique_ptr<DynamicType>(new Int(
@@ -69,7 +69,7 @@ MappedQuery::generateSelectClause() const
   std::cerr << "Generating\n";
 
   for (size_t i = 0; i < selectColumns_.getColumns().size(); ++i) {
-    returnString += selectColumns_.getColumns().at(i).getName();
+    returnString += selectColumns_.getColumns().at(i)->name;
     if (i < selectColumns_.getColumns().size() - 1)
       returnString += ", ";
   }

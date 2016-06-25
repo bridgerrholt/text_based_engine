@@ -4,56 +4,39 @@
 namespace tbe {
   namespace sql {
 
-ColumnInfoBase::ColumnInfoBase(std::string const & name,
-                               DynamicType::Kind   kind) :
-  name_(name),
-  kind_(kind)
+ColumnInfo::ColumnInfo(std::string const & nameSet,
+                       DynamicType::Kind   kindSet) :
+  name(nameSet),
+  kind(kindSet)
 {
-
-}
-
-
-
-ColumnInfo::ColumnInfo(std::string const & name,
-                       DynamicType::Kind   kind) :
-  ColumnInfoBase(name, kind)
-{
-
-}
-
-
-
-void
-ColumnInfo::setId(size_t id)
-{
-  id_ = id;
-}
-
-
-
-
-
-ColumnInfoMapped::ColumnInfoMapped(std::string const & name,
-                                   DynamicType::Kind   kind) :
-  ColumnInfoBase(name, kind)
-{
-
+  
 }
 
 
 
 size_t
-ColumnInfoMapped::getId(size_t columnListId) const
+ColumnInfo::getId(size_t columnListId) const
 {
+  // An exception is thrown if columnListId is not a key within idMap_.
   return idMap_.at(columnListId);
 }
 
 
 
 void
-ColumnInfoMapped::setId(size_t id, size_t columnListId)
+ColumnInfo::insertId(ColumnListId columnListId,
+                     size_t       id)
 {
-  idMap_[columnListId] = id;
+  // Throw an exception if the key (columnListId) is already within idMap_.
+  if (idMap_.count(columnListId.value) != 0) {
+    throw std::runtime_error(
+      "ColumnListId " +
+      std::to_string(columnListId.value) +
+      " is already mapped"
+    );
+  }
+
+  idMap_[columnListId.value] = id;
 }
 
 
