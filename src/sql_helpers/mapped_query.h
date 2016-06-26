@@ -15,29 +15,14 @@
 
 #include <dep/of_dynamic.h>
 
+#include "query_object.h"
+
 namespace tbe {
   namespace sql {
 
 class MappedQuery
 {
   public:
-    typedef std::unique_ptr<DynamicType> DynamicVar;
-    typedef std::vector    <DynamicVar>  VarList;
-
-    class QueryObject
-    {
-      public:
-        QueryObject(size_t columnListId);
-
-        template <class T>
-        T const & getCol(ColumnInfo const & column);
-
-        VarList varList;
-
-      private:
-        size_t columnListId_;
-    };
-
     typedef std::vector<QueryObject> QueryResult;
 
     class Column
@@ -65,15 +50,6 @@ class MappedQuery
     Query query_;
 
 };
-
-
-
-template <class T>
-T const &
-MappedQuery::QueryObject::getCol(ColumnInfo const & column)
-{
-  return *dep::ofDynamic<T>(*(varList.at(column.getId(columnListId_))));
-}
 
 
 

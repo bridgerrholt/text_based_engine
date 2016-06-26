@@ -55,10 +55,26 @@ class ColumnInfo
   private:
     /// Maps the ids of ColumnList objects to indexes of columns within SQL queries.
     std::unordered_map<size_t, size_t> idMap_;
+
 };
 
 
 
+      namespace column_info_types {
+
+class Int : public ColumnInfo
+{
+  public: Int(std::string const & nameSet) :
+            ColumnInfo(nameSet, DynamicType::INT) {}
+};
+
+class Text : public ColumnInfo
+{
+  public: Text(std::string const & nameSet) :
+            ColumnInfo(nameSet, DynamicType::TEXT) {}
+};
+
+    }
   }
 }
 

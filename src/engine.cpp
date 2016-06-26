@@ -16,9 +16,14 @@
 #include "ask_question.h"
 
 #include "sql_helpers/mapped_query.h"
+#include "sql_helpers/query_object.h"
 #include "sql_helpers/types/include.h"
 #include "sql_helpers/column_list.h"
 #include "sql_helpers/database_structure.h"
+
+using namespace tbe::sql;
+
+Tables tables;
 
 namespace tbe {
 
@@ -52,13 +57,8 @@ Engine::loadDatabase(com::StringRef fileName)
 {
   openDatabase(fileName);
 
-  sql::Actor actor(database_);
-  actors_ = actor.run();
-
-
-  using namespace sql;
-
-  Tables tables;
+  /*sql::Actor actor(database_);
+  actors_ = actor.run();*/
 
   ColumnList columns;
   columns.push(tables.actors.name);
@@ -66,18 +66,21 @@ Engine::loadDatabase(com::StringRef fileName)
 
   MappedQuery query({database_}, "actors", columns);
 
-  MappedQuery::QueryResult actors = query.run();
+  actors_ = query.run();
 
-  for (auto & i : actors) {
-    std::cerr << i.getCol<types::Text>(tables.actors.name)   .data    << ' ' <<
-                 i.getCol<types::Int> (tables.actors.introId).data << '\n';
+  for (auto & i : actors_) {
+    std::cerr << i.col(tables.actors.name)    << ' ' <<
+                 i.col(tables.actors.introId) << '\n';
+
+    //std::cerr << i.getCol<types::Text>(tables.actors.name)   .data << ' ' <<
+    //             i.getCol<types::Int> (tables.actors.introId).data << '\n';
     //std::cerr << dep::ofDynamic<types::Text>(*i[0])->data << ' ' <<
     //             dep::ofDynamic<types::Int> (*i[1])->data << '\n';
   }
 
-  for (auto i : actors_) {
+  /*for (auto i : actors_) {
     std::cerr << i.name << ' ' << i.introId << '\n';
-  }
+  }*/
 }
 
 
@@ -107,8 +110,11 @@ Engine::run()
   while (true) {
     // All the old actors are removed and all the current actors are added.
     primaryOptions.resize(constantOptionsCount);
-    for (auto i : actors_)
-      primaryOptions.push_back(i.name);
+    for (auto & i : actors_) {
+      primaryOptions.push_back(
+        i.col(tables.actors.name)
+      );
+    }
 
     // The player selects an index of primaryOptions.
     std::size_t optionIndex =
@@ -120,16 +126,16 @@ Engine::run()
     if (optionIndex == 0) break;
 
     // The index is now mapped to actors_ since the constant options are cleared.
-    sql::Actor::Data& currentActor = actors_[optionIndex-constantOptionsCount];
+    QueryObject& currentActor = actors_[optionIndex-constantOptionsCount];
     optionIndex -= constantOptionsCount;
 
     // The ID of the next row to query.
-    int next = currentActor.introId;
+    int next = currentActor.col(tables.actors.introId);
     std::cerr << next << '\n';
 
     // If the intro ID is 0, that indicates no conversation will take place.
     if (next == 0) {
-      std::cout << currentActor.name <<
+      std::cout << currentActor.getCol<types::Text>(tables.actors.name).data <<
         " doesn't want to speak right now.\n";
 
       // Brings it back to the actor menu.
@@ -148,7 +154,7 @@ Engine::run()
       // Outputs the actor's dialogue.
       // %name%: %textSpeak%-sleep-
       std::cout << '\n' <<
-        currentActor.name << ": " <<
+        currentActor.getCol<types::Text>(tables.actors.name).data << ": " <<
         response.textSpeak << sleepEvent_ << '\n';
 
       // The conversation is over if the next ID is marked as 0.

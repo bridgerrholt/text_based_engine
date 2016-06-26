@@ -79,12 +79,5 @@ MappedQuery::generateSelectClause() const
 
 
 
-
-MappedQuery::QueryObject::QueryObject(size_t columnListId) :
-  columnListId_(columnListId)
-{
-
-}
-
   }
 }

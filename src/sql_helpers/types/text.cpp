@@ -4,7 +4,7 @@ namespace tbe {
   namespace sql {
     namespace types {
 
-Text::Text(com::StringRef dataSet) :
+Text::Text(DataType const & dataSet) :
   DynamicType(DynamicType::TEXT)
 {
   data = dataSet;

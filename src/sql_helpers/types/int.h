@@ -10,12 +10,11 @@ namespace tbe {
 class Int : public DynamicType
 {
   public:
-    Int(int dataSet);
+    typedef int DataType;
 
-    int data;
+    Int(DataType dataSet);
 
-  private:
-  
+    DataType data;
 };
 
     }

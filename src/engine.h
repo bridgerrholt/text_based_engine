@@ -19,6 +19,7 @@
 #include <dep/sleep_event.h>
 
 #include "sql_helpers/objects/include.h"
+#include "sql_helpers/mapped_query.h"
 
 namespace tbe {
 
@@ -67,7 +68,7 @@ class Engine
     sqlite3* database_;
 
     /// All the actors specified in the database.
-    std::vector<sql::Actor::Data> actors_;
+    sql::MappedQuery::QueryResult actors_;
 
     /// The primary SleepEvent.
     /// Secondary SleepEvents may be added in the future.

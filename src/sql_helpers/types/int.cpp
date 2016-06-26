@@ -4,7 +4,7 @@ namespace tbe {
   namespace sql {
     namespace types {
 
-Int::Int(int dataSet) :
+Int::Int(DataType dataSet) :
   DynamicType(DynamicType::INT)
 {
   data = dataSet;
