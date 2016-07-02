@@ -1,6 +1,3 @@
-/// @file engine.cpp
-/// Definition of the tbe::Engine class.
-
 #include "engine.h"
 
 #include <iostream>
@@ -21,11 +18,13 @@
 #include "sql_helpers/column_list.h"
 #include "sql_helpers/database_structure.h"
 
+namespace tbe {
+
 using namespace tbe::sql;
 
-Tables tables;
+Tables          tables;
+Tables::Actors& actors = tables.actors;
 
-namespace tbe {
 
 Engine::Engine() :
   locale_(""), // Player's default locale
@@ -53,34 +52,22 @@ Engine::~Engine()
 
 
 void
-Engine::loadDatabase(com::StringRef fileName)
+Engine::loadDatabase(std::string const & fileName)
 {
   openDatabase(fileName);
 
-  /*sql::Actor actor(database_);
-  actors_ = actor.run();*/
-
   ColumnList columns;
-  columns.push(tables.actors.name);
-  columns.push(tables.actors.introId);
+  columns.push(actors.name);
+  columns.push(actors.introId);
 
   MappedQuery query({database_}, "actors", columns);
 
   actors_ = query.run();
 
   for (auto & i : actors_) {
-    std::cerr << i.col(tables.actors.name)    << ' ' <<
-                 i.col(tables.actors.introId) << '\n';
-
-    //std::cerr << i.getCol<types::Text>(tables.actors.name)   .data << ' ' <<
-    //             i.getCol<types::Int> (tables.actors.introId).data << '\n';
-    //std::cerr << dep::ofDynamic<types::Text>(*i[0])->data << ' ' <<
-    //             dep::ofDynamic<types::Int> (*i[1])->data << '\n';
+    std::cerr << i.col(actors.name)    << ' ' <<
+                 i.col(actors.introId) << '\n';
   }
-
-  /*for (auto i : actors_) {
-    std::cerr << i.name << ' ' << i.introId << '\n';
-  }*/
 }
 
 
@@ -112,7 +99,7 @@ Engine::run()
     primaryOptions.resize(constantOptionsCount);
     for (auto & i : actors_) {
       primaryOptions.push_back(
-        i.col(tables.actors.name)
+        i.col(actors.name)
       );
     }
 
@@ -130,12 +117,12 @@ Engine::run()
     optionIndex -= constantOptionsCount;
 
     // The ID of the next row to query.
-    int next = currentActor.col(tables.actors.introId);
+    int next = currentActor.col(actors.introId);
     std::cerr << next << '\n';
 
     // If the intro ID is 0, that indicates no conversation will take place.
     if (next == 0) {
-      std::cout << currentActor.getCol<types::Text>(tables.actors.name).data <<
+      std::cout << currentActor.col(actors.name) <<
         " doesn't want to speak right now.\n";
 
       // Brings it back to the actor menu.
@@ -154,7 +141,7 @@ Engine::run()
       // Outputs the actor's dialogue.
       // %name%: %textSpeak%-sleep-
       std::cout << '\n' <<
-        currentActor.getCol<types::Text>(tables.actors.name).data << ": " <<
+        currentActor.col(actors.name) << ": " <<
         response.textSpeak << sleepEvent_ << '\n';
 
       // The conversation is over if the next ID is marked as 0.
@@ -193,7 +180,7 @@ Engine::run()
 
 
 void
-Engine::openDatabase(com::StringRef fileName)
+Engine::openDatabase(std::string const & fileName)
 {
   // Closes the database if it's open.
   closeDatabase();

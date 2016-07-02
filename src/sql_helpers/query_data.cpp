@@ -39,6 +39,15 @@ QueryDataCore::getDatabase() const
 
 
 
+void
+QueryDataCore::changeWhereClause(std::string const & newWhereClause)
+{
+  whereClause_ = newWhereClause;
+}
+
+
+
+
 // QueryDataFull
 
 QueryDataFull::QueryDataFull(QueryDataCore queryData,

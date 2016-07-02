@@ -10,8 +10,7 @@
 
 #include <vector>
 #include <locale>
-
-#include <com/string_ref.h>
+#include <string>
 
 #include <sqlite3.h>
 
@@ -20,6 +19,7 @@
 
 #include "sql_helpers/objects/include.h"
 #include "sql_helpers/mapped_query.h"
+#include "sql_helpers/column_list.h"
 
 namespace tbe {
 
@@ -36,7 +36,7 @@ class Engine
     /// Opens the provided database and gathers needed data.
     /// If a database is already open, it is closed before the new one is opened.
     /// @param[in] fileName The path and name of the database file.
-    void loadDatabase(com::StringRef fileName);
+    void loadDatabase(std::string const & fileName);
 
     /// Runs the actual game.
     void run();
@@ -49,7 +49,7 @@ class Engine
         
         @param[in] fileName The path and name of the database file.
     */
-    void openDatabase(com::StringRef fileName);
+    void openDatabase(std::string const & fileName);
 
     /// Attempts to close the database.
     void closeDatabase();
@@ -73,6 +73,9 @@ class Engine
     /// The primary SleepEvent.
     /// Secondary SleepEvents may be added in the future.
     dep::SleepEventDefault sleepEvent_;
+
+
+    sql::ColumnList optionColumns_;
 };
 
 }

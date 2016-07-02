@@ -23,6 +23,8 @@ class QueryDataCore
 
     sqlite3* getDatabase() const;
 
+    void changeWhereClause(std::string const & newWhereClause);
+
 
   protected:
     sqlite3*    database_;

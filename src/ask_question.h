@@ -5,8 +5,7 @@
 #define TEXT_BASED_ENGINE_ASK_QUESTION_H
 
 #include <vector>
-
-#include <com/string_ref.h>
+#include <string>
 
 #include <dep/input_manager.h>
 
@@ -17,7 +16,6 @@ namespace tbe {
 int const RESPONSE_OPTIONS_START_NUM = 1;
 
   }
-
 
 
 /** Outputs the given list of user responses.
@@ -46,7 +44,7 @@ printResponseOptions(
 std::size_t
 getResponseIndex(
   dep::InputManager inputManager,
-  std::size_t optionCount,
+  std::size_t       optionCount,
   int startNum = internal::RESPONSE_OPTIONS_START_NUM);
 
 
@@ -54,7 +52,7 @@ getResponseIndex(
 /// Prints out @p responseOptions and gets the player's selected index.
 std::size_t
 askQuestion(
-  dep::InputManager inputManager,
+  dep::InputManager                inputManager,
   std::vector<std::string> const & responseOptions,
   int startNum = internal::RESPONSE_OPTIONS_START_NUM);
 
@@ -63,9 +61,9 @@ askQuestion(
 /// @param question The question to be displayed before input is gathered.
 std::size_t
 askQuestion(
-  dep::InputManager inputManager,
+  dep::InputManager                inputManager,
   std::vector<std::string> const & responseOptions,
-  com::StringRef question,
+  std::string const &              question,
   int startNum = internal::RESPONSE_OPTIONS_START_NUM);
 
 

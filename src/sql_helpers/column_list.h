@@ -62,7 +62,7 @@ class ColumnList
 
   private:
     /// Constructs with a passed id.
-    ColumnList(ColumnListId const & id);
+    ColumnList(ColumnListId id);
 
     /// The underlying ColumnInfoList.
     /// Will only ever be expanded, never shrunk.

@@ -14,7 +14,13 @@ MappedQuery::MappedQuery(
 
   selectColumns_(std::move(selectColumns)),
 
-  query_(QueryDataFull(queryData, generateSelectClause()), tableName)
+  queryData_(queryData),
+
+  selectClause_(generateSelectClause()),
+
+  tableName_(tableName),
+
+  query_(QueryDataFull(queryData_, selectClause_), tableName_)
 {
 
 }
@@ -57,6 +63,14 @@ MappedQuery::run()
   }
 
   return result;
+}
+
+
+
+void
+MappedQuery::changeWhereClause(std::string const & newWhereClause)
+{
+
 }
 
 

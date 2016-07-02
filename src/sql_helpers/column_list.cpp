@@ -2,6 +2,34 @@
 
 #include <utility>
 #include <limits>
+#include <mutex>
+    
+namespace {  // Support
+
+using namespace tbe::sql;
+
+ColumnListIdSizeType
+genColumnListId()
+{
+  // The maximum number that currentId can reach before an exception is thrown.
+  static size_t maxCount =
+    std::numeric_limits<ColumnListIdSizeType>::max();
+
+  static std::mutex currentIdMutex;
+  static ColumnListIdSizeType currentId = 0;
+
+  std::lock_guard<std::mutex> guard(currentIdMutex);
+  if (currentId >= maxCount)
+    throw std::runtime_error("ColumnList maximum id reached");
+
+  ++currentId;
+
+  return currentId;
+}
+
+} // Support
+
+
 
 namespace tbe {
   namespace sql {
@@ -16,23 +44,7 @@ swap(ColumnList& first, ColumnList& second)
 
 
 
-ColumnListIdSizeType
-genColumnListId()
-{
-  static size_t maxCount = std::numeric_limits<ColumnListIdSizeType>::max();
-  static ColumnListIdSizeType currentId = 0;
-
-  if (currentId >= maxCount)
-    throw std::runtime_error("ColumnList maximum number reached");
-
-  ++currentId;
-
-  return currentId;
-}
-
-
-
-ColumnList::ColumnList(ColumnListId const & id) :
+ColumnList::ColumnList(ColumnListId id) :
   id_(id)
 {
 

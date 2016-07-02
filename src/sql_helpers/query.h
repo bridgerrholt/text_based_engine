@@ -10,8 +10,7 @@
 
 #include <vector>
 #include <memory>
-
-#include <com/string_ref.h>
+#include <string>
 
 #include <sqlite3.h>
 
@@ -26,13 +25,13 @@ class Query
     /// Query text constructor.
     /// @param[in] database  The database handle to be used.
     /// @param[in] queryText The command(s) to be ran.
-    Query(sqlite3* database, com::StringRef queryText);
+    Query(sqlite3* database, std::string const & queryText);
 
     /// QueryDataFull constructor.
     /// @param[in] queryData All the information about the query.
     /// @param[in] tableName The table that the query will be executed on.
     Query(QueryDataFull const & queryData,
-          com::StringRef        tableName);
+          std::string   const & tableName);
 
     /// Advances the query to the next row.
     /// @return Whether there was a next row or not.

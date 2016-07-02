@@ -16,7 +16,7 @@ namespace tbe {
   namespace sql {
 
 // Query
-Query::Query(sqlite3* database, com::StringRef queryText) :
+Query::Query(sqlite3* database, std::string const & queryText) :
   handle_(0)
 {
   char const   * tail;
@@ -37,7 +37,7 @@ Query::Query(sqlite3* database, com::StringRef queryText) :
 
 
 Query::Query(QueryDataFull const & queryData,
-             com::StringRef        tableName) :
+             std::string   const & tableName) :
 
   Query(queryData.getDatabase(), queryData.formatQueryText(tableName))
 {
