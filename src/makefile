@@ -1,5 +1,5 @@
-#CXX = clang
 program_NAME := text_based_engine
+
 program_C_SRCS := sqlite3/sqlite3.c
 program_CXX_SRCS := $(wildcard *.cpp \
 	dependencies/dep/*.cpp \
@@ -18,11 +18,13 @@ CXXFLAGS += -std=c++11 -g -O0
 LIB_DIR += $(foreach librarydir,$(program_LIBRARY_DIRS),-L$(librarydir))
 LDFLAGS += $(foreach library,$(program_LIBRARIES),-l$(library))
 
+# Prevents filename issues.
 .PHONY: all clean distclean
 
 all: $(program_NAME)
 
 $(program_NAME): $(program_OBJS)
+	$(info $(CXX))
 	$(CXX) $(LIB_DIR) $(CXXFLAGS) -o $(program_NAME) $(program_OBJS) $(LDFLAGS)
 
 clean:

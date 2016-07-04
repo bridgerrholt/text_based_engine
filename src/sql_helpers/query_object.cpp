@@ -16,7 +16,7 @@ QueryObject::QueryObject(size_t columnListId) :
 types::Int::DataType
 QueryObject::col(column_info_types::Int const & column)
 {
-  return dep::ofDynamic<types::Int>(*(
+  return dep::ofDynamic<types::Int const>(*(
     varList.at(column.getId(columnListId_))
   ))->data;
 }
@@ -25,7 +25,7 @@ QueryObject::col(column_info_types::Int const & column)
 types::Text::DataType
 QueryObject::col(column_info_types::Text const & column)
 {
-  return dep::ofDynamic<types::Text>(*(
+  return dep::ofDynamic<types::Text const>(*(
     varList.at(column.getId(columnListId_))
   ))->data;
 }

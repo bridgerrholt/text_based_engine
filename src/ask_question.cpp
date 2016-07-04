@@ -4,6 +4,7 @@
 #include "ask_question.h"
 
 #include <iostream>
+#include <stdexcept>
 
 #include <dep/is_int.h>
 

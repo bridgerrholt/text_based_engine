@@ -2,6 +2,7 @@
 #define TEXT_BASED_ENGINE_SQL_HELPERS_VAR_LIST_H
 
 #include <vector>
+#include <memory>
 
 #include "dynamic_type.h"
 
