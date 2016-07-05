@@ -35,10 +35,10 @@ class DynamicQuery
         @param[in] selectColumns Swapped into @ref selectColumns_.
         @param[in] whereClause   Moved into @ref whereClause_.
     */
-    DynamicQuery(sqlite3       * database,
-                 std::string   & tableName,
-                 ColumnList    & selectColumns,
-                 WhereClauseType whereClause =
+    DynamicQuery(sqlite3       *  database,
+                 std::string   && tableName,
+                 ColumnList    &  selectColumns,
+                 WhereClauseType  whereClause =
                   WhereClauseType(new WhereClause()));
     
     std::string generateQueryText();

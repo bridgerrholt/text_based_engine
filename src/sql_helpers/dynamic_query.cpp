@@ -19,10 +19,10 @@ DynamicQuery::swapGen(std::string     & tableName,
 
 
 
-DynamicQuery::DynamicQuery(sqlite3       * database,
-                           std::string   & tableName,
-                           ColumnList    & selectColumns,
-                           WhereClauseType whereClause) :
+DynamicQuery::DynamicQuery(sqlite3       *  database,
+                           std::string   && tableName,
+                           ColumnList    &  selectColumns,
+                           WhereClauseType  whereClause) :
   database_(database),
 
   query_(database_,
@@ -33,7 +33,10 @@ DynamicQuery::DynamicQuery(sqlite3       * database,
 
   mustCompile_(false)
 {
-
+  std::cerr << "DynamicQuery :\n"
+    " db " << database_ << "\n"
+    " tn " << tableName_ << "\n"
+    " id " << selectColumns_.getId() << '\n';
 }
 
 

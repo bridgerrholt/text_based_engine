@@ -55,6 +55,8 @@ class ColumnList
     */
     void push(ColumnInfo& column);
 
+    void push(std::initializer_list<ColumnInfo*> columns);
+
     /// Lists the text within the items comma-separated and in order. 
     std::string getText();
 

@@ -20,10 +20,27 @@ class Tables
         types::col::Int  introId = { "intro_id" };
     } actors;
 
-  private:
+
+    class Options
+    {
+      public:
+        types::col::Int  id           = { "id"             };
+        types::col::Int  characterId  = { "character_id"   };
+        types::col::Int  optionListId = { "option_list_id" };
+        types::col::Text textDisplay  = { "text_display"   };
+        types::col::Text textSpeak    = { "text_speak"     };
+        types::col::Int  nextId       = { "next_id"        };
+    } options;
+
+
+    class Responses
+    {
+      public:
+        types::col::Int  id        = { "id"         };
+        types::col::Text textSpeak = { "text_speak" };
+        types::col::Int  nextId    = { "next_id"    };
+    } responses;
 };
-
-
 
   }
 }

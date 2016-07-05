@@ -20,13 +20,21 @@
 #include "sql_helpers/column_list.h"
 #include "sql_helpers/database_structure.h"
 
+namespace {
+
+using namespace tbe::sql;
+Tables              tables;
+Tables::Actors    & actors    = tables.actors;
+Tables::Responses & responses = tables.responses;
+Tables::Options   & options   = tables.options;
+
+}
+
+
+
 namespace tbe {
 
 using namespace tbe::sql;
-
-Tables          tables;
-Tables::Actors& actors = tables.actors;
-
 
 Engine::Engine() :
   locale_(""), // Player's default locale
@@ -60,8 +68,8 @@ Engine::loadDatabase(std::string const & fileName)
 
   std::cerr << "First ColumnList\n";
   ColumnList columns;
-  columns.push(actors.name);
-  columns.push(actors.introId);
+  columns.push(::actors.name);
+  columns.push(::actors.introId);
 
   MappedQuery query({database_}, "actors", columns);
   std::cerr << "ColumnList size " << columns.getColumns().size() << '\n';
@@ -69,12 +77,12 @@ Engine::loadDatabase(std::string const & fileName)
   actors_ = query.run();
 
   for (auto & i : actors_) {
-    std::cerr << i.col(actors.name)    << ' ' <<
-                 i.col(actors.introId) << '\n';
+    std::cerr << i.col(::actors.name)    << ' ' <<
+                 i.col(::actors.introId) << '\n';
   }
   
-  columns.push(actors.name);
-  columns.push(actors.introId);
+  columns.push(::actors.name);
+  columns.push(::actors.introId);
   DynamicQuery dyQ { database_, std::string("actors"), columns };
 
   actors_ = dyQ.run();
@@ -91,6 +99,26 @@ Engine::run()
     std::cout << "Nobody seems to be around.\n";
     return;
   }
+  
+  sql::ColumnList columns({
+    &::options.id,
+    &::options.characterId,
+    &::options.optionListId,
+    &::options.textDisplay,
+    &::options.textSpeak,
+    &::options.nextId
+  });
+
+  sql::DynamicQuery optionQuery(database_, "options", columns);
+  
+  columns.push({
+    &::responses.id,
+    &::responses.textSpeak,
+    &::responses.nextId
+  });
+
+  sql::DynamicQuery responseQuery(database_, "responses", columns);
+
 
   // Initialized before the main loop and resized every iteration.
   std::vector<std::string> primaryOptions;
@@ -100,7 +128,6 @@ Engine::run()
   std::size_t constantOptionsCount = 1;
 
   primaryOptions.push_back("QUIT"); // Breaks out of the main loop.
-
 
   // The main game loop.
   // Upon every iteration it shows the list of actors and lets the player talk to one.
@@ -144,23 +171,29 @@ Engine::run()
     // The conversation is ongoing until one of the actions points to the ID of 0.
     while (next != 0) {
       // Gets the ID pointed to by next.
-      sql::Response responseCall({database_,
+      /*sql::Response responseCall({database_,
         "id = " + std::to_string(next)});
-      sql::Response::Data response = responseCall.run().at(0);
+      sql::Response::Data response = responseCall.run().at(0);*/
+
+      QueryObject response = std::move(responseQuery.run().at(0));
+      std::cerr << response.varList.size() << '\n';
+
 
       // Outputs the actor's dialogue.
       // %name%: %textSpeak%-sleep-
       std::cout << '\n' <<
-        currentActor.col(actors.name) << ": " <<
-        response.textSpeak << sleepEvent_ << '\n';
+        currentActor.col(::actors.name) << ": " <<
+        response.col(::responses.textSpeak) << sleepEvent_ << '\n';
+
+      std::cerr << "Response: " << response.col(::responses.nextId) << '\n';
 
       // The conversation is over if the next ID is marked as 0.
-      if (response.nextId == 0)
+      if (response.col(::responses.nextId) == 0)
         break;
 
       // Queries the next option list.
       sql::Option optionCall({database_,
-        "option_list_id = " + std::to_string(response.nextId)
+        "option_list_id = " + std::to_string(response.col(::responses.nextId))
       });
 
       // Runs the query, collecting the list of options.

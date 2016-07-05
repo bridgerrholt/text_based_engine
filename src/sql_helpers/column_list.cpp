@@ -64,6 +64,9 @@ ColumnList::ColumnList(ColumnInfoList& columns) :
   ColumnList()
 {
   columns_.swap(columns);
+
+  for (std::size_t i = 0; i < columns_.size(); ++i)
+    columns_[i]->insertId(id_, i);
 }
 
 
@@ -71,6 +74,9 @@ ColumnList::ColumnList(ColumnInfoList const & columns) :
   ColumnList()
 {
   columns_ = columns;
+
+  for (std::size_t i = 0; i < columns_.size(); ++i)
+    columns_[i]->insertId(id_, i);
 }
 
 
@@ -96,6 +102,22 @@ ColumnList::push(ColumnInfo& column)
 {
   column.insertId(id_, columns_.size());
   columns_.push_back(&column);
+}
+
+
+
+void
+ColumnList::push(std::initializer_list<ColumnInfo*> columns)
+{
+  std::size_t i = columns_.size();
+
+  columns_.insert(columns_.end(), columns);
+
+  while (i < columns_.size()) {
+    columns_[i]->insertId(id_, i);
+
+    ++i;
+  }
 }
 
 

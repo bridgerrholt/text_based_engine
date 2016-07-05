@@ -15,7 +15,12 @@ namespace tbe {
 class QueryObject
 {
   public:
+    friend
+    void swap(QueryObject& first, QueryObject& second);
+
     QueryObject(size_t columnListId);
+
+    QueryObject(QueryObject && other);
 
     template <class T>
     T const & getCol(ColumnInfo const & column);
