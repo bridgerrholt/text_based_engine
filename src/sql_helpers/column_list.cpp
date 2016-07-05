@@ -3,6 +3,7 @@
 #include <utility>
 #include <limits>
 #include <mutex>
+#include <iostream>
     
 namespace {  // Support
 
@@ -40,6 +41,7 @@ swap(ColumnList& first, ColumnList& second)
   using std::swap;
 
   first.columns_.swap(second.columns_);
+  swap(first.id_, second.id_);
 }
 
 
@@ -47,7 +49,7 @@ swap(ColumnList& first, ColumnList& second)
 ColumnList::ColumnList(ColumnListId id) :
   id_(id)
 {
-
+  std::cerr << "= " << id_.get() << '\n';
 }
 
 
@@ -74,9 +76,17 @@ ColumnList::ColumnList(ColumnInfoList const & columns) :
 
 
 ColumnList::ColumnList(ColumnList&& other) :
-  ColumnList(other.id_)
+  ColumnList()
 {
+  std::cerr << id_.get() << '\n';
   swap(*this, other);
+}
+
+
+
+ColumnList::~ColumnList()
+{
+  std::cerr << "~ " << id_.get() << '\n';
 }
 
 
@@ -86,6 +96,23 @@ ColumnList::push(ColumnInfo& column)
 {
   column.insertId(id_, columns_.size());
   columns_.push_back(&column);
+}
+
+
+
+std::string
+ColumnList::getText()
+{
+  if (columns_.size() == 0)
+    return "";
+
+  std::string toReturn;
+
+  for (std::size_t i = 0; i < columns_.size()-1; ++i) {
+    toReturn += columns_[i]->name + ", ";
+  }
+
+  return toReturn + columns_.back()->name;
 }
 
 

@@ -20,8 +20,8 @@ class QueryObject
     template <class T>
     T const & getCol(ColumnInfo const & column);
 
-    types::Int ::DataType col(column_info_types::Int  const & column);
-    types::Text::DataType col(column_info_types::Text const & column);
+    types::Int ::DataType col(types::col::Int  const & column);
+    types::Text::DataType col(types::col::Text const & column);
 
     VarList varList;
 

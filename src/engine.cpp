@@ -13,7 +13,9 @@
 #include "ask_question.h"
 
 #include "sql_helpers/mapped_query.h"
+#include "sql_helpers/dynamic_query.h"
 #include "sql_helpers/query_object.h"
+
 #include "sql_helpers/types/include.h"
 #include "sql_helpers/column_list.h"
 #include "sql_helpers/database_structure.h"
@@ -56,11 +58,13 @@ Engine::loadDatabase(std::string const & fileName)
 {
   openDatabase(fileName);
 
+  std::cerr << "First ColumnList\n";
   ColumnList columns;
   columns.push(actors.name);
   columns.push(actors.introId);
 
   MappedQuery query({database_}, "actors", columns);
+  std::cerr << "ColumnList size " << columns.getColumns().size() << '\n';
 
   actors_ = query.run();
 
@@ -68,6 +72,12 @@ Engine::loadDatabase(std::string const & fileName)
     std::cerr << i.col(actors.name)    << ' ' <<
                  i.col(actors.introId) << '\n';
   }
+  
+  columns.push(actors.name);
+  columns.push(actors.introId);
+  DynamicQuery dyQ { database_, std::string("actors"), columns };
+
+  actors_ = dyQ.run();
 }
 
 
@@ -75,17 +85,17 @@ Engine::loadDatabase(std::string const & fileName)
 void
 Engine::run()
 {
-  // Exit the function if the database doesn't contain any characters.
+  // Exit the function if the database doesn't contain any actors.
   std::size_t actorCount = actors_.size();
   if (actorCount == 0) {
     std::cout << "Nobody seems to be around.\n";
     return;
   }
 
-  // primaryOptions is initialized before the main loop and resized every iteration.
+  // Initialized before the main loop and resized every iteration.
   std::vector<std::string> primaryOptions;
 
-  // constantOptionsCount specifies how many options remain through every iteration,
+  // Specifies how many options remain through every iteration,
   // primaryOptions is resized to it every iteration in case actors change.
   std::size_t constantOptionsCount = 1;
 

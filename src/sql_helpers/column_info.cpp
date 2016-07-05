@@ -28,15 +28,15 @@ ColumnInfo::insertId(ColumnListId columnListId,
                      size_t       id)
 {
   // Throw an exception if the key (columnListId) is already within idMap_.
-  if (idMap_.count(columnListId.value) != 0) {
+  if (idMap_.count(columnListId.get()) != 0) {
     throw std::runtime_error(
       "ColumnListId " +
-      std::to_string(columnListId.value) +
+      std::to_string(columnListId.get()) +
       " is already mapped"
     );
   }
 
-  idMap_[columnListId.value] = id;
+  idMap_[columnListId.get()] = id;
 }
 
 

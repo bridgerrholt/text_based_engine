@@ -27,7 +27,7 @@ class ColumnList
 
     /** Primary constructor, generates a unique id.
         No mechanism tracks ColumnList objects, so an exception will be thrown if
-        too many are created in total (the maximum number depends on the compiler but
+        too many are created in total (the maximum number depends on the architecture but
         is most likely extremely high).
     */
     ColumnList();
@@ -45,6 +45,8 @@ class ColumnList
     /// Move operator.
     ColumnList(ColumnList&& other);
 
+    ~ColumnList();
+
     /** Pushes a reference to the specified column and gives it this object's unique id.
         An exception will be thrown if the column's internal map already
         contains this object's unique id.
@@ -53,11 +55,14 @@ class ColumnList
     */
     void push(ColumnInfo& column);
 
+    /// Lists the text within the items comma-separated and in order. 
+    std::string getText();
+
     /// Returns the underlying ColumnInfoList.
     ColumnInfoList const & getColumns() const { return columns_; }
 
     /// Returns the unique id.
-    ColumnListIdSizeType   getId()      const { return id_.value; }
+    ColumnListIdSizeType   getId()      const { return id_.get(); }
 
 
   private:

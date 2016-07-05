@@ -60,20 +60,33 @@ class ColumnInfo
 
 
 
-      namespace column_info_types {
-
-class Int : public ColumnInfo
+/// Basic template for ColumnInfo objects.
+/// The main purpose of this template is to allow function overloading based on the type of the
+/// specific column, making the user not have to type as many repetitive casts.
+/// @param K Used to express that specific instansiation's type.
+template <DynamicType::Kind K>
+class ColumnInfoSpecific : public ColumnInfo
 {
-  public: Int(std::string const & nameSet) :
-            ColumnInfo(nameSet, DynamicType::INT) {}
+  public:
+    /// Primary constructor.
+    /// Simply calls the primary ColumnInfo constructor with a passed name and the type @ref K.
+    /// @param[in] nameSet Passed as the column name to the ColumnInfo constructor.
+    ColumnInfoSpecific(std::string const & nameSet) :
+      ColumnInfo(nameSet, K)
+    {
+    
+    }
 };
 
-class Text : public ColumnInfo
-{
-  public: Text(std::string const & nameSet) :
-            ColumnInfo(nameSet, DynamicType::TEXT) {}
-};
 
+
+      namespace types {
+        namespace col {
+
+typedef ColumnInfoSpecific<DynamicType::INT>  Int;
+typedef ColumnInfoSpecific<DynamicType::TEXT> Text;
+
+        }
     }
   }
 }

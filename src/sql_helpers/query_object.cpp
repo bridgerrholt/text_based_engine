@@ -3,7 +3,7 @@
 namespace tbe {
   namespace sql {
 
-using namespace column_info_types;
+using namespace types;
 
 QueryObject::QueryObject(size_t columnListId) :
   columnListId_(columnListId)
@@ -13,8 +13,8 @@ QueryObject::QueryObject(size_t columnListId) :
 
 
 
-types::Int::DataType
-QueryObject::col(column_info_types::Int const & column)
+Int::DataType
+QueryObject::col(col::Int const & column)
 {
   return dep::ofDynamic<types::Int const>(*(
     varList.at(column.getId(columnListId_))
@@ -22,8 +22,8 @@ QueryObject::col(column_info_types::Int const & column)
 }
 
 
-types::Text::DataType
-QueryObject::col(column_info_types::Text const & column)
+Text::DataType
+QueryObject::col(col::Text const & column)
 {
   return dep::ofDynamic<types::Text const>(*(
     varList.at(column.getId(columnListId_))

@@ -9,17 +9,15 @@
 namespace tbe {
   namespace sql {
 
-using namespace column_info_types;
-
 class Tables
 {
   public:
     class Actors
     {
       public:
-        Int  id      = { "id"       };
-        Text name    = { "name"     };
-        Int  introId = { "intro_id" };
+        types::col::Int  id      = { "id"       };
+        types::col::Text name    = { "name"     };
+        types::col::Int  introId = { "intro_id" };
     } actors;
 
   private:
