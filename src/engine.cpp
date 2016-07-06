@@ -110,6 +110,7 @@ Engine::run()
     &::options.nextId
   });
 
+  // Swaps out columns contents.
   sql::DynamicQuery optionQuery(database_, "options", columns);
   
   // Columns for the "responses" query.
@@ -119,11 +120,13 @@ Engine::run()
     &::responses.nextId
   });
 
+  // Only 1 specific response is pulled at a time, based on its unique id.
   auto responsesIdExpression =
     std::unique_ptr<Expression>(new Expression(::responses.id, "=", ""));
   
   // Since only the pointers are passed around (no other data is moved),
-  // it's safe to reference values.
+  // it's safe to reference values. This is faster and simpler than dynamically casting the
+  // expression back every time it needs to be accessed.
   std::string & responsesNext = responsesIdExpression->valueText;
 
   WhereClause::ExpressionType responseExpression(
@@ -143,7 +146,7 @@ Engine::run()
 
   // Specifies how many options remain through every iteration,
   // primaryOptions is resized to it every iteration in case actors change.
-  std::size_t constantOptionsCount = 1;
+  const std::size_t constantOptionsCount = 1;
 
   primaryOptions.push_back("QUIT"); // Breaks out of the main loop.
 
@@ -152,11 +155,8 @@ Engine::run()
   while (true) {
     // All the old actors are removed and all the current actors are added.
     primaryOptions.resize(constantOptionsCount);
-    for (auto & i : actors_) {
-      primaryOptions.push_back(
-        i.col(actors.name)
-      );
-    }
+    for (auto & i : actors_)
+      primaryOptions.push_back(i.col(actors.name));
 
     // The player selects an index of primaryOptions.
     std::size_t optionIndex =
@@ -167,11 +167,13 @@ Engine::run()
     // QUIT
     if (optionIndex == 0) break;
 
-    // The index is now mapped to actors_ since the constant options are cleared.
+    // The actor index must be offset backwards from the constant option offset.
+    // In other words, to map the optionIndex to the actors_ list, the amount of
+    // non-actor options must be subtracted.
     QueryObject& currentActor = actors_[optionIndex-constantOptionsCount];
-    optionIndex -= constantOptionsCount;
 
-    // The ID of the next row to query.
+    // The ID of the next row to query. It's meaning alternates from between a row in the
+    // "responses" table and a row in the "options" table.
     int next = currentActor.col(actors.introId);
     std::cerr << next << '\n';
 
@@ -180,7 +182,7 @@ Engine::run()
       std::cout << currentActor.col(actors.name) <<
         " doesn't want to speak right now.\n";
 
-      // Brings it back to the actor menu.
+      // Skips the upcoming loop, bringing back the options menu.
       continue;
     }
 
@@ -188,18 +190,29 @@ Engine::run()
 
     // The conversation is ongoing until one of the actions points to the ID of 0.
     while (next != 0) {
-      // Gets the ID pointed to by next.
-      /*sql::Response responseCall({database_,
-        "id = " + std::to_string(next)});
-      sql::Response::Data response = responseCall.run().at(0);*/
 
       responsesNext = std::to_string(next);
 
-      QueryObject response = std::move(responseQuery.run().at(0));
+      DynamicQuery::QueryResult responseList = responseQuery.run();
+
+      // Fail if there isn't exactly 1 response with the given id.
+      if (responseList.size() != 1) {
+        std::string errorMessage;
+
+        if (responseList.size() == 0)
+          errorMessage = "No response";
+        else
+          errorMessage = "Multiple responses";
+
+        throw std::runtime_error(
+          errorMessage + " with the id of " + responsesNext
+        );
+      }
+
+      QueryObject response = std::move(responseList[0]);
       std::cerr << response.varList.size() << '\n';
 
-
-      // Outputs the actor's dialogue.
+      // Outputs the actor's dialogue and sleeps.
       // %name%: %textSpeak%-sleep-
       std::cout << '\n' <<
         currentActor.col(::actors.name) << ": " <<
