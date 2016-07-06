@@ -23,16 +23,12 @@ DynamicQuery::DynamicQuery(sqlite3       *  database,
                            std::string   && tableName,
                            ColumnList    &  selectColumns,
                            WhereClauseType  whereClause) :
-  database_(database),
-
-  query_(database_,
-         swapGen(tableName,
-                 selectColumns,
-                 whereClause
-  )),
-
-  mustCompile_(false)
+  database_(database)
 {
+  tableName.swap(tableName_);
+  swap(selectColumns, selectColumns_);
+  whereClause.swap(whereClause_);
+
   std::cerr << "DynamicQuery :\n"
     " db " << database_ << "\n"
     " tn " << tableName_ << "\n"
@@ -61,13 +57,35 @@ DynamicQuery::run()
 {
   compile();
 
+  return rawRun();
+}
+
+
+
+DynamicQuery::QueryResult
+DynamicQuery::onlyRun()
+{
+  if (query_)
+    rawRun();
+
+  else {
+    throw std::runtime_error(
+      "Trying to execute a query which has not been compiled"
+    );
+  }
+}
+
+
+
+DynamicQuery::QueryResult
+DynamicQuery::rawRun()
+{
   using namespace types;
 
-  query_.verifyColumnCount(selectColumns_.getColumns().size());
+  query_->verifyColumnCount(selectColumns_.getColumns().size());
   QueryResult result;
 
-
-  while (query_.nextRow()) {
+  while (query_->nextRow()) {
     std::cerr << "nextRow\n";
     result.emplace_back(selectColumns_.getId());
 
@@ -76,14 +94,14 @@ DynamicQuery::run()
         case DynamicType::INT :
           result.back().varList.push_back(
             std::unique_ptr<DynamicType>(new Int(
-              sqlite3_column_int(query_.getHandle(), i)
+              sqlite3_column_int(query_->getHandle(), i)
           )));
           break;
 
         case DynamicType::TEXT :
           result.back().varList.push_back(
             std::unique_ptr<DynamicType>(new Text(
-              query_.readString(i)
+              query_->readString(i)
           )));
           break;
 
@@ -101,27 +119,38 @@ DynamicQuery::run()
 void
 DynamicQuery::compile()
 {
-  if (mustCompile_) rawCompile();
+  query_.reset(new Query(database_, generateQueryText()));
 }
 
 
 
-void
-DynamicQuery::rawCompile()
-{
-  query_ = Query(database_, generateQueryText());
-  mustCompile_ = false;
-}
-
-
-
-void
+// Functions related to tableName_.
+DynamicQuery&
 DynamicQuery::setTableName(std::string & tableName)
 {
   tableName.swap(tableName_);
-  rawCompile();
+  return *this;
 }
 
+
+
+// Functions related to selectColumns_.
+DynamicQuery&
+DynamicQuery::setSelectColumns(ColumnList & selectColumns)
+{
+  swap(selectColumns, selectColumns_);
+  return *this;
+}
+
+
+
+// Functions related to whereClause_.
+DynamicQuery&
+DynamicQuery::setWhereClause(WhereClauseType whereClause)
+{
+  whereClause.swap(whereClause_);
+  return *this;
+}
 
 
   }

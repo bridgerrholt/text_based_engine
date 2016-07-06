@@ -31,6 +31,10 @@ class ExpressionBase
 class Expression : public ExpressionBase
 {
   public:
+    Expression(ColumnInfo  const & columnSet,
+               std::string const & operatorTextSet,
+               std::string const & valueTextSet);
+
     ColumnInfo const & column;
     std::string        operatorText;
     std::string        valueText;
@@ -86,6 +90,12 @@ class WhereClause : public WhereClauseBase
 
     std::string getText()       const;
     bool        hasConditions() const;
+    
+    ExpressionBase& getExpression(size_t index)
+      { return *expressions_.at(index); }
+
+    ConjunctionType& getConjunction(size_t index)
+      { return conjunctions_.at(index); }
 
   private:
     /// Pushes the expression without checking that a conjunction is needed.

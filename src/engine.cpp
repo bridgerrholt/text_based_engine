@@ -100,6 +100,7 @@ Engine::run()
     return;
   }
   
+  // Columns for the "options" query.
   sql::ColumnList columns({
     &::options.id,
     &::options.characterId,
@@ -111,13 +112,30 @@ Engine::run()
 
   sql::DynamicQuery optionQuery(database_, "options", columns);
   
+  // Columns for the "responses" query.
   columns.push({
     &::responses.id,
     &::responses.textSpeak,
     &::responses.nextId
   });
 
-  sql::DynamicQuery responseQuery(database_, "responses", columns);
+  auto responsesIdExpression =
+    std::unique_ptr<Expression>(new Expression(::responses.id, "=", ""));
+  
+  // Since only the pointers are passed around (no other data is moved),
+  // it's safe to reference values.
+  std::string & responsesNext = responsesIdExpression->valueText;
+
+  WhereClause::ExpressionType responseExpression(
+    std::move(responsesIdExpression)
+  );
+
+
+  sql::DynamicQuery responseQuery(database_, "responses", columns,
+    std::unique_ptr<WhereClauseBase>(
+      new WhereClause(std::move(responseExpression))
+    )
+  );
 
 
   // Initialized before the main loop and resized every iteration.
@@ -174,6 +192,8 @@ Engine::run()
       /*sql::Response responseCall({database_,
         "id = " + std::to_string(next)});
       sql::Response::Data response = responseCall.run().at(0);*/
+
+      responsesNext = std::to_string(next);
 
       QueryObject response = std::move(responseQuery.run().at(0));
       std::cerr << response.varList.size() << '\n';

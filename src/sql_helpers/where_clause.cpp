@@ -3,6 +3,18 @@
 namespace tbe {
   namespace sql {
 
+Expression::Expression(ColumnInfo  const & columnSet,
+                       std::string const & operatorTextSet,
+                       std::string const & valueTextSet) :
+  column      (columnSet),
+  operatorText(operatorTextSet),
+  valueText   (valueTextSet)
+{
+
+}
+
+
+
 std::string
 Expression::getText()
 {

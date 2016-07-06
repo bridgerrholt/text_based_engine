@@ -3,8 +3,6 @@
 
     @class tbe::sql::DynamicQuery
     Manages information about an SQLite query, along with a tbe::sql::Query object.
-    From construction onward, the query is always gauranteed to be working as long as
-    no exceptions are thrown
 */
 
 #ifndef TEXT_BASED_ENGINE_SQL_HELPERS_DYNAMIC_QUERY_H
@@ -30,6 +28,9 @@ class DynamicQuery
     typedef std::unique_ptr<WhereClauseBase> WhereClauseType;
 
     /** Primary constructor.
+        Even though it may not always be compiled, it must always have information for
+        compilation, that's why these parameters are required.
+
         @param[in] database      Copied into @ref database_.
         @param[in] tableName     Swapped into @ref tableName_.
         @param[in] selectColumns Swapped into @ref selectColumns_.
@@ -39,28 +40,52 @@ class DynamicQuery
                  std::string   && tableName,
                  ColumnList    &  selectColumns,
                  WhereClauseType  whereClause =
-                  WhereClauseType(new WhereClause()));
+                   WhereClauseType(new WhereClause()));
     
     std::string generateQueryText();
 
-    /// Runs the contained query.
-    /// Compiles the query if necessary.
+    /// Compiles and executes the query.
     QueryResult run();
 
-    /// Compiles the query if necessary.
+    /// Executes the contained query without first compiling.
+    /// Throws an exception if no compiled query.
+    QueryResult onlyRun();
+
+    /// Compiles the query.
     void compile();
 
-    /// Sets tableName_ and recompiles.
+
+    /// Sets tableName_.
     /// @param[in] tableName Swapped with @ref tableName_.
-    void setTableName(std::string & tableName);
+    /// @return Itself so that another function can be stringed on.
+    DynamicQuery& setTableName(std::string & tableName);
+
+    std::string       & getTableName()
+      { return tableName_; }
     std::string const & getTableName() const
       { return tableName_; }
 
-    /// Sets selectColumns_ and recompiles.
+
+    /// Sets selectColumns_.
     /// @param[in] selectColumns Swapped into @ref selectColumns_.
-    void setSelectColumns(ColumnList & selectColumns);
+    /// @return Itself so that another function can be stringed on.
+    DynamicQuery& setSelectColumns(ColumnList & selectColumns);
+
+    ColumnList       & getSelectColumns()
+      { return selectColumns_; }
     ColumnList const & getSelectColumns() const
       { return selectColumns_; }
+
+
+    /// Sets whereClause_.
+    /// @param[in] selectColumns Swapped into @ref selectColumns_.
+    /// @return Itself so that another function can be stringed on.
+    DynamicQuery& setWhereClause(WhereClauseType whereClause);
+   
+    WhereClauseBase       & getWhereClause()
+      { return *whereClause_; }
+    WhereClauseBase const & getWhereClause() const
+      { return *whereClause_; }
 
   private:
     /// Swaps out the passed arguments and generated the query text.
@@ -68,8 +93,8 @@ class DynamicQuery
                         ColumnList      & selectColumns,
                         WhereClauseType & whereClause);
 
-    /// Compiles without checking if mustCompile_ is true.
-    void rawCompile();
+    /// Executes the query without throwing an exception if it wasn't compiled.
+    QueryResult rawRun();
 
     sqlite3 * database_;
 
@@ -77,8 +102,8 @@ class DynamicQuery
     ColumnList      selectColumns_;
     WhereClauseType whereClause_;
 
-    Query query_;
-    bool mustCompile_;
+    /// Uses heap allocation because it doesn't have to always be constructed.
+    std::unique_ptr<Query> query_;
 };
 
   }
