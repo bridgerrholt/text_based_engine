@@ -8,7 +8,7 @@ namespace tbe {
   namespace sql {
 
 ColumnInfo::ColumnInfo(std::string const & nameSet,
-                       DynamicType::Kind   kindSet) :
+                       types::Kind         kindSet) :
   name(nameSet),
   kind(kindSet)
 {

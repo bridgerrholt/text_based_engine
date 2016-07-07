@@ -82,14 +82,14 @@ DynamicQuery::rawRun()
 
     for (size_t i = 0; i < selectColumns_.getColumns().size(); ++i) {
       switch (selectColumns_.getColumns()[i]->kind) {
-        case DynamicType::INT :
+        case types::INT :
           result.back().varList.push_back(
             std::unique_ptr<DynamicType>(new Int(
               sqlite3_column_int(query_->getHandle(), i)
           )));
           break;
 
-        case DynamicType::TEXT :
+        case types::TEXT :
           result.back().varList.push_back(
             std::unique_ptr<DynamicType>(new Text(
               query_->readString(i)

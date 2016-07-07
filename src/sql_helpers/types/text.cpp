@@ -5,7 +5,7 @@ namespace tbe {
     namespace types {
 
 Text::Text(DataType const & dataSet) :
-  DynamicType(DynamicType::TEXT)
+  DynamicType(types::TEXT)
 {
   data = dataSet;
 }

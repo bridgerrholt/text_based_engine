@@ -7,7 +7,7 @@ namespace tbe {
   namespace sql {
 
 class   ColumnList;
-typedef size_t ColumnListIdSizeType;
+typedef std::size_t ColumnListIdSizeType;
 typedef dep::ValueKey<ColumnList, ColumnListIdSizeType> ColumnListId;
 
   }

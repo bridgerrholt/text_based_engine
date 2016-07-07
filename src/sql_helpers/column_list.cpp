@@ -11,23 +11,37 @@ namespace {
 
 using namespace tbe::sql;
 
-ColumnListIdSizeType
-genColumnListId()
+class IdGenerator
 {
-  // The maximum number that currentId can reach before an exception is thrown.
-  static size_t maxCount =
-    std::numeric_limits<ColumnListIdSizeType>::max();
+  public:
+    ColumnListIdSizeType generate();
+    
+    // The maximum number that currentId_ can reach before an exception is thrown.
+    static ColumnListIdSizeType const maxCount;
 
-  static std::mutex currentIdMutex;
-  static ColumnListIdSizeType currentId = 0;
+  private:
+    std::mutex currentIdMutex_;
+    ColumnListIdSizeType currentId_ = 0;
 
-  std::lock_guard<std::mutex> guard(currentIdMutex);
-  if (currentId >= maxCount)
+} idGenerator;
+
+
+
+ColumnListIdSizeType const
+IdGenerator::maxCount = std::numeric_limits<ColumnListIdSizeType>::max();
+
+
+
+ColumnListIdSizeType
+IdGenerator::generate()
+{
+  std::lock_guard<std::mutex> guard(currentIdMutex_);
+  if (currentId_ >= maxCount)
     throw std::runtime_error("ColumnList maximum id reached");
 
-  ++currentId;
+  ++currentId_;
 
-  return currentId;
+  return currentId_;
 }
 
 }
@@ -56,7 +70,7 @@ ColumnList::ColumnList(ColumnListId id) :
 
 
 ColumnList::ColumnList() :
-  ColumnList(genColumnListId())
+  ColumnList(idGenerator.generate())
 {
 
 }

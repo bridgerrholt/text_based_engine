@@ -5,7 +5,7 @@ namespace tbe {
     namespace types {
 
 Int::Int(DataType dataSet) :
-  DynamicType(DynamicType::INT)
+  DynamicType(types::INT)
 {
   data = dataSet;
 }

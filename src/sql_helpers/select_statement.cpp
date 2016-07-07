@@ -1,5 +1,7 @@
 #include "select_statement.h"
 
+#include "column_info.h"
+
 namespace tbe {
   namespace sql {
 

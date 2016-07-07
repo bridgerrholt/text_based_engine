@@ -3,7 +3,7 @@
 namespace tbe {
   namespace sql {
 
-DynamicType::DynamicType(Kind kind) :
+DynamicType::DynamicType(types::Kind kind) :
   kind_(kind)
 {
 
@@ -18,7 +18,7 @@ DynamicType::~DynamicType()
 
 
 
-DynamicType::Kind
+types::Kind
 DynamicType::getKind() const
 {
   return kind_;

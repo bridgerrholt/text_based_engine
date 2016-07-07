@@ -61,7 +61,7 @@ class ColumnInfo
 /// The main purpose of this template is to allow function overloading based on the type of the
 /// specific column, making the user not have to type as many repetitive casts.
 /// @param K Used to express that specific instansiation's type.
-template <DynamicType::Kind K>
+template <types::Kind K>
 class ColumnInfoSpecific : public ColumnInfo
 {
   public:
