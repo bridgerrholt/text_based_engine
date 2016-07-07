@@ -3,22 +3,19 @@
 #include <iostream>
 #include <stdexcept>
 #include <cassert>
-#include <cctype>
 
 #include <dep/check_file_exists.h>
 #include <dep/is_int.h>
-#include <dep/sleep_event.h>
 #include <dep/of_dynamic.h>
-
-#include "ask_question.h"
-
-#include "sql_helpers/mapped_query.h"
-#include "sql_helpers/dynamic_query.h"
-#include "sql_helpers/query_object.h"
+#include <dep/sleep_event.h>
 
 #include "sql_helpers/types/include.h"
+#include "sql_helpers/dynamic_query.h"
+#include "sql_helpers/query_object.h"
 #include "sql_helpers/column_list.h"
 #include "sql_helpers/database_structure.h"
+
+#include "ask_question.h"
 
 namespace {
 
@@ -37,13 +34,15 @@ namespace tbe {
 using namespace tbe::sql;
 
 Engine::Engine() :
-  locale_(""), // Player's default locale
-  inputManager_(locale_),
+  Engine(std::locale())
+{
 
-  databaseOpened_(false),
-  database_(0),
+}
 
-  sleepEvent_(500)
+
+Engine::Engine(std::locale const & locale) :
+  locale_(locale),
+  inputManager_(locale_)
 {
 
 }
@@ -65,24 +64,17 @@ void
 Engine::loadDatabase(std::string const & fileName)
 {
   openDatabase(fileName);
-
-  std::cerr << "First ColumnList\n";
-  ColumnList columns;
-  columns.push(::actors.name);
-  columns.push(::actors.introId);
-
-  MappedQuery query({database_}, "actors", columns);
-  std::cerr << "ColumnList size " << columns.getColumns().size() << '\n';
-
-  actors_ = query.run();
+  
+  ColumnList columns ({
+    &::actors.name,
+    &::actors.introId
+  });
 
   for (auto & i : actors_) {
     std::cerr << i.col(::actors.name)    << ' ' <<
                  i.col(::actors.introId) << '\n';
   }
   
-  columns.push(::actors.name);
-  columns.push(::actors.introId);
   DynamicQuery dyQ { database_, std::string("actors"), columns };
 
   actors_ = dyQ.run();
@@ -110,8 +102,26 @@ Engine::run()
     &::options.nextId
   });
 
+  std::unique_ptr<Expression> idExpression (
+    new Expression(::options.optionListId, "=", "")
+  );
+
+  std::string & nextOptionList = idExpression->valueText;
+
+  WhereClause::ExpressionType idExpressionDynamic(
+    std::move(idExpression)
+  );
+
+
+
   // Swaps out columns contents.
-  sql::DynamicQuery optionQuery(database_, "options", columns);
+  std::string optionTable = "options";
+  sql::DynamicQuery optionQuery(database_, std::string(optionTable), columns,
+    std::unique_ptr<WhereClauseBase>(
+      new WhereClause(std::move(idExpressionDynamic))
+    )
+  );
+
   
   // Columns for the "responses" query.
   columns.push({
@@ -121,22 +131,19 @@ Engine::run()
   });
 
   // Only 1 specific response is pulled at a time, based on its unique id.
-  auto responsesIdExpression =
-    std::unique_ptr<Expression>(new Expression(::responses.id, "=", ""));
+  idExpression.reset(new Expression(::responses.id, "=", ""));
   
   // Since only the pointers are passed around (no other data is moved),
   // it's safe to reference values. This is faster and simpler than dynamically casting the
   // expression back every time it needs to be accessed.
-  std::string & responsesNext = responsesIdExpression->valueText;
+  std::string & nextResponse = idExpression->valueText;
 
-  WhereClause::ExpressionType responseExpression(
-    std::move(responsesIdExpression)
-  );
+  idExpressionDynamic = std::move(idExpression);
 
 
   sql::DynamicQuery responseQuery(database_, "responses", columns,
     std::unique_ptr<WhereClauseBase>(
-      new WhereClause(std::move(responseExpression))
+      new WhereClause(std::move(idExpressionDynamic))
     )
   );
 
@@ -172,9 +179,8 @@ Engine::run()
     // non-actor options must be subtracted.
     QueryObject& currentActor = actors_[optionIndex-constantOptionsCount];
 
-    // The ID of the next row to query. It's meaning alternates from between a row in the
-    // "responses" table and a row in the "options" table.
-    int next = currentActor.col(actors.introId);
+    // The ID of the next actor response.
+    int next { currentActor.col(actors.introId) };
     std::cerr << next << '\n';
 
     // If the intro ID is 0, that indicates no conversation will take place.
@@ -191,9 +197,9 @@ Engine::run()
     // The conversation is ongoing until one of the actions points to the ID of 0.
     while (next != 0) {
 
-      responsesNext = std::to_string(next);
+      nextResponse = std::to_string(next);
 
-      DynamicQuery::QueryResult responseList = responseQuery.run();
+      QueryResult responseList = responseQuery.run();
 
       // Fail if there isn't exactly 1 response with the given id.
       if (responseList.size() != 1) {
@@ -205,7 +211,7 @@ Engine::run()
           errorMessage = "Multiple responses";
 
         throw std::runtime_error(
-          errorMessage + " with the id of " + responsesNext
+          errorMessage + " with the id of " + nextResponse
         );
       }
 
@@ -218,39 +224,54 @@ Engine::run()
         currentActor.col(::actors.name) << ": " <<
         response.col(::responses.textSpeak) << sleepEvent_ << '\n';
 
-      std::cerr << "Response: " << response.col(::responses.nextId) << '\n';
+      int nextOptionListId { response.col(::responses.nextId) };
+
+      std::cerr << "Response: " << nextOptionListId << '\n';
 
       // The conversation is over if the next ID is marked as 0.
-      if (response.col(::responses.nextId) == 0)
+      if (nextOptionListId == 0)
         break;
 
-      // Queries the next option list.
-      sql::Option optionCall({database_,
-        "option_list_id = " + std::to_string(response.col(::responses.nextId))
-      });
 
-      // Runs the query, collecting the list of options.
-      std::vector<sql::Option::Data> options =
-        optionCall.run();
+      nextOptionList = std::to_string(nextOptionListId);
+
+      QueryResult optionLists = optionQuery.run();
+
+      if (optionLists.size() == 0) {
+        throw std::runtime_error(
+          "No option list (within table \"" + optionTable +
+          "\") with the id of " + nextOptionList
+        );
+      }
 
       std::cerr << "Got options\n";
 
       // Lists all the textDisplay strings from the options.
       std::vector<std::string> optionTextList;
-      for (auto i : options)
-        optionTextList.push_back(i.textDisplay);
+      for (auto & i : optionLists)
+        optionTextList.push_back(i.col(::options.textDisplay));
       std::cerr << "Option text list\n";
 
       // Prompts the user for their text option selection.
-      std::size_t optionIndex = askQuestion(inputManager_, optionTextList);
-      std::cout << '\n' <<
-        options[optionIndex].textSpeak << '\n' << sleepEvent_;
+      optionIndex = askQuestion(inputManager_, optionTextList);
 
-      // The ID of the next actor response.
-      next = options[optionIndex].nextId;
+      // Displays the user's response and sleeps.
+      std::cout << '\n' <<
+        optionLists[optionIndex].col(::options.textSpeak) << '\n' <<
+        sleepEvent_;
+
+      next = optionLists[optionIndex].col(::options.nextId);
 
     } // Conversation
   } // Actor selection
+}
+
+
+void
+Engine::run(std::string const & fileName)
+{
+  loadDatabase(fileName);
+  run();
 }
 
 
@@ -261,11 +282,10 @@ Engine::openDatabase(std::string const & fileName)
   // Closes the database if it's open.
   closeDatabase();
 
-  // Specifically pass if the user's provided database file path doesn't exist.
+  // Specifically check if the user's provided database file path doesn't exist.
   if (!dep::checkFileExists(fileName)) {
     throw std::runtime_error(
-      "Database file can't be found:\n " +
-        fileName
+      "Database file can't be found:\n " + fileName
     );
   }
 

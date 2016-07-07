@@ -4,8 +4,10 @@
 #include <limits>
 #include <mutex>
 #include <iostream>
+
+#include "column_info.h"
     
-namespace {  // Support
+namespace {
 
 using namespace tbe::sql;
 
@@ -28,7 +30,7 @@ genColumnListId()
   return currentId;
 }
 
-} // Support
+}
 
 
 

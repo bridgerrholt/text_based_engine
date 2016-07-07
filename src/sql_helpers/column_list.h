@@ -1,9 +1,8 @@
-/** @file column_list.h
-    Declaration of the tbe::sql::ColumnList class.
+/// @file column_list.h
+/// Declaration of the tbe::sql::ColumnList class.
 
-    @class tbe::sql::ColumnList
-    Manages a list of pointers to ColumnInfo objects.
-*/
+/// @class tbe::sql::ColumnList
+/// Manages a list of pointers to ColumnInfo objects.
 
 #ifndef TEXT_BASED_ENGINE_SQL_HELPERS_COLUMN_LIST_H
 #define TEXT_BASED_ENGINE_SQL_HELPERS_COLUMN_LIST_H
@@ -12,10 +11,10 @@
 
 #include "column_list_id.h"
 
-#include "column_info.h"
-
 namespace tbe {
   namespace sql {
+
+class ColumnInfo;
 
 class ColumnList
 {
@@ -25,11 +24,10 @@ class ColumnList
 
     friend void swap(ColumnList& first, ColumnList& second);
 
-    /** Primary constructor, generates a unique id.
-        No mechanism tracks ColumnList objects, so an exception will be thrown if
-        too many are created in total (the maximum number depends on the architecture but
-        is most likely extremely high).
-    */
+    /// Primary constructor, generates a unique id.
+    /// No mechanism tracks ColumnList objects, so an exception will be thrown if
+    /// too many are created in total (the maximum number depends on the architecture but
+    /// is most likely extremely high).
     ColumnList();
 
     /// Creates @ref columns_ from @p columns and generates a unique id.
@@ -47,12 +45,11 @@ class ColumnList
 
     ~ColumnList();
 
-    /** Pushes a reference to the specified column and gives it this object's unique id.
-        An exception will be thrown if the column's internal map already
-        contains this object's unique id.
-
-        @param column The column to be modified and copied.
-    */
+    /// Pushes a reference to the specified column and gives it this object's unique id.
+    /// An exception will be thrown if the column's internal map already
+    /// contains this object's unique id.
+    ///
+    /// @param column The column to be modified and copied.
     void push(ColumnInfo& column);
 
     void push(std::initializer_list<ColumnInfo*> columns);

@@ -1,38 +1,29 @@
 #include "dynamic_query.h"
 
 #include <iostream>
+#include <utility> // std::move
 
 namespace tbe {
   namespace sql {
 
-std::string
-DynamicQuery::swapGen(std::string     & tableName,
-                      ColumnList      & selectColumns,
-                      WhereClauseType & whereClause)
+DynamicQuery::DynamicQuery(sqlite3       *  database,
+                           std::string   && tableName,
+                           ColumnList    &  selectColumns,
+                           WhereClauseType  whereClause) :
+  DynamicQuery(database, std::move(tableName), selectColumns)
 {
-  tableName.swap(tableName_);
-  swap(selectColumns, selectColumns_);
   whereClause.swap(whereClause_);
-
-  return generateQueryText();
 }
 
 
 
 DynamicQuery::DynamicQuery(sqlite3       *  database,
                            std::string   && tableName,
-                           ColumnList    &  selectColumns,
-                           WhereClauseType  whereClause) :
+                           ColumnList    &  selectColumns) :
   database_(database)
 {
   tableName.swap(tableName_);
   swap(selectColumns, selectColumns_);
-  whereClause.swap(whereClause_);
-
-  std::cerr << "DynamicQuery :\n"
-    " db " << database_ << "\n"
-    " tn " << tableName_ << "\n"
-    " id " << selectColumns_.getId() << '\n';
 }
 
 
@@ -43,7 +34,7 @@ DynamicQuery::generateQueryText()
   std::string toReturn = "SELECT " + selectColumns_.getText() +
                         " FROM "   + tableName_;
 
-  if (whereClause_->hasConditions())
+  if (whereClause_ && whereClause_->hasConditions())
     toReturn +=         " WHERE "  + whereClause_->getText();
 
   toReturn += ';';
@@ -52,7 +43,7 @@ DynamicQuery::generateQueryText()
 
 
 
-DynamicQuery::QueryResult
+QueryResult
 DynamicQuery::run()
 {
   compile();
@@ -62,11 +53,11 @@ DynamicQuery::run()
 
 
 
-DynamicQuery::QueryResult
+QueryResult
 DynamicQuery::onlyRun()
 {
   if (query_)
-    rawRun();
+    return rawRun();
 
   else {
     throw std::runtime_error(
@@ -77,7 +68,7 @@ DynamicQuery::onlyRun()
 
 
 
-DynamicQuery::QueryResult
+QueryResult
 DynamicQuery::rawRun()
 {
   using namespace types;

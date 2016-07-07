@@ -1,9 +1,8 @@
-/** @file column_info.h
-    Declaration of the tbe::sql::ColumnInfo class.
+/// @file column_info.h
+/// Declaration of the tbe::sql::ColumnInfo class.
 
-    @class tbe::sql::ColumnInfo
-    Contains information about a specific column within an undescribed table.
-*/
+/// @class tbe::sql::ColumnInfo
+/// Contains information about a specific column within an undescribed table.
 
 #ifndef TEXT_BASED_ENGINE_SQL_HELPERS_COLUMN_INFO_H
 #define TEXT_BASED_ENGINE_SQL_HELPERS_COLUMN_INFO_H
@@ -13,7 +12,7 @@
 
 #include "column_list_id.h"
 
-#include "dynamic_type.h"
+#include "types/kind.h"
 
 namespace tbe {
   namespace sql {
@@ -25,31 +24,29 @@ class ColumnInfo
     /// @param nameSet Sets @ref name.
     /// @param kindSet Sets @ref kind.
     ColumnInfo(std::string const & nameSet,
-               DynamicType::Kind   kindSet);
+               types::Kind         kindSet);
 
-    /** Returns an id from @ref idMap_ based on the key @p columnListId.
-        Throws an exception if @p columnListId is not a key within @ref idMap_.
-
-        @param columnListId The key to find in @ref idMap_.
-        @return The value assosiated with the key.
-    */
+    /// Returns an id from @ref idMap_ based on the key @p columnListId.
+    /// Throws an exception if @p columnListId is not a key within @ref idMap_.
+    ///
+    /// @param columnListId The key to find in @ref idMap_.
+    /// @return The value assosiated with the key.
     size_t getId(size_t columnListId) const;
 
-    /** Associates the value of @p columnListId with @p id within @ref idMap_.
-        Throws an exception if the value of @p columnListId is already a key within @ref idMap_.
-
-        @param columnListId The id of the query, is made a key within idMap_.
-        @param id           The index of this column within the query,
-                            is made a value associated with @p columnListId.
-    */
+    /// Associates the value of @p columnListId with @p id within @ref idMap_.
+    /// Throws an exception if the value of @p columnListId is already a key within @ref idMap_.
+    ///
+    /// @param columnListId The id of the query, is made a key within idMap_.
+    /// @param id           The index of this column within the query,
+    ///                     is made a value associated with @p columnListId.
     void insertId(ColumnListId columnListId,
                   size_t       id);
 
     /// The name of the column within the database.
-    std::string       const name;
+    std::string name;
 
     /// The type that the column should be read as.
-    DynamicType::Kind const kind;
+    types::Kind kind;
 
 
   private:
@@ -81,14 +78,17 @@ class ColumnInfoSpecific : public ColumnInfo
 
 
       namespace types {
+
+        /// Provides shortcuts for instantiations of ColumnInfoSpecific.
         namespace col {
 
-typedef ColumnInfoSpecific<DynamicType::INT>  Int;
-typedef ColumnInfoSpecific<DynamicType::TEXT> Text;
+typedef ColumnInfoSpecific<types::INT>  Int;
+typedef ColumnInfoSpecific<types::TEXT> Text;
 
-        }
+      }
     }
-  }
-}
+
+  } // sql
+} // tbe
 
 #endif

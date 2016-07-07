@@ -10,8 +10,6 @@
 
 #include "query_data.h"
 
-#include "objects/actor.h"
-
 namespace tbe {
   namespace sql {
 

@@ -8,13 +8,12 @@
 #ifndef TEXT_BASED_ENGINE_SQL_HELPERS_DYNAMIC_QUERY_H
 #define TEXT_BASED_ENGINE_SQL_HELPERS_DYNAMIC_QUERY_H
 
-#include <vector>
 #include <memory>
 
 #include "query.h"
-#include "query_object.h"
-#include "column_list.h"
+#include "query_result.h"
 
+#include "column_list.h"
 #include "where_clause.h"
 
 namespace tbe {
@@ -23,8 +22,6 @@ namespace tbe {
 class DynamicQuery
 {
   public:
-    typedef std::vector<QueryObject> QueryResult;
-
     typedef std::unique_ptr<WhereClauseBase> WhereClauseType;
 
     /** Primary constructor.
@@ -33,14 +30,18 @@ class DynamicQuery
 
         @param[in] database      Copied into @ref database_.
         @param[in] tableName     Swapped into @ref tableName_.
-        @param[in] selectColumns Swapped into @ref selectColumns_.
+        @param[in] selectColumns Swapped into @ref selectColumns_. R-value reference is not used
+                                 because ColumnList objects can't be copied, they must be swapped.
         @param[in] whereClause   Moved into @ref whereClause_.
     */
     DynamicQuery(sqlite3       *  database,
                  std::string   && tableName,
                  ColumnList    &  selectColumns,
-                 WhereClauseType  whereClause =
-                   WhereClauseType(new WhereClause()));
+                 WhereClauseType  whereClause);
+
+    DynamicQuery(sqlite3       *  database,
+                 std::string   && tableName,
+                 ColumnList    &  selectColumns);
     
     std::string generateQueryText();
 
@@ -88,12 +89,7 @@ class DynamicQuery
       { return *whereClause_; }
 
   private:
-    /// Swaps out the passed arguments and generated the query text.
-    std::string swapGen(std::string     & tableName,
-                        ColumnList      & selectColumns,
-                        WhereClauseType & whereClause);
-
-    /// Executes the query without throwing an exception if it wasn't compiled.
+    /// Executes the query without explicitally throwing an exception if it wasn't compiled.
     QueryResult rawRun();
 
     sqlite3 * database_;

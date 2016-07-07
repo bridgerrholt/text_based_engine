@@ -31,7 +31,7 @@ loadToString(com::StringRef fileName,
   std::ifstream file(fileName);
 
   file.seekg(0, std::ios::end);
-  returnString.reserve(file.tellg());
+  returnString.reserve(static_cast<std::size_t>(file.tellg()));
   file.seekg(0, std::ios::beg);
 
   returnString.assign((std::istreambuf_iterator<char>(file)),

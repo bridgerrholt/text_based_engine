@@ -11,24 +11,28 @@ int main(int argc, char* argv[])
   try {
     tbe::Engine engine;
   
+    // The user is expected to pass the path and name of the database file as the first parameter.
     if (argc < 2) {
       throw std::runtime_error("No database file specified");
     }
 
-    engine.loadDatabase(argv[1]);
-    engine.run();
-
+    engine.run(argv[1]);
   }
-  catch (std::exception& error) {
+
+  catch (std::exception const & e) {
     std::cout << "Main function caught an exception:\n" <<
-      error.what() << '\n' << std::endl;
+      e.what() << '\n' << std::endl;
 
-    return 1;
+    // Allows the operating system to catch it (the stack still safely unwinds).
+    throw;
   }
 
-  /*tbe::sql::TemplateQuery<bool> tq {false};
+  // Unhandled exception case.
+  catch (...) {
+    std::cout << "Main function caught an unhandled exception\n" << std::endl;
 
-  tbe::sql::Object<bool> ob {false};*/
+    throw;
+  }
 
   return 0;
 }

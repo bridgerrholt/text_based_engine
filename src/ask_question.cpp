@@ -6,14 +6,37 @@
 #include <iostream>
 #include <stdexcept>
 
+#include <dep/input_manager.h>
 #include <dep/is_int.h>
+
+namespace {
+
+using namespace tbe;
+
+std::size_t
+askQuestionShell(
+  dep::InputManager                inputManager,
+  std::vector<std::string> const & responseOptions,
+  std::size_t                      startNum,
+  std::string              const & fullOutput = "")
+{
+  printResponseOptions(responseOptions, startNum);
+
+  std::cout << fullOutput;
+  
+  return getResponseIndex(inputManager, responseOptions.size(), startNum);
+}
+
+}
+
+
 
 namespace tbe {
 
 void
 printResponseOptions(
   std::vector<std::string> const & responseOptions,
-  int startNum)
+  std::size_t                      startNum)
 {
   std::cerr << "printResponseOptions\n";
   std::size_t optionCount = responseOptions.size();
@@ -33,10 +56,9 @@ printResponseOptions(
 std::size_t
 getResponseIndex(
   dep::InputManager inputManager,
-  std::size_t optionCount,
-  int startNum)
+  std::size_t       optionCount,
+  std::size_t       startNum)
 {
-  std::string input;
   std::size_t index;
 
   while (true) {
@@ -56,26 +78,10 @@ getResponseIndex(
 
 
 std::size_t
-askQuestionShell(
-  dep::InputManager inputManager,
-  std::vector<std::string> const & responseOptions,
-  int startNum,
-  com::StringRef fullOutput = "")
-{
-  printResponseOptions(responseOptions, startNum);
-
-  std::cout << fullOutput;
-  
-  return getResponseIndex(inputManager, responseOptions.size(), startNum);
-}
-
-
-
-std::size_t
 askQuestion(
-  dep::InputManager inputManager,
+  dep::InputManager                inputManager,
   std::vector<std::string> const & responseOptions,
-  int startNum)
+  std::size_t                      startNum)
 {
   return askQuestionShell(inputManager, responseOptions, startNum);
 }
@@ -83,10 +89,10 @@ askQuestion(
 
 std::size_t
 askQuestion(
-  dep::InputManager inputManager,
+  dep::InputManager                inputManager,
   std::vector<std::string> const & responseOptions,
-  com::StringRef question,
-  int startNum)
+  std::string              const & question,
+  std::size_t                      startNum)
 {
   return askQuestionShell(inputManager, responseOptions,
                           startNum, question + "\n");
