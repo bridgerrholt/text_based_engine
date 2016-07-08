@@ -34,7 +34,7 @@ ofDynamic(F* from)
     return returnPtr;
 
   else {
-    throw std::runtime_error(exceptionMessage);
+    throw std::runtime_error(internal::exceptionMessage);
   }
 }
 
@@ -59,7 +59,7 @@ ofDynamic(F const * from)
     return returnPtr;
 
   else {
-    throw std::runtime_error(exceptionMessage);
+    throw std::runtime_error(internal::exceptionMessage);
   }
 }
 

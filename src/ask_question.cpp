@@ -1,5 +1,6 @@
 /// @file ask_question.h
-/// Definitions of the tbe::askQuestion function and its helpers.
+/// Definitions of the overloaded function tbe::askQuestion() and its
+/// lower-level support functions.
 
 #include "ask_question.h"
 

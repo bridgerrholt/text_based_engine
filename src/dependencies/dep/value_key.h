@@ -1,14 +1,6 @@
 /// @file value_key.h
 /// Declaration and definition of the class template dep::ValueKey.
 
-/// @class dep::ValueKey
-/// Class template that can only be constructed by a passed class.
-/// Contains a variable that cannot be changed after construction.
-///
-/// @param F The friend type, which is the only type able to create it.
-/// @param T The type of value to hold. By default is std::size_t because it's primary purpose is
-///          to hold an id or an index.
-
 #ifndef _DEPENDENCIES_DEP_VALUE_KEY_H
 #define _DEPENDENCIES_DEP_VALUE_KEY_H
 
@@ -18,7 +10,13 @@
 #include "basic_immutable_value.h"
 
 namespace dep {
-
+  
+/// Class template that can only be constructed by a passed class.
+/// Contains a variable that cannot be changed after construction.
+///
+/// @param F The friend type, which is the only type able to create it.
+/// @param T The type of value to hold. By default is std::size_t because it's primary purpose is
+///          to hold an id or an index.
 template <class F, class T = std::size_t>
 class ValueKey
 {

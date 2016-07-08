@@ -1,9 +1,6 @@
 /// @file string_formatter.h
 /// Declaration of the class dep::StringFormatter and its associated functions.
 
-/// @class dep::StringFormatter
-/// Contains methods for chaining together different formatting functions on a specific string.
-
 #ifndef _DEPENDENCIES_DEP_STRING_FORMATTER_H
 #define _DEPENDENCIES_DEP_STRING_FORMATTER_H
 
@@ -11,7 +8,8 @@
 #include <string>
 
 namespace dep {
-
+  
+/// Contains methods for chaining together different formatting functions on a specific string.
 class StringFormatter
 {
   public:

@@ -1,9 +1,6 @@
 /// @file input_manager.h
 /// Declaration of the class dep::InputManager.
 
-/// @class dep::InputManager
-/// Reads out user input from standard input.
-
 #ifndef _DEPENDENCIES_DEP_INPUT_MANAGER_H
 #define _DEPENDENCIES_DEP_INPUT_MANAGER_H
 
@@ -16,7 +13,8 @@
 #include "string_formatter.h" 
                               
 namespace dep {
-
+  
+/// Reads out standard input.
 class InputManager
 {
   public:

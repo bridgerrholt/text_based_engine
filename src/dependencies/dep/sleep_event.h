@@ -2,11 +2,6 @@
 /// Declaration and definition of the class template dep::BasicSleepEvent and
 /// its associated functions and instansiated typedefs.
 
-/// @class dep::BasicSleepEvent
-/// Contains methods for sleeping a specified amount of time.
-/// You may use SleepEvent if you are using T's default type.
-/// @param T The duration type to use.
-
 #ifndef _DEPENDENCIES_DEP_SLEEP_EVENT_H
 #define _DEPENDENCIES_DEP_SLEEP_EVENT_H
 
@@ -36,7 +31,9 @@ operator<<(std::ostream             & out,
 
 
 
-// BasicSleepEvent class
+/// Contains methods for sleeping a specified amount of time.
+/// You may use SleepEvent if you are using T's default type.
+/// @param T The duration type to use.
 template <class T = std::chrono::milliseconds>
 class BasicSleepEvent
 {

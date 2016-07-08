@@ -1,9 +1,5 @@
 /// @file engine.h
-/// Declaration of the tbe::Engine class.
-
-/// @class tbe::Engine
-/// Provides the program's primary functionality. An Engine object is used to load a
-/// given database and run the database's described game.
+/// Declaration of the class tbe::Engine.
 
 #ifndef TEXT_BASED_ENGINE_ENGINE_H
 #define TEXT_BASED_ENGINE_ENGINE_H
@@ -16,11 +12,14 @@
 #include <dep/input_manager.h>
 #include <dep/sleep_event.h>
 
-#include "sql_helpers/query_result.h"
-#include "sql_helpers/column_list.h"
+#include "sql_support/common/query_result.h"
+
+#include "sql_support/column_list.h"
 
 namespace tbe {
-
+  
+/// Provides the program's primary functionality.
+/// An Engine object is used to load a given database and run the database's described game.
 class Engine
 {
   public:
@@ -75,7 +74,7 @@ class Engine
     /// All the actors specified in the database.
     sql::QueryResult actors_;
 
-    /// The primary SleepEvent.
+    /// Primary SleepEvent.
     /// Secondary SleepEvents may be added in the future.
     dep::SleepEvent sleepEvent_ = 500;
 };

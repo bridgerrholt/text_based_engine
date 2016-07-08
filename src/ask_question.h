@@ -1,5 +1,6 @@
 /// @file ask_question.h
-/// Declarations of the tbe::askQuestion function and its helpers.
+/// Declarations of the overloaded function tbe::askQuestion() and its
+/// lower-level support functions.
 
 #ifndef TEXT_BASED_ENGINE_ASK_QUESTION_H
 #define TEXT_BASED_ENGINE_ASK_QUESTION_H
