@@ -10,9 +10,9 @@
 namespace dep {
 
 StringFormatter::StringFormatter(std::locale const & locale,
-                                 com::StringRef      contents) :
+                                 std::string         contents) :
   locale_  (locale),
-  contents_(contents)
+  contents_(std::move(contents))
 {
 
 }

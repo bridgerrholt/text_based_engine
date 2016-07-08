@@ -1,5 +1,13 @@
 /// @file of_dynamic.h
-/// Defines the ofDynamic function.
+/// Defines the dep::ofDynamic() function.
+
+/// @fn dep::ofDynamic
+/// Dynamically casts a given pointer to a pointer to a given type.
+/// Casts a pointer to an object of CastFrom to a pointer to an object of CastTo. Throws an error
+/// if the cast failed.
+///
+/// @param[in] from Pointer to the CastFrom object.
+/// @return The statically casted pointer to a CastTo object.
 
 #ifndef _DEPENDENCIES_DEP_OF_DYNAMIC_H
 #define _DEPENDENCIES_DEP_OF_DYNAMIC_H
@@ -8,13 +16,6 @@
 
 namespace dep {
 
-/** Dynamically casts a given pointer to a pointer to a given type.
-    Casts a pointer to an object of CastFrom to a pointer to an object of CastTo. Throws an error
-    if the cast failed.
-
-    @param[in] from Pointer to the CastFrom object.
-    @return The statically casted pointer to a CastTo object.
-*/
 template <class CastTo, class CastFrom>
 CastTo*
 ofDynamic(CastFrom* from)
@@ -36,7 +37,7 @@ ofDynamic(CastFrom& from)
 
 
 
-/// Const version of ofDynamic.
+/// Const version of ofDynamic().
 template <class CastTo, class CastFrom>
 const CastTo*
 ofDynamic(const CastFrom* from)

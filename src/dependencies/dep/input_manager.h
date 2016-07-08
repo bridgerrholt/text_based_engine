@@ -1,18 +1,20 @@
-/** @file input_manager.h
-    Declaration of the dep::InputManager class.
+/// @file input_manager.h
+/// Declaration of the dep::InputManager class.
 
-    @class dep::InputManager
-    Reads out user input from standard input.
-*/
+/// @class dep::InputManager
+/// Reads out user input from standard input.
 
 #ifndef _DEPENDENCIES_DEP_INPUT_MANAGER_H
 #define _DEPENDENCIES_DEP_INPUT_MANAGER_H
 
 #include <iostream>
 #include <locale>
+#include <string>
 
-#include "string_formatter.h" // Include is preferred over forward declaration because
-                              // almost all of InputManager's methods return a StringFormatter.
+// Include is preferred over forward declaration because InputManager relies on StringFormatter so
+// much that consumers of this file will most likely need the full declaration.
+#include "string_formatter.h" 
+                              
 
 namespace dep {
 

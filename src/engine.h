@@ -77,7 +77,7 @@ class Engine
 
     /// The primary SleepEvent.
     /// Secondary SleepEvents may be added in the future.
-    dep::SleepEventDefault sleepEvent_ = 500;
+    dep::SleepEvent sleepEvent_ = 500;
 };
 
 }
