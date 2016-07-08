@@ -1,5 +1,5 @@
 /// @file string_formatter.cpp
-/// Definition of the dep::StringFormatter class.
+/// Definition of the class dep::StringFormatter.
 
 #include "string_formatter.h"
 
@@ -24,6 +24,15 @@ StringFormatter::str() const
 {
   return contents_;
 }
+
+
+
+std::string const &
+StringFormatter::strRef() const
+{
+  return contents_;
+}
+
 
 
 std::string

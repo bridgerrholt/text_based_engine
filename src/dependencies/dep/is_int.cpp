@@ -1,5 +1,5 @@
 /// @file is_int.cpp
-/// Definition of the dep::isInt function.
+/// Definition of the function dep::isInt().
 
 #include "is_int.h"
 
@@ -7,7 +7,7 @@
 
 namespace dep {
 
-bool isInt(com::StringRef str)
+bool isInt(std::string const & str)
 {
   if (str.empty() ||
       ((!isdigit(str[0])) && (str[0] != '-') && (str[0] != '+')))

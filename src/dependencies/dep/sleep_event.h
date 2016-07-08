@@ -1,9 +1,11 @@
 /// @file sleep_event.h
-/// Complete definitions of the dep::BasicSleepEvent class, helper functions, and typedefs.
+/// Declaration and definition of the class template dep::BasicSleepEvent and
+/// its associated functions and instansiated typedefs.
 
 /// @class dep::BasicSleepEvent
 /// Contains methods for sleeping a specified amount of time.
-/// You may use BasicSleepEventDefault if you are using T's default type.
+/// You may use SleepEvent if you are using T's default type.
+/// @param T The duration type to use.
 
 #ifndef _DEPENDENCIES_DEP_SLEEP_EVENT_H
 #define _DEPENDENCIES_DEP_SLEEP_EVENT_H
@@ -19,15 +21,20 @@ namespace dep {
 template <class T>
 class BasicSleepEvent;
 
-// BasicSleepEvent helper functions
+
+
+// BasicSleepEvent's associated functions
+
 /// Flushes the stream and sleeps.
 /// @param[in] out        The out stream being operated on.
-/// @param[in] BasicSleepEvent The passed BasicSleepEvent.
+/// @param[in] sleepEvent The passed BasicSleepEvent object.
 /// @return The modified (flushed) stream (parameter @p out).
 template <class T>
 std::ostream&
 operator<<(std::ostream             & out,
-           BasicSleepEvent<T> const & BasicSleepEvent);
+           BasicSleepEvent<T> const & sleepEvent);
+
+
 
 // BasicSleepEvent class
 template <class T = std::chrono::milliseconds>
@@ -35,13 +42,14 @@ class BasicSleepEvent
 {
   public:
     /// Primary constructor.
-    /// @param[in] amountSet Used to construct @ref duration_.
+    /// @param[in] duration The amount of time (of unit @ref T) to sleep for.
+    ///                     Used in the construction of @ref duration_.
     BasicSleepEvent(std::size_t duration);
 
-    /// Sleeps for the amount specified by @ref duration_.
+    /// Sleeps for the amount last specified (@ref duration_).
     void sleep() const;
 
-    /// Constructs @ref duration_ with the given value.
+    /// Changes the amount of time to sleep for (@ref duration_).
     /// @param[in] duration Passed to the construction of @ref duration_.
     void setDuration(std::size_t duration);
 
@@ -62,7 +70,7 @@ typedef BasicSleepEvent<> SleepEvent;
 // Function definitions
 
 template <class T>
-BasicSleepEvent<T>::BasicSleepEvent(size_t duration) :
+BasicSleepEvent<T>::BasicSleepEvent(std::size_t duration) :
   duration_(duration)
 {
 
@@ -80,20 +88,8 @@ BasicSleepEvent<T>::sleep() const
 
 
 template <class T>
-std::ostream&
-operator<<(std::ostream& out, BasicSleepEvent<T> const & BasicSleepEvent)
-{
-  out.flush();
-  BasicSleepEvent.sleep();
-
-  return out;
-}
-
-
-
-template <class T>
 void
-BasicSleepEvent<T>::setDuration(size_t duration)
+BasicSleepEvent<T>::setDuration(std::size_t duration)
 {
   duration_ = T(duration);
 }
@@ -101,10 +97,22 @@ BasicSleepEvent<T>::setDuration(size_t duration)
 
 
 template <class T>
-size_t
+std::size_t
 BasicSleepEvent<T>::getDuration() const
 {
   return duration_.count();
+}
+
+
+
+template <class T>
+std::ostream&
+operator<<(std::ostream& out, BasicSleepEvent<T> const & BasicSleepEvent)
+{
+  out.flush();
+  BasicSleepEvent.sleep();
+
+  return out;
 }
 
 

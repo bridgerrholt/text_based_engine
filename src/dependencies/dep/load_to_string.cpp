@@ -1,5 +1,5 @@
 /// @file load_to_string.cpp
-/// Definition of the dep::loadToString functions.
+/// Definition of the overloaded function dep::loadToString().
 
 #include "load_to_string.h"
 
@@ -11,7 +11,7 @@
 namespace dep {
 
 std::string
-loadToString(com::StringRef fileName)
+loadToString(std::string const & fileName)
 {
   std::string returnString;
 
@@ -22,8 +22,8 @@ loadToString(com::StringRef fileName)
 
 
 void
-loadToString(com::StringRef fileName, 
-  std::string& returnString)
+loadToString(std::string const & fileName, 
+             std::string       & returnString)
 {
   if (!checkFileExists(fileName))
     throw std::runtime_error("No such file: " + fileName);

@@ -1,23 +1,22 @@
 /// @file load_to_string.h
-/// Declaration of the dep::loadToString() functions.
+/// Declaration of the overloaded function dep::loadToString().
 
 #ifndef _DEPENDENCIES_DEP_LOAD_TO_STRING_H
 #define _DEPENDENCIES_DEP_LOAD_TO_STRING_H
 
-#include <com/string_ref.h>
+#include <string>
 
 namespace dep {
-
-/** Reads the given file to a string.
-
-    @param[in] fileName The full path and name of the target file.
-    @return The constructed string with the file's contents.
-*/
-std::string loadToString(com::StringRef fileName);
+  
+/// Reads the given file to a string.
+///
+/// @param[in] fileName The full path and name of the target file.
+/// @return The constructed string with the file's contents.
+std::string loadToString(std::string const & fileName);
 
 /// @param[out] returnString The user-created string that the file gets read to.
-void        loadToString(com::StringRef fileName, 
-                         std::string&   returnString);
+void        loadToString(std::string const & fileName, 
+                         std::string       & returnString);
 
 }
 

@@ -1,5 +1,5 @@
 /// @file string_formatter.h
-/// Declaration of the dep::StringFormatter class and helper functions.
+/// Declaration of the class dep::StringFormatter and its associated functions.
 
 /// @class dep::StringFormatter
 /// Contains methods for chaining together different formatting functions on a specific string.
@@ -16,14 +16,18 @@ class StringFormatter
 {
   public:
     /// Primary constructor.
-    /// @param locale   The program-wide locale used.
-    /// @param contents The string to be formatted.
+    /// @param[in] locale   The program-wide locale used.
+    /// @param[in] contents The string to be formatted.
     StringFormatter(std::locale const & locale,
                     std::string         contents);
 
     /// Copies the string's current state.
     /// @return The copied version of @ref contents_.
     std::string str() const;
+
+    /// Returns a constant reference to the string.
+    /// @return The constant reference to @ref contents_.
+    std::string const & strRef() const;
 
     /// Removes all whitespace at the beginning of the string.
     /// @return The specific StringFormatter object it was called on.
@@ -50,7 +54,7 @@ class StringFormatter
 /// In other words, does exactly what StringFormatter::str does.
 /// This function may be preferred for clarity.
 ///
-/// @param StringFormatter Reference to the target StringFormatter.
+/// @param[in] StringFormatter Reference to the target StringFormatter.
 /// @return The string contents (@ref StringFormatter::contents_) of the StringFormatter.
 std::string str(StringFormatter const & stringFormatter);
 

@@ -1,5 +1,5 @@
 /// @file input_manager.cpp
-/// Definition of the dep::InputManager class.
+/// Definition of the class dep::InputManager.
 
 #include "input_manager.h"
 

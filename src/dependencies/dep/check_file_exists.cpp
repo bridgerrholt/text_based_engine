@@ -1,5 +1,5 @@
 /// @file check_file_exists.cpp
-/// Definitions of the dep::checkFileExists functions.
+/// Definition of the overloaded function @ref dep::checkFileExists().
 
 #include "check_file_exists.h"
 
@@ -8,7 +8,7 @@
 namespace dep {
 
 bool
-checkFileExists(com::StringRef fileName)
+checkFileExists(std::string const & fileName)
 {
   // Since stat uses C strings, .c_str() must be called regardless.
   return checkFileExists(fileName.c_str());

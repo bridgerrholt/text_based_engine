@@ -1,10 +1,10 @@
 /// @file basic_immutable_value.h
-/// Declaration and definition of the dep::BasicImmutableValue class.
+/// Declaration and definition of the class template dep::BasicImmutableValue.
 
 /// @class dep::BasicImmutableValue
 /// Holds a value (of any type) that can only be set at construction.
 ///
-/// @param T The type of value to hold.
+/// @tparam T The type of value to hold.
 
 #ifndef _DEPENDENCIES_DEP_BASIC_IMMUTABLE_VALUE_H
 #define _DEPENDENCIES_DEP_BASIC_IMMUTABLE_VALUE_H
@@ -16,11 +16,16 @@ class BasicImmutableValue
 {
   public:
     /// Primary constructor.
-    /// @param value Sets the underlying @ref value_ member.
+    /// @param value Sets the underlying member (@ref value_).
     BasicImmutableValue(T value);
 
-    /// Returns the member @ref value_.
-    T get() const { return value_; }
+    /// Returns the underlying member (@ref value_).
+    T         get()    const { return value_; }
+
+    /// Returns a constant reference to the underlying member (@ref value_).
+    /// This may be faster with some data types.
+    T & const getRef() const { return value_; }
+
 
   private:
     /// The immutable value.

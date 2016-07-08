@@ -1,8 +1,8 @@
 /// @file value_key.h
-/// Declaration and definition of the dep::ValueKey class.
+/// Declaration and definition of the class template dep::ValueKey.
 
 /// @class dep::ValueKey
-/// Template class that can only be constructed by the passed class.
+/// Class template that can only be constructed by a passed class.
 /// Contains a variable that cannot be changed after construction.
 ///
 /// @param F The friend type, which is the only type able to create it.
@@ -13,6 +13,7 @@
 #define _DEPENDENCIES_DEP_VALUE_KEY_H
 
 #include <stddef.h> // std::size_t
+#include <utility> // std::move
 
 #include "basic_immutable_value.h"
 
@@ -22,33 +23,34 @@ template <class F, class T = std::size_t>
 class ValueKey
 {
   public:
-    // Declares F as the only type able to construct it.
+    /// Declares F as the only type able to construct it.
     friend F;
 
-    T get() const { return value_.get(); }
+    /// Returns the underlying value.
+    T         get()    const { return value_.get(); }
+
+    /// Returns a const reference to the underlying value.
+    T const & getRef() const { return value_.getRef(); }
 
 
   private:
-    /// The immutable value.
-    /// Not const, but the underlying value is not able to change after construction.
-    BasicImmutableValue<T> value_;
-
     /// Constructor only callable by @ref F.
-    /// @param valueSet Sets @ref value, is not a const reference because
-    ///                 T shouldn't be a very large type.
+    /// @param valueSet Sets @ref value. Move semantics may be used.
     ValueKey(T valueSet);
+
+    /// The immutable value.
+    /// Not const, but this variable's underlying value is not able to change after construction.
+    BasicImmutableValue<T> value_;
 };
 
 
 
 template <class F, class T>
 ValueKey<F, T>::ValueKey(T valueSet) :
-  value_(valueSet)
+  value_(std::move(valueSet))
 {
 
 }
-
-
 
 }
 
