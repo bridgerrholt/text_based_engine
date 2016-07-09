@@ -3,8 +3,8 @@ program_NAME := text_based_engine
 program_C_SRCS := sqlite3/sqlite3.c
 program_CXX_SRCS := $(wildcard *.cpp \
 	dependencies/dep/*.cpp \
-	sql_helpers/*.cpp \
-	sql_helpers/*/*.cpp)
+	sql_support/*.cpp \
+	sql_support/*/*.cpp)
 
 program_C_OBJS := ${program_C_SRCS:.c=.o}
 program_CXX_OBJS := ${program_CXX_SRCS:.cpp=.o}
