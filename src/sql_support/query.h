@@ -10,8 +10,6 @@
 
 #include <sqlite3.h>
 
-#include "query_data.h"
-
 namespace tbe {
   namespace sql {
     
@@ -24,29 +22,25 @@ class Query
     /// @param[in] queryText The command(s) to be ran.
     Query(sqlite3* database, std::string const & queryText);
 
-    /// QueryDataFull constructor.
-    /// @param[in] queryData All the information about the query.
-    /// @param[in] tableName The table that the query will be executed on.
-    Query(QueryDataFull const & queryData,
-          std::string   const & tableName);
-
     /// Advances the query to the next row.
-    /// @return Whether there was a next row or not.
+    /// @return Whether there was a row or not.
+    ///         In other words, returning true guarantees there is still a row to read from.
     bool nextRow();
 
     /// Throws an exception if the column count is undesired.
     /// @param[in] desiredCount The amount of columns required for no exception.
     void verifyColumnCount(int desiredCount);
 
-    /** Outputs a text column as a string.
-        
-        @param[in] columnIndex The index to read out.
-        @return The column in string form.
-    */
+    /// Outputs a text column as a string.
+    /// 
+    /// @param[in] columnIndex The index to read out.
+    /// @return The column in string form.
     std::string readString(int columnIndex);
 
-    /// Returns the managed sqlite3_stmt object's address.
-    /// @return The managed handle.
+    // TODO: Make this function private,
+    //       provide operations for reading out query data (such as readString).
+    /// Returns the internal SQLite query.
+    /// @return The managed sqlite3_stmt object's address.
     sqlite3_stmt* getHandle() const;
 
 
@@ -61,11 +55,6 @@ class Query
 
         /// Properly frees @ref handle.
         ~HandleWrapper();
-
-        /// @return @ref handle.
-        sqlite3_stmt& operator* ();
-        /// @return @ref handle.
-        sqlite3_stmt* operator->();
 
         /// Immutable pointer to the query handle.
         sqlite3_stmt * const handle;

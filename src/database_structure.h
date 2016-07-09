@@ -1,14 +1,19 @@
-#ifndef TEXT_BASED_ENGINE_SQL_SUPPORT_DATABASE_STRUCTURE_H
-#define TEXT_BASED_ENGINE_SQL_SUPPORT_DATABASE_STRUCTURE_H
+/// @file database_structure.h
+/// Declaration of the class tbe::sql::Tables.
+
+#ifndef TEXT_BASED_ENGINE_DATABASE_STRUCTURE_H
+#define TEXT_BASED_ENGINE_DATABASE_STRUCTURE_H
 
 #include <string>
 
-#include "dynamic_type.h"
-#include "column_info/basic_column_info.h"
+#include "sql_support/dynamic_type.h"
+#include "sql_support/column_info/basic_column_info.h"
 
 namespace tbe {
   namespace sql {
 
+/// Simply contains tbe::sql::BasicColumnInfo objects, forming the structure of the database used
+/// in this project.
 class Tables
 {
   public:

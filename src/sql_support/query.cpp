@@ -8,38 +8,32 @@
 
 #include <dep/ptr_to_string.h>
 
-#include "query_data.h"
-
 namespace tbe {
   namespace sql {
 
 // Query
+
 Query::Query(sqlite3* database, std::string const & queryText) :
   handle_(0)
 {
+  // The beginning of the next statement.
+  // As of right now, this class does not handle queries with multiple statements.
   char const   * tail;
+
+  // Only exists to pass the query handle to the member handle_.
   sqlite3_stmt * tempHandle;
 
   int returnCode = sqlite3_prepare_v2(database, queryText.c_str(), -1,
     &tempHandle, &tail);
 
-  handle_ = std::make_shared<HandleWrapper>(tempHandle);
+  // Even if the query wasn't successfully made, it must be handled appropriately.
+  handle_.reset(new HandleWrapper(tempHandle));
 
   if (returnCode != SQLITE_OK || getHandle() == 0) {
     throw std::runtime_error(
       "Preparation of the following query failed "
       "in sql::Query construction:\n" + queryText);
   }
-}
-
-
-
-Query::Query(QueryDataFull const & queryData,
-             std::string   const & tableName) :
-
-  Query(queryData.getDatabase(), queryData.formatQueryText(tableName))
-{
-
 }
 
 
@@ -55,8 +49,8 @@ Query::nextRow()
   else if (returnCode == SQLITE_DONE)
     return false;
 
+  // Handles exceptions.
   else {
-    // "Handle (%handlePtr%) "
     std::string errorMessage = getHandleString();
 
     if (returnCode == SQLITE_BUSY)
@@ -93,6 +87,7 @@ Query::verifyColumnCount(int desiredCount)
 std::string
 Query::readString(int columnIndex)
 {
+  // Low-level format conversion. Unsure if UTF-8 but seems to work.
   return (reinterpret_cast<char const *>(
     sqlite3_column_text(getHandle(), columnIndex)));
 }
@@ -116,6 +111,7 @@ Query::getHandleString() const
 
 
 // Query::HandleWrapper
+
 Query::HandleWrapper::HandleWrapper(sqlite3_stmt* handleSet) :
   handle(handleSet)
 {
@@ -131,6 +127,7 @@ Query::HandleWrapper::~HandleWrapper()
 
   int returnCode = sqlite3_finalize(handle);
 
+  // Using SQLite V2 functions, the data will eventually get destructed.
   if (returnCode != SQLITE_OK) {
     std::cerr << "Finalizing not OK\n";
   }

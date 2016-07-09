@@ -16,11 +16,11 @@
 #include "sql_support/dynamic_query.h"
 #include "sql_support/query_object.h"
 #include "sql_support/column_list.h"
-#include "sql_support/database_structure.h"
 
 #include "sql_support/where_clause/expression.h"
 #include "sql_support/where_clause/where_clause.h"
 
+#include "database_structure.h"
 #include "ask_question.h"
 
 namespace {

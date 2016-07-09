@@ -2,7 +2,7 @@
 
 #include <iostream>
 
-#include "../database_structure.h"
+#include "../../database_structure.h"
 
 namespace tbe {
   namespace sql {

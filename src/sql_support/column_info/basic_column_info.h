@@ -14,13 +14,13 @@ namespace tbe {
 /// specific column, making the user not have to type as many repetitive casts.
 /// @param K Used to express that specific instansiation's type.
 template <types::Kind K>
-class ColumnInfoSpecific : public ColumnInfo
+class BasicColumnInfo : public ColumnInfo
 {
   public:
     /// Primary constructor.
     /// Simply calls the primary ColumnInfo constructor with a passed name and the type @ref K.
     /// @param[in] nameSet Passed as the column name to the ColumnInfo constructor.
-    ColumnInfoSpecific(std::string const & nameSet) :
+    BasicColumnInfo(std::string const & nameSet) :
       ColumnInfo(nameSet, K)
     {
     
@@ -34,8 +34,8 @@ class ColumnInfoSpecific : public ColumnInfo
         /// Provides shortcuts for instantiations of ColumnInfoSpecific.
         namespace col {
 
-typedef ColumnInfoSpecific<types::INT>  Int;
-typedef ColumnInfoSpecific<types::TEXT> Text;
+typedef BasicColumnInfo<types::INT>  Int;
+typedef BasicColumnInfo<types::TEXT> Text;
 
       }
     }

@@ -6,7 +6,7 @@
 
 #include <vector>
 
-#include "column_list_id.h"
+#include "common/column_list_id.h"
 
 namespace tbe {
   namespace sql {
