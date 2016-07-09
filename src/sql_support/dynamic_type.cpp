@@ -1,3 +1,6 @@
+/// @file dynamic_type.cpp
+/// Definition of the abstract base class tbe::sql::DynamicType.
+
 #include "dynamic_type.h"
 
 namespace tbe {
@@ -15,15 +18,6 @@ DynamicType::~DynamicType()
 {
 
 }
-
-
-
-types::Kind
-DynamicType::getKind() const
-{
-  return kind_;
-}
-
 
 
   }

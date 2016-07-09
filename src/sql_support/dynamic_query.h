@@ -1,9 +1,5 @@
-/** @file dynamic_query.h
-    Declaration of the tbe::sql::DynamicQuery class.
-
-    @class tbe::sql::DynamicQuery
-    Manages information about an SQLite query, along with a tbe::sql::Query object.
-*/
+/// @file dynamic_query.h
+/// Declaration of the class tbe::sql::DynamicQuery.
 
 #ifndef TEXT_BASED_ENGINE_SQL_SUPPORT_DYNAMIC_QUERY_H
 #define TEXT_BASED_ENGINE_SQL_SUPPORT_DYNAMIC_QUERY_H
@@ -20,30 +16,32 @@ namespace tbe {
 
 class WhereClauseBase;
 
+/// Manages information about an SQLite query, along with a tbe::sql::Query object.
 class DynamicQuery
 {
   public:
     typedef std::unique_ptr<WhereClauseBase> WhereClauseType;
 
-    /** Primary constructor.
-        Even though it may not always be compiled, it must always have information for
-        compilation, that's why these parameters are required.
-
-        @param[in] database      Copied into @ref database_.
-        @param[in] tableName     Moved into @ref tableName_.
-        @param[in] selectColumns Swapped into @ref selectColumns_. R-value reference is not used
-                                 because ColumnList objects can't be copied, they must be swapped.
-        @param[in] whereClause   Moved into @ref whereClause_.
-    */
+    /// Primary constructor.
+    /// Even though it may not always be compiled, it must always have information for
+    /// compilation, that's why these parameters are required.
+    ///
+    /// @param[in] database      Copied into @ref database_.
+    /// @param[in] tableName     Moved into @ref tableName_.
+    /// @param[in] selectColumns Swapped into @ref selectColumns_. R-value reference is not used
+    ///                          because ColumnList objects can't be copied, they must be swapped.
+    /// @param[in] whereClause   Moved into @ref whereClause_.
     DynamicQuery(sqlite3      *  database,
                  std::string     tableName,
                  ColumnList   &  selectColumns,
                  WhereClauseType whereClause);
 
-    DynamicQuery(sqlite3       *  database,
-                 std::string      tableName,
-                 ColumnList    &  selectColumns);
+    DynamicQuery(sqlite3     * database,
+                 std::string   tableName,
+                 ColumnList  & selectColumns);
     
+    /// Generates the entire query statement.
+    /// @return The text of the whole query statement.
     std::string generateQueryText();
 
     /// Compiles and executes the query.
@@ -93,6 +91,7 @@ class DynamicQuery
     /// Executes the query without explicitally throwing an exception if it wasn't compiled.
     QueryResult rawRun();
 
+    /// The database handle.
     sqlite3 * database_;
 
     std::string     tableName_;

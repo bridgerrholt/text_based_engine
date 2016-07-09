@@ -1,3 +1,6 @@
+/// @file column_info.cpp
+/// Definition of the base class tbe::sql::ColumnInfo.
+
 #include "column_info.h"
 
 #include <iostream>

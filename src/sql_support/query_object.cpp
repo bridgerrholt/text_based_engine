@@ -1,3 +1,6 @@
+/// @file query_object.cpp
+/// Definition of the class tbe::sql::QueryObject.
+
 #include "query_object.h"
 
 #include <iostream>

@@ -1,4 +1,4 @@
-/// @file where_clause.h
+/// @file expression_string.h
 /// Declaration of the inherited class tbe::sql::ExpressionString.
 
 #ifndef TEXT_BASED_ENGINE_SQL_SUPPORT_WHERE_CLAUSE_EXPRESSION_STRING_H

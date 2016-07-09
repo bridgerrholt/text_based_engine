@@ -1,5 +1,5 @@
 /// @file engine.cpp
-/// Definition of the class tbe::engine.
+/// Definition of the class tbe::Engine.
 
 #include "engine.h"
 

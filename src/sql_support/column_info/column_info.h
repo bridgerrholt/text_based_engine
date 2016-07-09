@@ -1,7 +1,5 @@
 /// @file column_info.h
-/// Declaration of the class tbe::sql::ColumnInfo.
-/// Also defines the class template inherited from tbe::sql::ColumnInfo,
-/// tbe::sql::ColumnInfoSpecific.
+/// Declaration of the base class tbe::sql::ColumnInfo.
 
 #ifndef TEXT_BASED_ENGINE_SQL_SUPPORT_COLUMN_INFO_COLUMN_INFO_H
 #define TEXT_BASED_ENGINE_SQL_SUPPORT_COLUMN_INFO_COLUMN_INFO_H

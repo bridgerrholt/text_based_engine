@@ -1,4 +1,5 @@
 /// @file query.cpp
+/// Definition of the class tbe::sql::Query.
 
 #include "query.h"
 
