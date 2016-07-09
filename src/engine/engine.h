@@ -12,9 +12,9 @@
 #include <dep/input_manager.h>
 #include <dep/sleep_event.h>
 
-#include "sql_support/common/query_result.h"
+#include "../sql_support/common/query_result.h"
 
-#include "sql_support/column_list.h"
+#include "../sql_support/column_list.h"
 
 namespace tbe {
   
