@@ -6,8 +6,8 @@
 
 #include <string>
 
-#include "sql_support/dynamic_type.h"
-#include "sql_support/column_info/basic_column_info.h"
+#include "../sql_support/dynamic_type.h"
+#include "../sql_support/column_info/basic_column_info.h"
 
 namespace tbe {
   namespace sql {
