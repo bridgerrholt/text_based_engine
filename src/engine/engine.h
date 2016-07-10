@@ -1,8 +1,8 @@
 /// @file engine.h
 /// Declaration of the class tbe::Engine.
 
-#ifndef TEXT_BASED_ENGINE_ENGINE_H
-#define TEXT_BASED_ENGINE_ENGINE_H
+#ifndef TEXT_BASED_ENGINE_ENGINE_ENGINE_H
+#define TEXT_BASED_ENGINE_ENGINE_ENGINE_H
 
 #include <locale>
 #include <string>
@@ -15,6 +15,8 @@
 #include "../sql_support/common/query_result.h"
 
 #include "../sql_support/column_list.h"
+
+#include "command_processor.h"
 
 namespace tbe {
   
@@ -77,6 +79,9 @@ class Engine
     /// Primary SleepEvent.
     /// Secondary SleepEvents may be added in the future.
     dep::SleepEvent sleepEvent_ = 500;
+
+    /// Primary CommandProcessor.
+    CommandProcessor commandProcessor_;
 };
 
 }

@@ -2,8 +2,8 @@
 /// Declarations of the overloaded function tbe::askQuestion() and its
 /// lower-level support functions.
 
-#ifndef TEXT_BASED_ENGINE_ASK_QUESTION_H
-#define TEXT_BASED_ENGINE_ASK_QUESTION_H
+#ifndef TEXT_BASED_ENGINE_ENGINE_ASK_QUESTION_H
+#define TEXT_BASED_ENGINE_ENGINE_ASK_QUESTION_H
 
 #include <vector>
 #include <string>

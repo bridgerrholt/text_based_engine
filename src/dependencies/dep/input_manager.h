@@ -19,30 +19,31 @@ class InputManager
 {
   public:
     /// Primary constructor.
-    /// @param[in] locale The program-wide locale to be
-    ///                   passed to returned StringFormatter objects.
-    InputManager(std::locale const & locale);
+    /// @param[in] localeSet The program-wide locale to be
+    ///                      passed to returned StringFormatter objects.
+    InputManager(std::locale const & localeSet);
 
     /// Reads the user input into a StringFormatter.
     /// @return The StringFormatter constructed from the string.
-    StringFormatter get();
+    StringFormatter get() const;
 
     /// @param inputString[out] Used for getting the standard input, passed instead of
     ///                         having the function create one upon call.
-    StringFormatter get(std::string & inputString);
+    StringFormatter get(std::string & inputString) const;
 
 
     /// Reads the user input into a string.
     /// @return The string that standard input was read into.
-    std::string getPure();
+    std::string getPure() const;
 
     /// @param[out] inputString Used for getting the standard input.
-    void        getPure(std::string & inputString);
+    void        getPure(std::string & inputString) const;
+
+    /// The program-wide locale, is currently only used to create StringFormatter objects.
+    std::locale const & locale;
 
 
   private:
-    /// The program-wide locale, is currently only used to create StringFormatter objects.
-    std::locale const & locale_;
 
 };
   

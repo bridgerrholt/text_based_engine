@@ -49,7 +49,8 @@ Engine::Engine() :
 
 Engine::Engine(std::locale const & locale) :
   locale_(locale),
-  inputManager_(locale_)
+  inputManager_(locale_),
+  commandProcessor_(locale_)
 {
 
 }
