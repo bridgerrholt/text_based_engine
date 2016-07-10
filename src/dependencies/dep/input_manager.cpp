@@ -5,8 +5,8 @@
 
 namespace dep {
 
-InputManager::InputManager(std::locale const & locale) :
-  locale_(locale)
+InputManager::InputManager(std::locale const & localeSet) :
+  locale(localeSet)
 {
 
 }
@@ -14,7 +14,7 @@ InputManager::InputManager(std::locale const & locale) :
 
 
 StringFormatter
-InputManager::get()
+InputManager::get() const
 {
   std::string inputString;
   return get(inputString);
@@ -22,16 +22,16 @@ InputManager::get()
 
 
 StringFormatter
-InputManager::get(std::string & inputString)
+InputManager::get(std::string & inputString) const
 {
   getPure(inputString);
-  return StringFormatter(locale_, inputString);
+  return StringFormatter(locale, inputString);
 }
 
 
 
 std::string
-InputManager::getPure()
+InputManager::getPure() const
 {
   std::string inputString;
   getPure(inputString);
@@ -41,7 +41,7 @@ InputManager::getPure()
 
 
 void
-InputManager::getPure(std::string & inputString)
+InputManager::getPure(std::string & inputString) const
 {
   std::getline(std::cin, inputString);
 }

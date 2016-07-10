@@ -35,6 +35,14 @@ StringFormatter::strRef() const
 
 
 
+std::string &&
+StringFormatter::moveOut() &&
+{
+  return std::move(contents_);
+}
+
+
+
 std::string
 str(StringFormatter const & stringFormatter)
 {

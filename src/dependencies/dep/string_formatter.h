@@ -27,6 +27,9 @@ class StringFormatter
     /// @return The constant reference to @ref contents_.
     std::string const & strRef() const;
 
+    /// Transfers out the internal string.
+    std::string && moveOut() &&;
+
     /// Removes all whitespace at the beginning of the string.
     /// @return The specific StringFormatter object it was called on.
     ///         All modification functions return it because that allows for function chaining.
