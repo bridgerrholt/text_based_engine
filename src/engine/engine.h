@@ -6,6 +6,7 @@
 
 #include <locale>
 #include <string>
+#include <unordered_map>
 
 #include <sqlite3.h>
 
@@ -17,6 +18,7 @@
 #include "../sql_support/column_list.h"
 
 #include "command_processor.h"
+#include "ask_question.h"
 
 namespace tbe {
   
@@ -49,7 +51,36 @@ class Engine
     void run(std::string const & fileName);
 
 
+    /// Runs the actual game.
+    void runV2();
+
+    /// Calls loadDatabase() then run().
+    /// @param[in] fileName The database file to be passed to loadDatabase().
+    void runV2(std::string const & fileName);
+
+
   private:
+    class OptionDisplay
+    {
+      public:
+        ResponseOptionList options;
+        std::string        startText;
+        std::string        endText;
+    
+    };
+
+    enum RunningState
+    {
+      /// Something is not right.
+      BAD = 0,
+
+      /// Lists all the characters.
+      LOBBY,
+
+      PLAYER_RESPONSE
+    };
+
+
     /// Opens the given database file.
     /// Ensures the given file exists and attempts to open it.
     /// If anything fails, an exception is thrown.
@@ -59,6 +90,8 @@ class Engine
 
     /// Attempts to close the database.
     void closeDatabase();
+
+
 
 
     /// The program-wide locale.
@@ -82,6 +115,10 @@ class Engine
 
     /// Primary CommandProcessor.
     CommandProcessor commandProcessor_;
+
+    RunningState state_ = BAD;
+
+    std::unordered_map<RunningState, ResponseOptionList> stateOptions_;
 };
 
 }
