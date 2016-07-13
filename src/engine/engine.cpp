@@ -52,7 +52,9 @@ Engine::Engine(std::locale const & locale) :
   inputManager_(locale_),
   commandProcessor_(locale_)
 {
-
+  stateOptions_[BAD];
+  stateOptions_[LOBBY];
+  stateOptions_[PLAYER_RESPONSE];
 }
 
 
@@ -174,8 +176,35 @@ Engine::run()
       primaryOptions.push_back(i.col(actors.name));
 
     // The player selects an index of primaryOptions.
-    std::size_t optionIndex =
+    /*std::size_t optionIndex =
       askQuestion(inputManager_, primaryOptions,
+                 "Who would you like to talk to?", 0);*/
+
+    std::size_t optionIndex;
+
+    printResponseOptions(primaryOptions, 0);
+    std::cout << "Who would you like to talk to?\n";
+
+    while (true) {
+      std::string input = inputManager_.get().trim().str();
+
+      CommandProcessor::Command command = commandProcessor_.readCommand(input);
+
+      if (command == CommandProcessor::NO_COMMAND) {
+        if (processResponseIndex(input, primaryOptions.size(),
+                                 optionIndex, 0)
+        ) {
+          break;
+        }
+      }
+    }
+
+    std::string input = inputManager_.get().trim().str();
+
+    CommandProcessor::Command command = commandProcessor_.readCommand(input);
+
+    optionIndex =
+      askQuestion(inputManager_, primaryOptions.size(),
                  "Who would you like to talk to?", 0);
 
     // All the constant options are handled.
@@ -275,8 +304,135 @@ Engine::run()
 }
 
 
+
 void
 Engine::run(std::string const & fileName)
+{
+  loadDatabase(fileName);
+  run();
+}
+
+
+
+void
+Engine::runV2()
+{
+  // Columns for the "actors" query.
+  ColumnList columns {{
+    &::actors.name,
+    &::actors.introId
+  }};
+  
+  // Swaps out columns contents.
+  DynamicQuery actorQuery { database_, "actors", columns };
+
+  // Columns for the "options" query.
+  columns.push({
+    &::options.id,
+    &::options.characterId,
+    &::options.optionListId,
+    &::options.textDisplay,
+    &::options.textSpeak,
+    &::options.nextId
+  });
+
+  std::unique_ptr<Expression> idExpression (
+    new Expression(::options.optionListId, "=", "")
+  );
+
+  std::string & nextOptionList = idExpression->valueText;
+
+  WhereClause::ExpressionType idExpressionDynamic(
+    std::move(idExpression)
+  );
+
+
+
+  std::string optionTable = "options";
+  sql::DynamicQuery optionQuery(database_, optionTable, columns,
+    std::unique_ptr<WhereClauseBase>(
+      new WhereClause(std::move(idExpressionDynamic))
+    )
+  );
+
+  
+  // Columns for the "responses" query.
+  columns.push({
+    &::responses.id,
+    &::responses.textSpeak,
+    &::responses.nextId
+  });
+
+  // Only 1 specific response is pulled at a time, based on its unique id.
+  idExpression.reset(new Expression(::responses.id, "=", ""));
+  
+  // Since only the pointers are passed around (no other data is moved),
+  // it's safe to reference values. This is faster and simpler than dynamically casting the
+  // expression back every time it needs to be accessed.
+  std::string & nextResponse = idExpression->valueText;
+
+  idExpressionDynamic = std::move(idExpression);
+
+
+  sql::DynamicQuery responseQuery(database_, "responses", columns,
+    std::unique_ptr<WhereClauseBase>(
+      new WhereClause(std::move(idExpressionDynamic))
+    )
+  );
+
+  actors_ = actorQuery.run();
+
+  state_ = LOBBY;
+  
+  // Initialized before the main loop and resized in the lobby.
+  ResponseOptionList primaryOptions;
+
+  // Specifies how many options always remain while in the lobby.
+  // primaryOptions is resized to it in the lobby in case actors change.
+  const std::size_t constantOptionsCount { 1 };
+
+  stateOptions_[LOBBY].push_back("QUIT"); // Breaks out of the main loop.
+
+  while (state_ != BAD) {
+    bool toExit { false };
+
+    // First processing.
+    switch (state_) {
+      case LOBBY :
+        // Exit the function if the database doesn't contain any actors.
+        if (actors_.size() == 0) {
+          std::cout << "Nobody seems to be around.\n";
+          toExit = true;
+          break;
+        }
+        else {
+          // All the old actors are removed and all the current actors are added.
+          stateOptions_[LOBBY].resize(constantOptionsCount);
+          for (auto & i : actors_)
+            stateOptions_[LOBBY].push_back(i.col(actors.name));
+
+          std::cout << "Who would you like to talk to?\n";
+        }
+
+        break;
+
+      case PLAYER_RESPONSE : break;
+
+      case BAD : // Fallthrough
+      default :
+        toExit = true;
+        break;
+    }
+
+    if (toExit) break;
+
+
+  }
+}
+
+
+void
+Engine::runV2(std::string const & fileName)
 {
   loadDatabase(fileName);
   run();

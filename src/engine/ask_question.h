@@ -25,13 +25,16 @@ std::size_t const RESPONSE_OPTIONS_START_NUM = 1;
   }
 
 
+typedef std::vector<std::string> ResponseOptionList;
+
+
 /// Outputs the given list of user responses.
 ///
 /// @param[in] responseOptions All the user response options.
-/// @param[in] startNum        What number the first response should be labeled.
+/// @param[in] startNum        What number the first response should be labeled as.
 void
 printResponseOptions(
-  std::vector<std::string> const & responseOptions,
+  ResponseOptionList const & responseOptions,
   std::size_t startNum = internal::RESPONSE_OPTIONS_START_NUM);
 
 
@@ -54,12 +57,28 @@ getResponseIndex(
   std::size_t startNum = internal::RESPONSE_OPTIONS_START_NUM);
 
 
+std::size_t
+getResponseIndex(
+  std::string const & input,
+  std::size_t         optionCount,
+  std::size_t startNum = internal::RESPONSE_OPTIONS_START_NUM);
+
+
+bool
+processResponseIndex(
+  std::string const & input,
+  std::size_t         optionCount,
+  std::size_t       & optionIndex,
+  std::size_t startNum = internal::RESPONSE_OPTIONS_START_NUM);
+
+
+
 
 /// Prints out @p responseOptions and gets the player's selected index.
 std::size_t
 askQuestion(
   dep::InputManager                inputManager,
-  std::vector<std::string> const & responseOptions,
+  ResponseOptionList const & responseOptions,
   std::size_t startNum = internal::RESPONSE_OPTIONS_START_NUM);
 
 
@@ -68,8 +87,24 @@ askQuestion(
 std::size_t
 askQuestion(
   dep::InputManager                inputManager,
-  std::vector<std::string> const & responseOptions,
+  ResponseOptionList const & responseOptions,
   std::string              const & question,
+  std::size_t startNum = internal::RESPONSE_OPTIONS_START_NUM);
+
+
+std::size_t
+askQuestion(
+  dep::InputManager   inputManager,
+  std::size_t         optionCount,
+  std::string const & question,
+  std::size_t startNum = internal::RESPONSE_OPTIONS_START_NUM);
+
+
+std::size_t
+askQuestion(
+  std::string const & input,
+  std::size_t         optionCount,
+  std::string const & question,
   std::size_t startNum = internal::RESPONSE_OPTIONS_START_NUM);
 
 
