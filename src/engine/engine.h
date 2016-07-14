@@ -100,6 +100,14 @@ class Engine
 
     FullOptionList& currentOptions();
 
+    /// Decides whether the program should return to the lobby based on a passed value
+    /// representing the next dialogue id.
+    /// If it should return to the lobby, it also marks @ref state_ as @ref LOBBY.
+    ///
+    /// @param[in] nextId If 0, the program should return to the lobby.
+    /// @return Whether the program should return to the lobby or not.
+    bool toLobby(int nextId);
+
 
 
 

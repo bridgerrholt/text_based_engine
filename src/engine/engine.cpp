@@ -317,14 +317,21 @@ Engine::run(std::string const & fileName)
 void
 Engine::runV2()
 {
+  // Used to define the columns for all the queries, it is cleared every
+  // time it passes its data to a query.
+  ColumnList columns;
+
+
+
   // Columns for the "actors" query.
-  ColumnList columns {{
+  columns.push({
     &::actors.name,
     &::actors.introId
-  }};
+  });
   
-  // Swaps out columns contents.
+  // The contents of columns is swapped out with a fresh ColumnList.
   DynamicQuery actorQuery { database_, "actors", columns };
+
 
   // Columns for the "options" query.
   columns.push({
@@ -336,26 +343,27 @@ Engine::runV2()
     &::options.nextId
   });
 
-  std::unique_ptr<Expression> idExpression (
+  // Only 1 specific option list is pulled at a time, based on its unique id.
+  std::unique_ptr<Expression> idExpression {
     new Expression(::options.optionListId, "=", "")
-  );
-
+  };
+  
+  // Since only the pointers are passed around (no other data is moved),
+  // it's safe to reference values. This is faster and simpler than dynamically casting the
+  // expression back every time it needs to be accessed.
   std::string & nextOptionList = idExpression->valueText;
 
-  WhereClause::ExpressionType idExpressionDynamic(
-    std::move(idExpression)
-  );
-
-
+  WhereClause::ExpressionType
+    idExpressionGeneric { std::move(idExpression) };
 
   std::string optionTable = "options";
-  sql::DynamicQuery optionQuery(database_, optionTable, columns,
+  sql::DynamicQuery optionQuery { database_, optionTable, columns,
     std::unique_ptr<WhereClauseBase>(
-      new WhereClause(std::move(idExpressionDynamic))
+      new WhereClause(std::move(idExpressionGeneric))
     )
-  );
+  };
 
-  
+
   // Columns for the "responses" query.
   columns.push({
     &::responses.id,
@@ -363,22 +371,20 @@ Engine::runV2()
     &::responses.nextId
   });
 
-  // Only 1 specific response is pulled at a time, based on its unique id.
+  // Only 1 response is pulled at a time.
   idExpression.reset(new Expression(::responses.id, "=", ""));
   
-  // Since only the pointers are passed around (no other data is moved),
-  // it's safe to reference values. This is faster and simpler than dynamically casting the
-  // expression back every time it needs to be accessed.
   std::string & nextResponse = idExpression->valueText;
 
-  idExpressionDynamic = std::move(idExpression);
+  idExpressionGeneric = std::move(idExpression);
 
-
-  sql::DynamicQuery responseQuery(database_, "responses", columns,
+  sql::DynamicQuery responseQuery { database_, "responses", columns,
     std::unique_ptr<WhereClauseBase>(
-      new WhereClause(std::move(idExpressionDynamic))
+      new WhereClause(std::move(idExpressionGeneric))
     )
-  );
+  };
+
+
 
   actors_ = actorQuery.run();
 
@@ -429,12 +435,7 @@ Engine::runV2()
       case PLAYER_RESPONSE :
       {
         // The conversation is ongoing until one of the actions points to the ID of 0.
-        if (next == 0) {
-          std::cerr << "Next is 0\n";
-          // Heads directly to the lobby.
-          state_ = LOBBY;
-          continue;
-        }
+        if (toLobby(next)) continue;
 
         nextResponse = std::to_string(next);
 
@@ -468,12 +469,7 @@ Engine::runV2()
         std::cerr << "Response: " << nextOptionListId << '\n';
 
         // The conversation is over if the next ID is marked as 0.
-        if (nextOptionListId == 0) {
-          std::cerr << "Next is 0\n";
-          // Heads directly to the lobby.
-          state_ = LOBBY;
-          continue;
-        }
+        if (toLobby(nextOptionListId)) continue;
 
 
         nextOptionList = std::to_string(nextOptionListId);
@@ -689,6 +685,19 @@ Engine::FullOptionList&
 Engine::currentOptions()
 {
   return stateOptions_[state_];
+}
+
+
+
+bool
+Engine::toLobby(int nextId)
+{
+  if (nextId == 0) {
+    state_ = LOBBY;
+    return true;
+  }
+
+  else return false;
 }
 
 
