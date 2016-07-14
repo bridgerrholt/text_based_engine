@@ -53,8 +53,8 @@ Engine::Engine(std::locale const & locale) :
   commandProcessor_(locale_)
 {
   stateOptions_[BAD];
-  stateOptions_[LOBBY];
-  stateOptions_[PLAYER_RESPONSE];
+  stateOptions_[LOBBY] = {{}, 0};
+  stateOptions_[PLAYER_RESPONSE] = {{}, 1};
 }
 
 
@@ -383,6 +383,13 @@ Engine::runV2()
   actors_ = actorQuery.run();
 
   state_ = LOBBY;
+
+  QueryObject * currentActor { 0 };
+
+  QueryResult optionLists;
+
+  // The ID of the next actor response.
+  int next { 0 };
   
   // Initialized before the main loop and resized in the lobby.
   ResponseOptionList primaryOptions;
@@ -391,10 +398,13 @@ Engine::runV2()
   // primaryOptions is resized to it in the lobby in case actors change.
   const std::size_t constantOptionsCount { 1 };
 
-  stateOptions_[LOBBY].push_back("QUIT"); // Breaks out of the main loop.
+  stateOptions_[LOBBY].optionList.push_back("QUIT"); // Breaks out of the main loop.
 
   while (state_ != BAD) {
     bool toExit { false };
+    
+    // Printed after printing the options.
+    std::string postText { "" };
 
     // First processing.
     switch (state_) {
@@ -407,16 +417,86 @@ Engine::runV2()
         }
         else {
           // All the old actors are removed and all the current actors are added.
-          stateOptions_[LOBBY].resize(constantOptionsCount);
+          stateOptions_[LOBBY].optionList.resize(constantOptionsCount);
           for (auto & i : actors_)
-            stateOptions_[LOBBY].push_back(i.col(actors.name));
+            stateOptions_[LOBBY].optionList.push_back(i.col(actors.name));
 
-          std::cout << "Who would you like to talk to?\n";
+          postText = "Who would you like to talk to?\n";
         }
 
         break;
 
-      case PLAYER_RESPONSE : break;
+      case PLAYER_RESPONSE :
+      {
+        // The conversation is ongoing until one of the actions points to the ID of 0.
+        if (next == 0) {
+          std::cerr << "Next is 0\n";
+          // Heads directly to the lobby.
+          state_ = LOBBY;
+          continue;
+        }
+
+        nextResponse = std::to_string(next);
+
+        QueryResult responseList = responseQuery.run();
+
+        // Fail if there isn't exactly 1 response with the given id.
+        if (responseList.size() != 1) {
+          std::string errorMessage;
+
+          if (responseList.size() == 0)
+            errorMessage = "No response";
+          else
+            errorMessage = "Multiple responses";
+
+          throw std::runtime_error(
+            errorMessage + " with the id of " + nextResponse
+          );
+        }
+
+        QueryObject response = std::move(responseList[0]);
+        std::cerr << response.varList.size() << '\n';
+
+        // Outputs the actor's dialogue and sleeps.
+        // %name%: %textSpeak%-sleep-
+        std::cout << '\n' <<
+          currentActor->col(::actors.name) << ": " <<
+          response.col(::responses.textSpeak) << sleepEvent_ << '\n';
+
+        int nextOptionListId { response.col(::responses.nextId) };
+
+        std::cerr << "Response: " << nextOptionListId << '\n';
+
+        // The conversation is over if the next ID is marked as 0.
+        if (nextOptionListId == 0) {
+          std::cerr << "Next is 0\n";
+          // Heads directly to the lobby.
+          state_ = LOBBY;
+          continue;
+        }
+
+
+        nextOptionList = std::to_string(nextOptionListId);
+
+        optionLists = optionQuery.run();
+
+        if (optionLists.size() == 0) {
+          throw std::runtime_error(
+            "No option list (within table \"" + optionTable +
+            "\") with the id of " + nextOptionList
+          );
+        }
+
+        std::cerr << "Got options\n";
+
+        // Lists all the textDisplay strings from the options.
+        currentOptions().optionList.clear();
+        for (auto & i : optionLists)
+          currentOptions().optionList.push_back(i.col(::options.textDisplay));
+        std::cerr << "Option text list\n";
+
+        break;
+      }
 
       case BAD : // Fallthrough
       default :
@@ -426,7 +506,112 @@ Engine::runV2()
 
     if (toExit) break;
 
+    // Lists all the options for the current state.
+    printResponseOptions(currentOptions().optionList,
+                         currentOptions().startNum);
 
+    std::cout << postText;
+
+    std::string inputString;
+
+    bool isCommand { false };
+    CommandProcessor::Command command;
+    std::size_t optionIndex { 0 };
+
+    // Gets the player input.
+    while (true) {
+      inputString = inputManager_.prompt().trim().str();
+      std::cerr << "input: " << inputString << '\n';
+
+      command = commandProcessor_.readCommand(inputString);
+
+      if (command != CommandProcessor::NO_COMMAND) {
+        std::cerr << "is a command : " << command << '\n';
+        isCommand = true;
+        break;
+      }
+
+      else {
+        if (processResponseIndex(inputString, currentOptions().optionList.size(),
+                                 optionIndex, currentOptions().startNum))
+        {
+          std::cerr << "Processed " << optionIndex << '\n';
+          break;
+        }
+      }
+
+    }
+
+    // Player inputted a command.
+    if (isCommand) {
+      switch (command) {
+        case CommandProcessor::QUIT :
+          toExit = true;
+          break;
+
+        default :
+          throw std::runtime_error(
+            "Unhandled command (" + std::to_string(command) + ")"
+          );
+      }
+    }
+
+    // Player inputted one of the listed options.
+    else {
+      switch (state_) {
+        case LOBBY :
+          // All the constant options are handled.
+          // QUIT
+          if (optionIndex == 0) {
+            toExit = true;
+            break;
+          }
+
+          // The actor index must be offset backwards from the constant option offset.
+          // In other words, to map the optionIndex to the actors_ list, the amount of
+          // non-actor options must be subtracted.
+          currentActor = &actors_[optionIndex-constantOptionsCount];
+
+          // The ID of the next actor response.
+          next = currentActor->col(actors.introId);
+          std::cerr << next << '\n';
+
+          // If the intro ID is 0, that indicates no conversation will take place.
+          if (next == 0) {
+            std::cout << currentActor->col(actors.name) <<
+              " doesn't want to speak right now.\n";
+
+            // Stays in the lobby.
+            break;
+          }
+          else {
+            state_ = PLAYER_RESPONSE;
+            std::cerr << "Wants to speak\n";
+          }
+
+          break;
+
+        case PLAYER_RESPONSE :
+          std::cerr << "PLAYER_RESPONSE\n";
+          // Displays the user's response and sleeps.
+          std::cout << '\n' <<
+            optionLists[optionIndex].col(::options.textSpeak) << '\n' <<
+            sleepEvent_;
+
+          next = optionLists[optionIndex].col(::options.nextId);
+          std::cerr << "last next: " << next << '\n';
+          break;
+
+        case BAD :
+          toExit = true;
+          break;
+
+        default:
+          break;
+      }
+    }
+
+    if (toExit) break;
   }
 }
 
@@ -435,7 +620,7 @@ void
 Engine::runV2(std::string const & fileName)
 {
   loadDatabase(fileName);
-  run();
+  runV2();
 }
 
 
@@ -496,6 +681,14 @@ Engine::closeDatabase()
 
   // A database may be opened again later.
   databaseOpened_ = false;
+}
+
+
+
+Engine::FullOptionList&
+Engine::currentOptions()
+{
+  return stateOptions_[state_];
 }
 
 

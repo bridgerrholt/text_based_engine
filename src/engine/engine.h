@@ -69,6 +69,13 @@ class Engine
     
     };
 
+    class FullOptionList
+    {
+      public:
+        ResponseOptionList optionList;
+        std::size_t        startNum;
+    };
+
     enum RunningState
     {
       /// Something is not right.
@@ -90,6 +97,8 @@ class Engine
 
     /// Attempts to close the database.
     void closeDatabase();
+
+    FullOptionList& currentOptions();
 
 
 
@@ -118,7 +127,7 @@ class Engine
 
     RunningState state_ = BAD;
 
-    std::unordered_map<RunningState, ResponseOptionList> stateOptions_;
+    std::unordered_map<RunningState, FullOptionList> stateOptions_;
 };
 
 }

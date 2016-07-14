@@ -21,7 +21,8 @@ class InputManager
     /// Primary constructor.
     /// @param[in] localeSet The program-wide locale to be
     ///                      passed to returned StringFormatter objects.
-    InputManager(std::locale const & localeSet);
+    InputManager(std::locale const & localeSet,
+                 std::string         promptTextSet = "> ");
 
     /// Reads the user input into a StringFormatter.
     /// @return The StringFormatter constructed from the string.
@@ -39,8 +40,16 @@ class InputManager
     /// @param[out] inputString Used for getting the standard input.
     void        getPure(std::string & inputString) const;
 
+
+    /// Displays a prompt (@ref promptText) and then gets the input.
+    StringFormatter prompt() const;
+
+
     /// The program-wide locale, is currently only used to create StringFormatter objects.
     std::locale const & locale;
+
+    /// Displayed at the beginning of prompt functions.
+    std::string promptText;
 
 
   private:
