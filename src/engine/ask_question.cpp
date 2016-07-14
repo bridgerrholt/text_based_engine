@@ -131,10 +131,13 @@ processResponseIndex(
   std::size_t       & optionIndex,
   std::size_t startNum)
 {
+  std::cerr << "Process OptionIndex: " << optionIndex << '\n';
   if (dep::isInt(input)) {
     optionIndex = std::stoi(input);
-    if (optionIndex >= startNum && optionIndex < optionCount+startNum)
+    if (optionIndex >= startNum && optionIndex < optionCount+startNum) {
+      optionIndex -= startNum;
       return true;
+    }
   }
 
   return false;

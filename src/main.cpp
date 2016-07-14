@@ -16,7 +16,7 @@ int main(int argc, char* argv[])
       throw std::runtime_error("No database file specified");
     }
 
-    engine.run(argv[1]);
+    engine.runV2(argv[1]);
   }
 
   catch (std::exception const & e) {
