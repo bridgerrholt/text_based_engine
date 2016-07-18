@@ -9,7 +9,8 @@ namespace tbe {
 CommandProcessor::CommandProcessor(std::locale const & localeSet) :
   locale(localeSet)
 {
-  commandMap_.insert({"quit", QUIT});
+  commandMap_.insert({"quit",       QUIT});
+  commandMap_.insert({"list-paths", LIST_PATHS});
 }
 
 
@@ -38,6 +39,7 @@ CommandProcessor::readCommand(std::string commandText)
     // Upcoming commands are all handled by the Engine.
     case NO_COMMAND:
     case QUIT:
+    case LIST_PATHS:
       return command;
 
     // Upcoming commands are all handled by the CommandProcessor.
