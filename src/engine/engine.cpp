@@ -47,6 +47,52 @@ Engine::Engine() :
 }
 
 
+Engine::Engine(int argc, char* argv[]) :
+  Engine()
+{
+  std::string fileName;
+
+  if (argc >= 2)
+    fileName = argv[1];
+
+  // If there is no database file specified.
+  else {
+    std::cout << '\n';
+    std::cout << "Must have a database.\n";
+
+    while (true) {
+      std::cout << "\nDatabase file name:\n";
+      fileName = inputManager_.prompt().trim().str();
+    
+      if (!dep::checkFileExists(fileName)) {
+        std::cout << "That file cannot be found, create a new database?\n";
+
+        ResponseOptionList binaryOptions = { "Yes", "No" };
+
+        printResponseOptions(binaryOptions);
+        std::size_t input =
+          getResponseIndex(inputManager_, binaryOptions.size());
+
+        // "Yes", create a database.
+        if (input == 0) {
+          inDevMode_ = true;
+          createDatabase(fileName);
+          return;
+        }
+
+        // "No", enter a different file name.
+        else
+          continue;
+      }
+
+      break;
+    }
+  }
+
+  database_ = DatabaseHandle(fileName);
+}
+
+
 Engine::Engine(std::locale const & locale) :
   locale_(locale),
   inputManager_(locale_),
@@ -63,17 +109,15 @@ Engine::~Engine()
 {
   // Any member queries should be closed before the database is closed.
 
-  closeDatabase();
-
-  std::cerr << "Engine destructed\n";
+  std::cerr << "Engine destructor called\n";
 }
 
 
 
 void
-Engine::loadDatabase(std::string const & fileName)
+Engine::openDatabase(std::string const & fileName)
 {
-  openDatabase(fileName);
+  database_ = DatabaseHandle(fileName);
   
   ColumnList columns ({
     &::actors.name,
@@ -85,7 +129,7 @@ Engine::loadDatabase(std::string const & fileName)
                  i.col(::actors.introId) << '\n';
   }
   
-  DynamicQuery dyQ { database_, "actors", columns };
+  DynamicQuery dyQ { *database_, "actors", columns };
 
   actors_ = dyQ.run();
 }
@@ -126,7 +170,7 @@ Engine::run()
 
   // Swaps out columns contents.
   std::string optionTable = "options";
-  sql::DynamicQuery optionQuery(database_, std::string(optionTable), columns,
+  sql::DynamicQuery optionQuery(*database_, std::string(optionTable), columns,
     std::unique_ptr<WhereClauseBase>(
       new WhereClause(std::move(idExpressionDynamic))
     )
@@ -151,7 +195,7 @@ Engine::run()
   idExpressionDynamic = std::move(idExpression);
 
 
-  sql::DynamicQuery responseQuery(database_, "responses", columns,
+  sql::DynamicQuery responseQuery(*database_, "responses", columns,
     std::unique_ptr<WhereClauseBase>(
       new WhereClause(std::move(idExpressionDynamic))
     )
@@ -308,7 +352,7 @@ Engine::run()
 void
 Engine::run(std::string const & fileName)
 {
-  loadDatabase(fileName);
+  openDatabase(fileName);
   run();
 }
 
@@ -317,10 +361,16 @@ Engine::run(std::string const & fileName)
 void
 Engine::runV2()
 {
+  
+  auto testQueries = Query::createQueries(*database_, "SELECT * FROM actors; SELECT * FROM options; SELECT * FROM responses;");
+
+  for (auto & i : testQueries) {
+    std::cout << i.getHandle() << '\n';
+  }
+
   // Used to define the columns for all the queries, it is cleared every
   // time it passes its data to a query.
   ColumnList columns;
-
 
 
   // Columns for the "actors" query.
@@ -330,7 +380,7 @@ Engine::runV2()
   });
   
   // The contents of columns is swapped out with a fresh ColumnList.
-  DynamicQuery actorQuery { database_, "actors", columns };
+  DynamicQuery actorQuery { *database_, "actors", columns };
 
 
   // Columns for the "options" query.
@@ -357,7 +407,7 @@ Engine::runV2()
     idExpressionGeneric { std::move(idExpression) };
 
   std::string optionTable = "options";
-  sql::DynamicQuery optionQuery { database_, optionTable, columns,
+  sql::DynamicQuery optionQuery { *database_, optionTable, columns,
     std::unique_ptr<WhereClauseBase>(
       new WhereClause(std::move(idExpressionGeneric))
     )
@@ -378,7 +428,7 @@ Engine::runV2()
 
   idExpressionGeneric = std::move(idExpression);
 
-  sql::DynamicQuery responseQuery { database_, "responses", columns,
+  sql::DynamicQuery responseQuery { *database_, "responses", columns,
     std::unique_ptr<WhereClauseBase>(
       new WhereClause(std::move(idExpressionGeneric))
     )
@@ -545,6 +595,10 @@ Engine::runV2()
           toExit = true;
           break;
 
+        case CommandProcessor::LIST_PATHS :
+          // TODO: Handle all the different states, outputting the next dialogue for each option.
+          break;
+
         default :
           throw std::runtime_error(
             "Unhandled command (" + std::to_string(command) + ")"
@@ -615,68 +669,16 @@ Engine::runV2()
 void
 Engine::runV2(std::string const & fileName)
 {
-  loadDatabase(fileName);
+  openDatabase(fileName);
   runV2();
 }
 
 
 
 void
-Engine::openDatabase(std::string const & fileName)
+Engine::createDatabase(std::string const & fileName)
 {
-  // Closes the database if it's open.
-  closeDatabase();
-
-  // Specifically check if the user's provided database file path doesn't exist.
-  if (!dep::checkFileExists(fileName)) {
-    throw std::runtime_error(
-      "Database file can't be found:\n " + fileName
-    );
-  }
-
-  // Attempts to open the database.
-  int resultCode = sqlite3_open_v2(
-    fileName.c_str(), &database_,
-    SQLITE_OPEN_READWRITE, 0
-  );
-
-  if (resultCode != SQLITE_OK) {
-    // Resources must be freed even on failure.
-    sqlite3_close(database_);
-
-    throw std::runtime_error(
-      "Can't open database:\n " +
-        fileName + "\n"
-      "because:\n" +
-       sqlite3_errmsg(database_)
-    );
-  }
-
-  // Database was opened successfully.
-  else databaseOpened_ = true;
-}
-
-
-
-void
-Engine::closeDatabase()
-{
-  // Only attempt to close if it was opened.
-  // Terrible problems arise from freeing unallocated memory even with sqlite3 functions.
-  if (databaseOpened_) {
-    std::cerr << "About to close opened database\n";
-
-    // Shouldn't be anything but SQLITE_OK.
-    if (sqlite3_close_v2(database_) != SQLITE_OK) {
-      std::cerr << "Database couldn't close\n";
-    }
-    else {
-      std::cerr << "Closed database\n";
-    }
-  }
-
-  // A database may be opened again later.
-  databaseOpened_ = false;
+  database_ = DatabaseHandle(fileName);
 }
 
 

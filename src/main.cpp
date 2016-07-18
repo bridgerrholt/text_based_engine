@@ -9,14 +9,9 @@
 int main(int argc, char* argv[])
 {
   try {
-    tbe::Engine engine;
-  
-    // The user is expected to pass the path and name of the database file as the first parameter.
-    if (argc < 2) {
-      throw std::runtime_error("No database file specified");
-    }
+    tbe::Engine engine { argc, argv };
 
-    engine.runV2(argv[1]);
+    engine.runV2();
   }
 
   catch (std::exception const & e) {

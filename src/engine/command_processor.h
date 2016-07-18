@@ -13,7 +13,9 @@ class CommandProcessor
     enum Command
     {
       NO_COMMAND = 0,
-      QUIT
+
+      QUIT,
+      LIST_PATHS
     };
 
 

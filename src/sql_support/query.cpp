@@ -12,12 +12,40 @@
 namespace tbe {
   namespace sql {
 
+
+std::vector<Query>
+Query::createQueries(sqlite3           * database,
+                     std::string const & queryText)
+{
+  std::cerr << "createQueries(" << database << ", " << queryText << ")\n";
+  std::vector<Query> queries;
+
+  char const * strStart = queryText.c_str();
+
+  while (strStart != 0) {
+    std::cerr << "strStart: " << strStart << '\n';
+    bool containedSql;
+    Query nextQuery { database, strStart, strStart, containedSql };
+    std::cerr << "strTail:  " << strStart << '\n';
+    std::cerr << "strTail:  " << dep::ptrToString(strStart) << '\n';
+    std::cerr << "handle:   " << dep::ptrToString(nextQuery.getHandle()) << '\n';
+
+    if (!containedSql)
+      break;
+
+    queries.push_back(std::move(nextQuery));
+  }
+
+  return queries;
+}
+
+
+
 // Query
 
-Query::Query(sqlite3* database, std::string const & queryText) :
-  handle_(0)
+Query::Query(sqlite3* database, std::string const & queryText)
 {
-  // The beginning of the next statement.
+  /*// The beginning of the next statement.
   // As of right now, this class does not handle queries with multiple statements.
   char const   * tail;
 
@@ -34,7 +62,66 @@ Query::Query(sqlite3* database, std::string const & queryText) :
     throw std::runtime_error(
       "Preparation of the following query failed "
       "in sql::Query construction:\n" + queryText);
+  }*/
+
+  // This constructor does not handle multiple statements.
+  char const * tail = 0;
+
+  if (!coreConstruction(database, queryText.c_str(), tail)) {
+    throw std::runtime_error(
+      "Preparation of a query failed because the text did not contain SQL"
+    );
   }
+}
+
+
+Query::Query(sqlite3    *   database,
+             char const *   strStart,
+             char const * & strTail)
+{
+  coreConstruction(database, strStart, strTail);
+}
+
+
+
+Query::Query(sqlite3    *   database,
+             char const *   strStart,
+             char const * & strTail,
+             bool         & containsSql)
+{
+  containsSql = coreConstruction(database, strStart, strTail);
+}
+
+
+bool
+Query::coreConstruction(
+  sqlite3    *   database,
+  char const *   strStart,
+  char const * & strTail)
+{
+  // Only exists to pass the query handle to the member handle_.
+  sqlite3_stmt * tempHandle = nullptr;
+
+  int returnCode = sqlite3_prepare_v2(database, strStart, -1,
+    &tempHandle, &strTail);
+
+  // Even if the query wasn't successfully made, it must be handled appropriately.
+  handle_.reset(new HandleWrapper(tempHandle));
+
+  if (returnCode != SQLITE_OK) {
+    std::string queryText;
+
+    if (strTail == 0)
+      queryText = std::string(strStart);
+    else
+      queryText = std::string(strStart, strTail - strStart);
+
+    throw std::runtime_error(
+      "Preparation of the following query failed "
+      "in sql::Query construction:\n" + queryText);
+  }
+
+  return (getHandle() != 0);
 }
 
 

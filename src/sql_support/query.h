@@ -22,6 +22,14 @@ class Query
     /// @param[in] queryText The command(s) to be ran.
     Query(sqlite3* database, std::string const & queryText);
 
+    Query(sqlite3    *   database,
+          char const *   strStart,
+          char const * & strTail);
+
+    static
+    std::vector<Query> createQueries(sqlite3           * database,
+                                     std::string const & queryText);
+
     /// Advances the query to the next row.
     /// @return Whether there was a row or not.
     ///         In other words, returning true guarantees there is still a row to read from.
@@ -60,6 +68,18 @@ class Query
         sqlite3_stmt * const handle;
     };
 
+    /// @param[out] containsSql Whether the text contained SQL or not.
+    Query(sqlite3    *   database,
+          char const *   strStart,
+          char const * & strTail,
+          bool         & containsSql);
+
+    /// @return Whether the text contained SQL or not.
+    bool coreConstruction(
+          sqlite3    *   database,
+          char const *   strStart,
+          char const * & strTail);
+
 
     /// Creates a formatted display of the handle pointer.
     std::string getHandleString() const;
@@ -69,6 +89,8 @@ class Query
     /// A shared_ptr is used because multiple references may be desired.
     std::shared_ptr<HandleWrapper> handle_;
 };
+
+
 
   }
 }

@@ -16,6 +16,7 @@
 #include "../sql_support/common/query_result.h"
 
 #include "../sql_support/column_list.h"
+#include "../sql_support/database_handle.h"
 
 #include "command_processor.h"
 #include "ask_question.h"
@@ -31,6 +32,9 @@ class Engine
     /// Doesn't actually load anything.
     Engine();
 
+    /// Loads and runs the database if given, or asks for a location to create it.
+    Engine(int argc, char* argv[]);
+
     /// Allows for a non-default locale.
     /// @param[in] locale The explicitally-specified locale.
     Engine(std::locale const & locale);
@@ -41,7 +45,7 @@ class Engine
     /// Opens the provided database and gathers needed data.
     /// If a database is already open, it is closed before the new one is opened.
     /// @param[in] fileName The path and name of the database file.
-    void loadDatabase(std::string const & fileName);
+    void openDatabase(std::string const & fileName);
     
     /// Runs the actual game.
     void run();
@@ -57,6 +61,9 @@ class Engine
     /// Calls loadDatabase() then run().
     /// @param[in] fileName The database file to be passed to loadDatabase().
     void runV2(std::string const & fileName);
+
+    /// Changes the locale.
+    void setLocale(std::locale locale) { locale_ = std::move(locale); }
 
 
   private:
@@ -88,15 +95,8 @@ class Engine
     };
 
 
-    /// Opens the given database file.
-    /// Ensures the given file exists and attempts to open it.
-    /// If anything fails, an exception is thrown.
-    ///
-    /// @param[in] fileName The path and name of the database file.
-    void openDatabase(std::string const & fileName);
-
-    /// Attempts to close the database.
-    void closeDatabase();
+    /// Creates and opens a database, initializes the correct values.
+    void createDatabase(std::string const & fileName);
 
     FullOptionList& currentOptions();
 
@@ -108,20 +108,13 @@ class Engine
     /// @return Whether the program should return to the lobby or not.
     bool toLobby(int nextId);
 
-
-
-
     /// The program-wide locale.
     std::locale locale_;
 
     /// Primary InputManager.
     dep::InputManager inputManager_;
 
-    /// Is true while a database is successfully opened.
-    bool databaseOpened_ = false;
-
-    /// Handles the currently open database.
-    sqlite3* database_ = 0;
+    sql::DatabaseHandle database_;
 
     /// All the actors specified in the database.
     sql::QueryResult actors_;
@@ -134,6 +127,8 @@ class Engine
     CommandProcessor commandProcessor_;
 
     RunningState state_ = BAD;
+
+    bool inDevMode_ = false;
 
     std::unordered_map<RunningState, FullOptionList> stateOptions_;
 };
