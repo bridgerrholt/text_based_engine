@@ -12,7 +12,8 @@ namespace tbe {
 /// Starts at 1 to avoid being represented as false.
 enum Kind
 {
-  INT = 1,
+  BOOL = 1,
+  INT,
   TEXT
 };
 

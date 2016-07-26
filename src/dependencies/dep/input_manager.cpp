@@ -60,4 +60,12 @@ InputManager::prompt() const
 
 
 
+std::string
+InputManager::promptClean() const
+{
+  return prompt().trim().str();
+}
+
+
+
 }

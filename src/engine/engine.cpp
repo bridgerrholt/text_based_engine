@@ -6,11 +6,13 @@
 #include <iostream>
 #include <stdexcept>
 #include <cassert>
+#include <fstream>
 
 #include <dep/check_file_exists.h>
 #include <dep/is_int.h>
 #include <dep/of_dynamic.h>
 #include <dep/sleep_event.h>
+#include <dep/print_line.h>
 
 #include "../sql_support/types/include.h"
 #include "../sql_support/dynamic_query.h"
@@ -47,60 +49,37 @@ Engine::Engine() :
 }
 
 
-Engine::Engine(int argc, char* argv[]) :
-  Engine()
-{
-  std::string fileName;
-
-  if (argc >= 2)
-    fileName = argv[1];
-
-  // If there is no database file specified.
-  else {
-    std::cout << '\n';
-    std::cout << "Must have a database.\n";
-
-    while (true) {
-      std::cout << "\nDatabase file name:\n";
-      fileName = inputManager_.prompt().trim().str();
-    
-      if (!dep::checkFileExists(fileName)) {
-        std::cout << "That file cannot be found, create a new database?\n";
-
-        ResponseOptionList binaryOptions = { "Yes", "No" };
-
-        printResponseOptions(binaryOptions);
-        std::size_t input =
-          getResponseIndex(inputManager_, binaryOptions.size());
-
-        // "Yes", create a database.
-        if (input == 0) {
-          inDevMode_ = true;
-          createDatabase(fileName);
-          return;
-        }
-
-        // "No", enter a different file name.
-        else
-          continue;
-      }
-
-      break;
-    }
-  }
-
-  database_ = DatabaseHandle(fileName);
-}
-
-
-Engine::Engine(std::locale const & locale) :
-  locale_(locale),
+Engine::Engine(std::locale locale) :
+  locale_(std::move(locale)),
   inputManager_(locale_),
-  commandProcessor_(locale_)
+  commandProcessor_(locale_, stateMap_)
 {
+  using namespace commands;
+
+  dep::printLineErr("Engine constructor called");
+
+  loadRoot();
+
   stateOptions_[BAD];
   stateOptions_[LOBBY] = {{}, 0};
   stateOptions_[PLAYER_RESPONSE] = {{}, 1};
+  
+  commandProcessor_.pushCommandState(BAD, { QUIT });
+  commandProcessor_.pushCommandState(LOBBY, {});
+  commandProcessor_.pushCommandState(PLAYER_RESPONSE, {});
+
+  stateMap_.insertGlobalVar<types::Bool>("dev",     false);
+  stateMap_.insertGlobalVar<types::Bool>("to_quit", false);
+
+  commandProcessor_.readCommandV2("hey there");
+
+}
+
+
+Engine::Engine(int argc, char* argv[]) :
+  Engine()
+{
+  run(argc, argv);
 }
 
 
@@ -108,8 +87,8 @@ Engine::Engine(std::locale const & locale) :
 Engine::~Engine()
 {
   // Any member queries should be closed before the database is closed.
-
-  std::cerr << "Engine destructor called\n";
+  
+  dep::printLineErr("Engine destructor called");
 }
 
 
@@ -137,236 +116,31 @@ Engine::openDatabase(std::string const & fileName)
 
 
 void
-Engine::run()
+Engine::run(int argc, char* argv[])
 {
-  // Exit the function if the database doesn't contain any actors.
-  std::size_t actorCount = actors_.size();
-  if (actorCount == 0) {
-    std::cout << "Nobody seems to be around.\n";
-    return;
-  }
-  
-  // Columns for the "options" query.
-  sql::ColumnList columns({
-    &::options.id,
-    &::options.characterId,
-    &::options.optionListId,
-    &::options.textDisplay,
-    &::options.textSpeak,
-    &::options.nextId
-  });
+  if (toQuit) return;
 
-  std::unique_ptr<Expression> idExpression (
-    new Expression(::options.optionListId, "=", "")
-  );
-
-  std::string & nextOptionList = idExpression->valueText;
-
-  WhereClause::ExpressionType idExpressionDynamic(
-    std::move(idExpression)
-  );
-
-
-
-  // Swaps out columns contents.
-  std::string optionTable = "options";
-  sql::DynamicQuery optionQuery(*database_, std::string(optionTable), columns,
-    std::unique_ptr<WhereClauseBase>(
-      new WhereClause(std::move(idExpressionDynamic))
-    )
-  );
-
-  
-  // Columns for the "responses" query.
-  columns.push({
-    &::responses.id,
-    &::responses.textSpeak,
-    &::responses.nextId
-  });
-
-  // Only 1 specific response is pulled at a time, based on its unique id.
-  idExpression.reset(new Expression(::responses.id, "=", ""));
-  
-  // Since only the pointers are passed around (no other data is moved),
-  // it's safe to reference values. This is faster and simpler than dynamically casting the
-  // expression back every time it needs to be accessed.
-  std::string & nextResponse = idExpression->valueText;
-
-  idExpressionDynamic = std::move(idExpression);
-
-
-  sql::DynamicQuery responseQuery(*database_, "responses", columns,
-    std::unique_ptr<WhereClauseBase>(
-      new WhereClause(std::move(idExpressionDynamic))
-    )
-  );
-
-
-  // Initialized before the main loop and resized every iteration.
-  std::vector<std::string> primaryOptions;
-
-  // Specifies how many options remain through every iteration,
-  // primaryOptions is resized to it every iteration in case actors change.
-  const std::size_t constantOptionsCount = 1;
-
-  primaryOptions.push_back("QUIT"); // Breaks out of the main loop.
-
-  // The main game loop.
-  // Upon every iteration it shows the list of actors and lets the player talk to one.
-  while (true) {
-    // All the old actors are removed and all the current actors are added.
-    primaryOptions.resize(constantOptionsCount);
-    for (auto & i : actors_)
-      primaryOptions.push_back(i.col(actors.name));
-
-    // The player selects an index of primaryOptions.
-    /*std::size_t optionIndex =
-      askQuestion(inputManager_, primaryOptions,
-                 "Who would you like to talk to?", 0);*/
-
-    std::size_t optionIndex;
-
-    printResponseOptions(primaryOptions, 0);
-    std::cout << "Who would you like to talk to?\n";
-
-    while (true) {
-      std::string input = inputManager_.get().trim().str();
-
-      CommandProcessor::Command command = commandProcessor_.readCommand(input);
-
-      if (command == CommandProcessor::NO_COMMAND) {
-        if (processResponseIndex(input, primaryOptions.size(),
-                                 optionIndex, 0)
-        ) {
-          break;
-        }
-      }
-    }
-
-    std::string input = inputManager_.get().trim().str();
-
-    CommandProcessor::Command command = commandProcessor_.readCommand(input);
-
-    optionIndex =
-      askQuestion(inputManager_, primaryOptions.size(),
-                 "Who would you like to talk to?", 0);
-
-    // All the constant options are handled.
-    // QUIT
-    if (optionIndex == 0) break;
-
-    // The actor index must be offset backwards from the constant option offset.
-    // In other words, to map the optionIndex to the actors_ list, the amount of
-    // non-actor options must be subtracted.
-    QueryObject& currentActor = actors_[optionIndex-constantOptionsCount];
-
-    // The ID of the next actor response.
-    int next { currentActor.col(actors.introId) };
-    std::cerr << next << '\n';
-
-    // If the intro ID is 0, that indicates no conversation will take place.
-    if (next == 0) {
-      std::cout << currentActor.col(actors.name) <<
-        " doesn't want to speak right now.\n";
-
-      // Skips the upcoming loop, bringing back the options menu.
-      continue;
-    }
-
-    std::cerr << "Wants to speak\n";
-
-    // The conversation is ongoing until one of the actions points to the ID of 0.
-    while (next != 0) {
-
-      nextResponse = std::to_string(next);
-
-      QueryResult responseList = responseQuery.run();
-
-      // Fail if there isn't exactly 1 response with the given id.
-      if (responseList.size() != 1) {
-        std::string errorMessage;
-
-        if (responseList.size() == 0)
-          errorMessage = "No response";
-        else
-          errorMessage = "Multiple responses";
-
-        throw std::runtime_error(
-          errorMessage + " with the id of " + nextResponse
-        );
-      }
-
-      QueryObject response = std::move(responseList[0]);
-      std::cerr << response.varList.size() << '\n';
-
-      // Outputs the actor's dialogue and sleeps.
-      // %name%: %textSpeak%-sleep-
-      std::cout << '\n' <<
-        currentActor.col(::actors.name) << ": " <<
-        response.col(::responses.textSpeak) << sleepEvent_ << '\n';
-
-      int nextOptionListId { response.col(::responses.nextId) };
-
-      std::cerr << "Response: " << nextOptionListId << '\n';
-
-      // The conversation is over if the next ID is marked as 0.
-      if (nextOptionListId == 0)
-        break;
-
-
-      nextOptionList = std::to_string(nextOptionListId);
-
-      QueryResult optionLists = optionQuery.run();
-
-      if (optionLists.size() == 0) {
-        throw std::runtime_error(
-          "No option list (within table \"" + optionTable +
-          "\") with the id of " + nextOptionList
-        );
-      }
-
-      std::cerr << "Got options\n";
-
-      // Lists all the textDisplay strings from the options.
-      std::vector<std::string> optionTextList;
-      for (auto & i : optionLists)
-        optionTextList.push_back(i.col(::options.textDisplay));
-      std::cerr << "Option text list\n";
-
-      // Prompts the user for their text option selection.
-      optionIndex = askQuestion(inputManager_, optionTextList);
-
-      // Displays the user's response and sleeps.
-      std::cout << '\n' <<
-        optionLists[optionIndex].col(::options.textSpeak) << '\n' <<
-        sleepEvent_;
-
-      next = optionLists[optionIndex].col(::options.nextId);
-
-    } // Conversation
-  } // Actor selection
+  if (databaseSetup(argc, argv))
+    run();
 }
-
 
 
 void
 Engine::run(std::string const & fileName)
 {
+  if (toQuit) return;
+
   openDatabase(fileName);
   run();
 }
 
 
-
 void
-Engine::runV2()
+Engine::run()
 {
-  
-  auto testQueries = Query::createQueries(*database_, "SELECT * FROM actors; SELECT * FROM options; SELECT * FROM responses;");
+  using namespace commands;
 
-  for (auto & i : testQueries) {
-    std::cout << i.getHandle() << '\n';
-  }
+  if (toQuit) return;
 
   // Used to define the columns for all the queries, it is cleared every
   // time it passes its data to a query.
@@ -460,14 +234,20 @@ Engine::runV2()
     bool toExit { false };
     
     // Printed after printing the options.
-    std::string postText { "" };
+    std::string postText { };
 
     // First processing.
     switch (state_) {
       case LOBBY :
         // Exit the function if the database doesn't contain any actors.
         if (actors_.size() == 0) {
-          std::cout << "Nobody seems to be around.\n";
+          dep::printLine("Nobody seems to be around.");
+
+          if (createActor()) {
+            actors_ = actorQuery.run();
+            continue;
+          }
+
           toExit = true;
           break;
         }
@@ -477,7 +257,7 @@ Engine::runV2()
           for (auto & i : actors_)
             stateOptions_[LOBBY].optionList.push_back(i.col(actors.name));
 
-          postText = "Who would you like to talk to?\n";
+          postText = "Who would you like to talk to?";
         }
 
         break;
@@ -556,25 +336,18 @@ Engine::runV2()
     printResponseOptions(currentOptions().optionList,
                          currentOptions().startNum);
 
-    std::cout << postText;
+    dep::printLine(postText);
 
     std::string inputString;
 
     bool isCommand { false };
-    CommandProcessor::Command command;
+    Command command;
     std::size_t optionIndex { 0 };
 
     // Gets the player input.
     while (true) {
-      inputString = inputManager_.prompt().trim().str();
-      std::cerr << "input: " << inputString << '\n';
-
-      command = commandProcessor_.readCommand(inputString);
-
-      if (command != CommandProcessor::NO_COMMAND) {
-        std::cerr << "is a command : " << command << '\n';
-        isCommand = true;
-        break;
+      if (getInputCommand(command, inputString)) {
+        isCommand = (command != NO_COMMAND);
       }
 
       else {
@@ -591,11 +364,11 @@ Engine::runV2()
     // Player inputted a command.
     if (isCommand) {
       switch (command) {
-        case CommandProcessor::QUIT :
+        case QUIT :
           toExit = true;
           break;
 
-        case CommandProcessor::LIST_PATHS :
+        case LIST_PATHS :
           // TODO: Handle all the different states, outputting the next dialogue for each option.
           break;
 
@@ -666,11 +439,53 @@ Engine::runV2()
 }
 
 
-void
-Engine::runV2(std::string const & fileName)
+
+bool
+Engine::databaseSetup(int argc, char* argv[])
 {
-  openDatabase(fileName);
-  runV2();
+  using namespace commands;
+
+  std::string fileName = rootPath_;
+
+  if (argc >= 2)
+    fileName += argv[1];
+
+  // If there is no database file specified.
+  else {
+    std::cout << '\n';
+    std::cout << "Must have a database.\n";
+
+    while (true) {
+      std::cout << "\nDatabase file name:\n";
+
+      std::string inputString;
+      Command     command;
+
+      // Keep prompting until the user enters something other than a command.
+      while (getInputCommand(command, inputString)) {
+        if (command == QUIT) return false;
+      }
+      fileName += inputString;
+    
+      if (!dep::checkFileExists(fileName)) {
+        if (promptBinaryOption(
+          "That file cannot be found, create a new database?"
+        )) {
+          inDevMode_ = true;
+          createDatabase(fileName);
+          return true;
+        }
+
+        else
+          continue;
+      }
+
+      break;
+    }
+  }
+
+  database_ = DatabaseHandle(fileName);
+  return true;
 }
 
 
@@ -679,6 +494,139 @@ void
 Engine::createDatabase(std::string const & fileName)
 {
   database_ = DatabaseHandle(fileName);
+
+  std::ifstream file { fromRoot("table_signatures.txt") };
+
+  std::string frontText { "CREATE TABLE IF NOT EXISTS " };
+
+  char        c;
+  std::string toPush      { frontText };
+  bool        hasContents { false };
+
+  while (file >> std::noskipws >> c) {
+    if (!hasContents && std::isblank(c, locale_))
+      continue;
+    
+    toPush += c;
+    hasContents = true;
+
+    if (c == ';') {
+      std::cerr << "toPush: " << toPush << '\n';
+      Query query {
+        *database_,
+         toPush
+      };
+      query.nextRow();
+      toPush.erase(toPush.begin() + frontText.size(), toPush.end());
+      hasContents = false;
+    }
+  }
+}
+
+
+
+bool
+Engine::getInputCommand(commands::Command & command,
+                        std::string       & input)
+{
+  input = inputManager_.promptClean();
+  std::cerr << "getInputCommand: " << input << '\n';
+
+  if (input.empty())
+    return true;
+
+  switch (commandProcessor_.readCommand(input, command)) {
+    case NONE :
+      return false;
+
+    case VALID :
+      processGenericCommand(command);
+  
+      return true;
+
+    case INVALID :
+      std::cout << "No such command\n";
+      return true;
+
+    default :
+      throw std::runtime_error("Invalid CommandProcessor::InputInfo");
+  }
+}
+
+
+void
+Engine::processGenericCommand(commands::Command command)
+{
+  using namespace commands;
+
+  switch (command) {
+    case DEV_ON :
+      inDevMode_ = true;
+      break;
+
+    case QUIT :
+      toQuit = true;
+      break;
+
+    case NO_COMMAND :
+      // Fall-through
+    default :
+      break;
+  }
+}
+
+
+
+bool
+Engine::promptBinaryOption(std::string const & question)
+{
+  std::cout << question << std::endl;
+
+  static
+  ResponseOptionList binaryOptions { "Yes", "No" };
+
+  printResponseOptions(binaryOptions);
+  std::size_t input =
+    getResponseIndex(inputManager_, binaryOptions.size());
+
+  return (input == 0);
+}
+
+
+
+bool
+Engine::createActor()
+{
+  if (!inDevMode_) return false;
+
+  if (promptBinaryOption("Create an actor?")) {
+    std::cout << "Actor name:\n";
+    std::string actorName = inputManager_.promptClean();
+    int introId = 0;
+
+    Query countQuery { *database_, "SELECT COUNT(*) FROM actors" };
+    countQuery.nextRow();
+    introId = sqlite3_column_int(countQuery.getHandle(), 0);
+
+    std::cerr << "actorName: " << actorName << '\n';
+    std::cerr << "introId:   " << introId << '\n';
+
+    std::string text {
+      "INSERT INTO actors (name, intro_id) VALUES ('" +
+       actorName + "', " +
+       std::to_string(introId) + ");"
+    };
+
+    Query query {
+      *database_, text
+    };
+
+    query.nextRow();
+
+    return true;
+  }
+
+  else return false;
 }
 
 
@@ -702,6 +650,24 @@ Engine::toLobby(int nextId)
   else return false;
 }
 
+
+
+void
+Engine::loadRoot()
+{
+  std::string rootFileName = "root.txt";
+  assert(dep::checkFileExists(rootFileName));
+
+  getline(std::ifstream { rootFileName }, rootPath_);
+}
+
+
+
+std::string
+Engine::fromRoot(std::string path) const
+{
+  return rootPath_ + path;
+}
 
 
 }

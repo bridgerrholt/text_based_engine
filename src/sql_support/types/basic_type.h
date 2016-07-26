@@ -16,7 +16,7 @@ namespace tbe {
 
 /// Class template to be used for all the supported SQL types.
 /// @tparam T The underlying type to use for representing the SQL type.
-/// @tparam K The name (within the enum Kind) for identification.
+/// @tparam k The name (within the enum Kind) for identification.
 template <class T, Kind k>
 class BasicType : public DynamicType
 {

@@ -28,7 +28,7 @@ class StringFormatter
     std::string const & strRef() const;
 
     /// Transfers out the internal string.
-    std::string && moveOut() &&;
+    std::string moveOut();
 
     /// Removes all whitespace at the beginning of the string.
     /// @return The specific StringFormatter object it was called on.
