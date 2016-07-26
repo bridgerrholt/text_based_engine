@@ -1,0 +1,20 @@
+actors (
+  id        INTEGER  PRIMARY KEY  AUTOINCREMENT,
+  name      TEXT                  NOT NULL,
+  intro_id  INTEGER               NOT NULL
+);
+
+options (
+  id              INTEGER  PRIMARY KEY  AUTOINCREMENT,
+  character_id    INTEGER               NOT NULL,
+  option_list_id  INTEGER               NOT NULL,
+  text_display    TEXT                  NOT NULL,
+  text_speak      TEXT                  NOT NULL,
+  next_id         INTEGER               NOT NULL
+);
+
+responses (
+  id          INTEGER  PRIMARY KEY  AUTOINCREMENT,
+  text_speak  TEXT                  NOT NULL,
+  next_id     INTEGER               NOT NULL
+);

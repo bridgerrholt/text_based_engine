@@ -10,8 +10,6 @@ int main(int argc, char* argv[])
 {
   try {
     tbe::Engine engine { argc, argv };
-
-    engine.runV2();
   }
 
   catch (std::exception const & e) {

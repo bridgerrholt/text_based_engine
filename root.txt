@@ -1,0 +1,7 @@
+
+The above line is added before every path in the game.
+You must have a "root.txt" file that gives the location of your Text Based Engine root directory if you run the application from a different area.
+
+For example:
+If your root is "/stuff/text_based_engine" but you run from "/stuff/compiled_apps/text_based_engine" then
+you must have a "root.txt" file within that directory and its first line must be "/stuff/text_based_engine/" or "../../text_based_engine/".

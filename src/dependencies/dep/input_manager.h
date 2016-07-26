@@ -43,6 +43,9 @@ class InputManager
 
     /// Displays a prompt (@ref promptText) and then gets the input.
     StringFormatter prompt() const;
+    
+    /// Trims the input.
+    std::string promptClean() const;
 
 
     /// The program-wide locale, is currently only used to create StringFormatter objects.

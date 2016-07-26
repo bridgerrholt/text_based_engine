@@ -35,10 +35,11 @@ StringFormatter::strRef() const
 
 
 
-std::string &&
-StringFormatter::moveOut() &&
+std::string
+StringFormatter::moveOut()
 {
-  return std::move(contents_);
+  std::string toReturn { std::move(contents_) };
+  return toReturn;
 }
 
 
@@ -57,17 +58,19 @@ str(StringFormatter const & stringFormatter)
 StringFormatter&
 StringFormatter::trimLeft()
 {
-  auto begin   = contents_.begin();
-  auto eraseTo = begin;
+  if (!contents_.empty()) {
+    auto begin   = contents_.begin();
+    auto eraseTo = begin;
 
-  while (eraseTo != contents_.end() &&
-         std::isspace(*eraseTo, locale_)) {
+    while (eraseTo != contents_.end() &&
+           std::isspace(*eraseTo, locale_)) {
 
-    ++eraseTo;
+      ++eraseTo;
+    }
+
+    if (eraseTo != begin)
+      contents_.erase(begin, eraseTo);
   }
-
-  if (eraseTo != begin)
-    contents_.erase(begin, eraseTo);
   
   return *this;
 }
@@ -76,19 +79,21 @@ StringFormatter::trimLeft()
 StringFormatter&
 StringFormatter::trimRight()
 {
-  auto end       = contents_.end();
-  auto eraseFrom = end;
+  if (!contents_.empty()) {
+    auto end       = contents_.end();
+    auto eraseFrom = end;
 
-  do {
-    --eraseFrom;
+    do {
+      --eraseFrom;
 
-  } while (eraseFrom != contents_.begin() &&
-           std::isspace(*eraseFrom, locale_));
+    } while (eraseFrom != contents_.begin() &&
+             std::isspace(*eraseFrom, locale_));
 
-  ++eraseFrom;
+    ++eraseFrom;
 
-  if (eraseFrom != end)
-    contents_.erase(eraseFrom, end);
+    if (eraseFrom != end)
+      contents_.erase(eraseFrom, end);
+  }
   
   return *this;
 }
@@ -97,7 +102,10 @@ StringFormatter::trimRight()
 StringFormatter&
 StringFormatter::trim()
 {
-  return this->trimLeft().trimRight();
+  if (contents_.empty())
+    return *this;
+  else
+   return this->trimLeft().trimRight();
 }
 
 

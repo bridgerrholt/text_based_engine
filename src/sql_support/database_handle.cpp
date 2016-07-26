@@ -30,7 +30,7 @@ DatabaseHandle::DatabaseHandle(std::string const & fileName,
   // Attempts to open the database.
   int resultCode = sqlite3_open_v2(
     fileName.c_str(), &database,
-    SQLITE_OPEN_READWRITE | SQLITE_OPEN_CREATE, 0
+    flags, 0
   );
 
   if (resultCode != SQLITE_OK) {
