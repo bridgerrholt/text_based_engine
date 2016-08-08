@@ -7,6 +7,7 @@
 #include <stdexcept>
 #include <cassert>
 #include <fstream>
+#include <locale>
 
 #include <dep/check_file_exists.h>
 #include <dep/is_int.h>
@@ -24,6 +25,7 @@
 
 #include "database_structure.h"
 #include "ask_question.h"
+#include "run_info.h"
 
 namespace {
 
@@ -60,9 +62,9 @@ Engine::Engine(std::locale locale) :
 
   loadRoot();
 
-  stateOptions_[BAD];
+  /*stateOptions_[BAD];
   stateOptions_[LOBBY] = {{}, 0};
-  stateOptions_[PLAYER_RESPONSE] = {{}, 1};
+  stateOptions_[PLAYER_RESPONSE] = {{}, 1};*/
   
   commandProcessor_.pushCommandState(BAD, { QUIT });
   commandProcessor_.pushCommandState(LOBBY, {});
@@ -341,13 +343,13 @@ Engine::run()
     std::string inputString;
 
     bool isCommand { false };
-    Command command;
+    RunInfo command;
     std::size_t optionIndex { 0 };
 
     // Gets the player input.
     while (true) {
       if (getInputCommand(command, inputString)) {
-        isCommand = (command != NO_COMMAND);
+        isCommand = (command.kind != NO_COMMAND);
       }
 
       else {
@@ -363,7 +365,7 @@ Engine::run()
 
     // Player inputted a command.
     if (isCommand) {
-      switch (command) {
+      switch (command.kind) {
         case QUIT :
           toExit = true;
           break;
@@ -374,7 +376,7 @@ Engine::run()
 
         default :
           throw std::runtime_error(
-            "Unhandled command (" + std::to_string(command) + ")"
+            "Unhandled command (" + std::to_string(command.kind) + ")"
           );
       }
     }
@@ -459,11 +461,11 @@ Engine::databaseSetup(int argc, char* argv[])
       std::cout << "\nDatabase file name:\n";
 
       std::string inputString;
-      Command     command;
+      RunInfo     command;
 
       // Keep prompting until the user enters something other than a command.
       while (getInputCommand(command, inputString)) {
-        if (command == QUIT) return false;
+        if (command.kind == QUIT) return false;
       }
       fileName += inputString;
     
@@ -504,7 +506,7 @@ Engine::createDatabase(std::string const & fileName)
   bool        hasContents { false };
 
   while (file >> std::noskipws >> c) {
-    if (!hasContents && std::isblank(c, locale_))
+    if (!hasContents && std::isspace(c, locale_))
       continue;
     
     toPush += c;
@@ -526,8 +528,8 @@ Engine::createDatabase(std::string const & fileName)
 
 
 bool
-Engine::getInputCommand(commands::Command & command,
-                        std::string       & input)
+Engine::getInputCommand(RunInfo & command,
+                        std::string & input)
 {
   input = inputManager_.promptClean();
   std::cerr << "getInputCommand: " << input << '\n';
@@ -535,16 +537,18 @@ Engine::getInputCommand(commands::Command & command,
   if (input.empty())
     return true;
 
-  switch (commandProcessor_.readCommand(input, command)) {
-    case NONE :
+  command = commandProcessor_.readCommandV2(input);
+
+  switch (command.state) {
+    case RunInfo::NONE :
       return false;
 
-    case VALID :
+    case RunInfo::VALID :
       processGenericCommand(command);
   
       return true;
 
-    case INVALID :
+    case RunInfo::INVALID :
       std::cout << "No such command\n";
       return true;
 
@@ -555,11 +559,11 @@ Engine::getInputCommand(commands::Command & command,
 
 
 void
-Engine::processGenericCommand(commands::Command command)
+Engine::processGenericCommand(RunInfo const & command)
 {
   using namespace commands;
 
-  switch (command) {
+  switch (command.kind) {
     case DEV_ON :
       inDevMode_ = true;
       break;
