@@ -8,23 +8,28 @@
 
 #include "../command.h"
 #include "../argument.h"
+#include "../run_info.h"
+#include "kind.h"
 
 namespace tbe {
   namespace commands {
   
-template <Command c>
+template <Kind c>
 class BasicCommand : public CommandBase
 {
   public:
-    Command getKindId() const { return c; }
+    BasicCommand() {};
+    ~BasicCommand() {};
+
+    Kind getKind() const { return c; }
 
     CommandBase::Signature const &
     getSignature() const { return signature_; }
 
   private:
-    InputInfo execute(GameStateMap &                     stateMap,
-                      ArgumentList::const_iterator       i,
-                      ArgumentList::const_iterator const end);
+    RunInfo::State execute(GameStateMap &                     stateMap,
+                           ArgumentList::const_iterator       i,
+                           ArgumentList::const_iterator const end);
 
     static CommandBase::Signature signature_;
 };
@@ -35,11 +40,14 @@ typedef BasicCommand<SET> Set;
 
 template <>
 CommandBase::Signature
-Set::signature_ = { ArgumentBase::OPTION, ArgumentBase::OBJECT };
+Set::signature_ = {
+  ArgumentBase::OPTION,
+  ArgumentBase::OBJECT
+};
 
 
 template <>
-InputInfo
+RunInfo::State
 Set::execute(GameStateMap &                     stateMap,
              ArgumentList::const_iterator       i,
              ArgumentList::const_iterator const end)
@@ -51,11 +59,11 @@ Set::execute(GameStateMap &                     stateMap,
     auto setTo = dep::ofDynamic<arg_types::Object>(i->get());
     if (var->get()->getKind() == setTo->data->getKind()) {
       var->reset(std::move(setTo->data.get()));
-      return VALID;
+      return RunInfo::VALID;
     }
   }
   
-  return INVALID;
+  return RunInfo::INVALID;
 }
 
 

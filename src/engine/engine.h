@@ -12,17 +12,22 @@
 
 #include <dep/input_manager.h>
 #include <dep/sleep_event.h>
+#include <dep/enum_class_hash.h>
 
 #include "../sql_support/common/query_result.h"
 
 #include "../sql_support/column_list.h"
 #include "../sql_support/database_handle.h"
 
-#include "basic_command_processor.h"
+#include "commands/kind.h"
+
+#include "command_processor.h"
 #include "ask_question.h"
 #include "game_state_map.h"
 
 namespace tbe {
+
+class RunInfo;
   
 /// Provides the program's primary functionality.
 /// An Engine object is used to load a given database and run the database's described game.
@@ -100,18 +105,16 @@ class Engine
       PLAYER_RESPONSE
     };
 
-    typedef BasicCommandProcessor<RunningState> CommandProcessor;
-
     /// Creates and opens a database, initializes the correct values.
     void createDatabase(std::string const & fileName);
 
     /// @param[out] command The command entered.
     /// @param[out] input   The player's input.
     /// @return Whether there was a command attempt.
-    bool getInputCommand(commands::Command & command,
-                         std::string       & input);
+    bool getInputCommand(RunInfo & command,
+                         std::string    & input);
 
-    void processGenericCommand(commands::Command command);
+    void processGenericCommand(RunInfo const & command);
 
     /// @return Whether they specified yes or no. Yes is true, no is false.
     bool promptBinaryOption(std::string const & question);
@@ -159,7 +162,9 @@ class Engine
 
     bool inDevMode_ = false;
 
-    std::unordered_map<RunningState, FullOptionList> stateOptions_;
+    std::unordered_map<RunningState,
+                       FullOptionList,
+                       dep::EnumClassHash> stateOptions_;
 
     /// Path to the root of the application.
     std::string rootPath_;

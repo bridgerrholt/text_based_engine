@@ -10,13 +10,15 @@
 
 #include "../sql_support/types/include.h"
 
+#include "run_info.h"
+
 namespace {
 
 using namespace tbe;
 
 template <class T>
 void
-emplaceObject(CommandBase::ArgumentList & argList, T t)
+emplaceObject(ArgumentList & argList, T t)
 {
   argList.emplace_back(new arg_types::Object {
     sql::DynamicVar { t }
@@ -31,7 +33,7 @@ class ArgParser
     ArgParser(
       std::string::const_iterator       & i,
       std::string::const_iterator const   endSet,
-      CommandBase::ArgumentList         & argList,
+      ArgumentList                      & argList,
       std::locale                 const & localeSet) :
 
       end          { endSet },
@@ -47,7 +49,7 @@ class ArgParser
     std::locale                 const & locale;
 
     static
-    CommandBase::ArgumentList
+    ArgumentList
     parse(std::string::const_iterator       & i,
           std::string::const_iterator const   endSet,
           std::locale                 const & localeSet);
@@ -55,8 +57,8 @@ class ArgParser
   private:
     void parse();
 
-    void parseList(CommandBase::ArgumentList & argList);
-    CommandBase::ArgumentList parseList();
+    void parseList(ArgumentList & argList);
+    ArgumentList parseList();
     
     bool parseString();
     bool parseNumber();
@@ -66,18 +68,18 @@ class ArgParser
     void emplaceObject(T t) { ::emplaceObject(*currentList_, t); }
 
     std::string::const_iterator & i_;
-    CommandBase::ArgumentList   & argList_;
-    CommandBase::ArgumentList   * currentList_ { nullptr };
+    ArgumentList   & argList_;
+    ArgumentList   * currentList_ { nullptr };
 };
 
 
 
-CommandBase::ArgumentList
+ArgumentList
 ArgParser::parse(std::string::const_iterator       & i,
                  std::string::const_iterator const   endSet,
                  std::locale                 const & localeSet)
 {
-  CommandBase::ArgumentList argList;
+  ArgumentList argList;
 
   ArgParser parser { i, endSet, argList, localeSet };
 
@@ -94,7 +96,7 @@ ArgParser::parse()
 
 
 void
-ArgParser::parseList(CommandBase::ArgumentList & argList)
+ArgParser::parseList(ArgumentList & argList)
 {
   auto oldList = currentList_;
   currentList_ = &argList;
@@ -117,10 +119,10 @@ ArgParser::parseList(CommandBase::ArgumentList & argList)
 }
 
 
-CommandBase::ArgumentList
+ArgumentList
 ArgParser::parseList()
 {
-  CommandBase::ArgumentList argList;
+  ArgumentList argList;
   parseList(argList);
   return argList;
 }
@@ -250,7 +252,7 @@ ArgParser::parseText()
 bool
 checkString(std::string::const_iterator     & i,
             std::string::const_iterator const end,
-            CommandBase::ArgumentList       & argList)
+            ArgumentList       & argList)
 {
   if (*i == '"' || *i == '\'') {
     char frontQuotation { *i };
@@ -280,84 +282,14 @@ CommandBase::CommandBase()
 
 
     
-CommandBase::RunData
+RunInfo
 CommandBase::run(GameStateMap      & stateMap,
                  std::string const & args,
                  std::locale const & locale)
 {
-  auto       start { args.begin() };
-  auto const end   { args.end() };
+  auto       start = args.begin();
+  auto const end   = args.end();
   ArgumentList argList = ::ArgParser::parse(start, end, locale);
-
-  /*
-  while (i != args.end()) {
-    if (std::isspace(*i, locale)) {
-      if (!nextArg.empty()) {
-        auto j = nextArg.begin();
-
-        if (*j == '"' || *j == '\'') {
-          char startQuotation = *j;
-          bool foundEndQuotation { false };
-
-          while (j != nextArg.end()) {
-            if (*j == startQuotation) {
-              foundEndQuotation = true;
-              break;
-            }
-            ++j;
-          }
-
-          if (!foundEndQuotation) {
-            dep::printLine("Must have an ending quotation");
-            return { INVALID, commands::NO_COMMAND, std::move(argList) };
-          }
-
-          ::emplaceObject(argList, new sql::types::Text {
-            nextArg.substr(1, nextArg.size()-2)
-          });
-        }
-
-        else {
-          if (nextArg == "true" || nextArg == "false") {
-            ::emplaceObject(argList, new sql::types::Bool {
-              (nextArg == "true")
-            });
-          }
-          else {
-            argList.emplace_back(new arg_types::Option { nextArg });
-          }
-        }
-
-        nextArg.clear();
-      }
-    }
-
-    else {
-      if (inText) {
-        if (*i == frontQuotation) {
-          inText = false;
-          ::emplaceObject(argList, new sql::types::Text {
-            nextArg
-          });
-        }
-      }
-
-      else if (*i == '"' || *i == '\'') {
-        if (nextArg.empty()) {
-          inText = true;
-          frontQuotation = *i;
-        }
-      }
-
-      else {
-        nextArg += *i;
-      }
-    }
-
-    ++i;
-  }
-  */
-
 
   bool incorrectSignature { false };
   if (argList.size() != getSignature().size()) {
@@ -375,12 +307,12 @@ CommandBase::run(GameStateMap      & stateMap,
 
   if (incorrectSignature) {
     dep::printLine("Incorrect command signature");
-    return { INVALID, getKindId(), std::move(argList) };
+    return { RunInfo::INVALID, getKind(), std::move(argList) };
   }
 
   auto input = execute(stateMap, argList.begin(), argList.end());
 
-  return { input, getKindId(), std::move(argList) };
+  return { input, getKind(), std::move(argList) };
 }
 
 

@@ -6,6 +6,7 @@
 
 #include <memory>
 #include <string>
+#include <vector>
 
 #include "../sql_support/common/var_list.h"
 
@@ -30,6 +31,7 @@ class ArgumentBase
 
 
 typedef std::unique_ptr<ArgumentBase> DynamicArgument;
+typedef std::vector<DynamicArgument>  ArgumentList;
 
 
 
