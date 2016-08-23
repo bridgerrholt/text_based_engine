@@ -3,9 +3,27 @@
 
 #include "game_state_map.h"
 
+#include <cassert>
+#include <stdexcept>
+
 #include "commands/commands.h"
 
-#include <cassert>
+
+namespace {
+
+std::string
+formatGameStateName(std::string const & stateName)
+{
+  return "Game state (" + stateName + ")";
+}
+
+std::string
+invalidStateMessage(std::string const & stateName)
+{
+  return formatGameStateName(stateName) + " doesn't exist";
+}
+
+}
 
 namespace tbe {
 
@@ -32,8 +50,7 @@ GameStateMap::insertGlobalVar(typename VariableMap::key_type          key,
 void
 GameStateMap::insertLocalVar(typename VariableMap::key_type            key,
                              typename VariableMap::mapped_type         value,
-                             std::vector<
-                               typename StateMap ::key_type> const &   states)
+                             std::vector<StateId> const &              states)
 {
   assert(localVars_.count(key) == 0);
 
@@ -49,8 +66,7 @@ void
 GameStateMap::insertLocalVar(typename VariableMap::key_type          key,
                              typename VariableMap::mapped_type::element_type*
                                                                      value,
-                             std::vector<
-                               typename StateMap ::key_type> const &   states)
+                             std::vector<StateId> const &            states)
 {
   insertLocalVar(std::move(key), VariableMap::mapped_type { value }, states);
 }
@@ -120,6 +136,79 @@ GameStateMap::localVarTry(typename VariableMap::key_type key)
   }
 
   return nullptr;
+}
+
+
+
+GameStateMap::StateId
+GameStateMap::insertGameState(StateName const & stateName)
+{
+  if (checkStateExists(stateName))
+    throw std::runtime_error("State (" + stateName +") already exists");
+
+  gameStateNames_.insert({stateName, gameStates_.size()});
+  gameStates_.emplace_back();
+}
+
+
+
+GameStateMap::StateId
+GameStateMap::getStateId(StateName const & stateName)
+{
+  if (!checkStateExists(stateName))
+    throw std::runtime_error("State (" + stateName + ") doesn't exist");
+
+  return gameStateNames_[stateName];
+}
+
+
+
+
+bool   
+GameStateMap::checkStateExists(StateName const & stateName)
+{
+  return (gameStateNames_.count(stateName) != 0);
+}
+
+
+bool   
+GameStateMap::checkStateExists(StateId stateId)
+{
+  return (stateId < stateIdCount_);
+}
+
+
+
+void
+GameStateMap::verifyStateExists(StateName const & stateName)
+{
+
+}
+
+
+void
+GameStateMap::verifyStateExists(StateId           stateId)
+{
+
+
+}
+
+
+
+void   
+GameStateMap::setState(StateName const & stateName)
+{
+
+
+}
+
+
+
+void   
+GameStateMap::setState(StateId stateId)
+{
+
+
 }
 
 
