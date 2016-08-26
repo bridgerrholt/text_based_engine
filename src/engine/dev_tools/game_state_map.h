@@ -17,6 +17,7 @@
 #include "../sql_support/types/basic_type.h"
 
 #include "game_state.h"
+#include "item_scope.h"
 
 namespace tbe {
 
@@ -105,12 +106,21 @@ class GameStateMap
 };
 
 
+
 class GameStateMapV2
 {
   public:
     
-    
+    typedef ItemScope<sql::DynamicVar> VariableMap;
+
+    VariableMap       & getVars()       { return vars_; }
+    VariableMap const & getVars() const { return vars_; }
+
+  private:
+    VariableMap vars_;
+
 };
+
 
 
 template <class T, class V>

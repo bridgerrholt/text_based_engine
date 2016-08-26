@@ -25,7 +25,7 @@
 
 #include "database_structure.h"
 #include "ask_question.h"
-#include "run_info.h"
+#include "dev_tools/run_info.h"
 
 namespace {
 
@@ -74,6 +74,16 @@ Engine::Engine(std::locale locale) :
   stateMap_.insertGlobalVar<types::Bool>("to_quit", false);
 
   commandProcessor_.readCommandV2("hey there");
+
+  /*
+
+  enum class Command { SET };
+  enum       State   { BAD, LOBBY };
+
+  cp = CP();
+  cp.pushState(BAD, { QUIT });
+
+  */
 
 }
 

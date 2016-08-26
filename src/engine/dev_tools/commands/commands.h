@@ -7,7 +7,7 @@
 #include <dep/of_dynamic.h>
 
 #include "../command.h"
-#include "../argument.h"
+#include "../../argument.h"
 #include "../run_info.h"
 #include "kind.h"
 

@@ -5,7 +5,7 @@
 #define TEXT_BASED_ENGINE_ENGINE_RUN_INFO_H
 
 #include "commands/kind.h"
-#include "argument.h"
+#include "../argument.h"
 
 namespace tbe {
 

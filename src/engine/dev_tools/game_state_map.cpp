@@ -187,7 +187,7 @@ GameStateMap::verifyStateExists(StateName const & stateName)
 
 
 void
-GameStateMap::verifyStateExists(StateId           stateId)
+GameStateMap::verifyStateExists(StateId stateId)
 {
 
 

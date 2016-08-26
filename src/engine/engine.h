@@ -19,11 +19,11 @@
 #include "../sql_support/column_list.h"
 #include "../sql_support/database_handle.h"
 
-#include "commands/kind.h"
+#include "dev_tools/commands/kind.h"
+#include "dev_tools/command_processor.h"
+#include "dev_tools/game_state_map.h"
 
-#include "command_processor.h"
 #include "ask_question.h"
-#include "game_state_map.h"
 
 namespace tbe {
 
