@@ -16,7 +16,7 @@
 #include "parameter_list.h"
 //#include "basic_command_processor.h"
 #include "game_state_map.h"
-#include "argument.h"
+#include "../argument.h"
 #include "run_info.h"
 
 namespace tbe {

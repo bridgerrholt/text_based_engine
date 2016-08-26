@@ -15,7 +15,7 @@ namespace tbe {
 class GameState
 {
   public:
-    void pushVariable(std::string          name);
+    void pushVariable (std::string         name);
 
     bool hasVariable  (std::string const & name);
 

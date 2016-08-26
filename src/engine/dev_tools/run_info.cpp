@@ -13,8 +13,8 @@ RunInfo::RunInfo() :
 
 
 RunInfo::RunInfo(State stateSet) :
-  state { stateSet },
-  kind  { commands::NO_COMMAND }
+  state {stateSet},
+  kind  {commands::NO_COMMAND}
 {
 
 }
@@ -23,9 +23,9 @@ RunInfo::RunInfo(State stateSet) :
 RunInfo::RunInfo(State          stateSet,
                  commands::Kind kindSet,
                  ArgumentList   argsSet) :
-  state { stateSet },
-  kind  { kindSet },
-  args  { argsSet }
+  state {stateSet},
+  kind  {kindSet},
+  args  {argsSet}
 {
 
 

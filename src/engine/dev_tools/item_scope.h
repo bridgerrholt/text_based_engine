@@ -46,9 +46,11 @@ class ItemScope
     };
 
 
+    /// Inserts a new item with the given key.
     template <Scope s>
     void insert(Key         key, Item item);
 
+    /// Erases a specified item.
     template <Scope s>
     void erase (Key const & key);
     template <Scope s>
@@ -84,10 +86,10 @@ class ItemScope
     std::size_t SCOPE_COUNT { 3 };
 
     constexpr
-    bool verifyScopeIndex(std::size_t index);
+    void verifyScopeIndex(std::size_t index);
 
     template <Scope s>
-    void pureErase(ItemIndex index)
+    void pureErase(ItemIndex index);
 
     std::array<IndexMap, SCOPE_COUNT> maps_;
     std::array<ItemList, SCOPE_COUNT> lists_;
@@ -95,9 +97,20 @@ class ItemScope
 
 
 
-template <Scope s>
+template <class T, class K>
+constexpr
 void
-ItemScope::insert(Key key, Item item)
+ItemScope<T, K>::verifyScopeIndex(std::size_t index)
+{
+  static_assert(index < SCOPE_COUNT, "Invalid scope index");
+}
+
+
+
+template <class T, class K>
+template <typename ItemScope<T, K>::Scope s>
+void
+ItemScope<T, K>::insert(Key key, Item item)
 {
   verifyScopeIndex(s);
 
@@ -109,9 +122,10 @@ ItemScope::insert(Key key, Item item)
 
 
 
-template <Scope s>
+template <class T, class K>
+template <typename ItemScope<T, K>::Scope s>
 void
-ItemScope::pureErase(ItemIndex index)
+ItemScope<T, K>::pureErase(ItemIndex index)
 {
   assert(index < lists_[s].size());
 
@@ -127,9 +141,10 @@ ItemScope::pureErase(ItemIndex index)
 
 
 
-template <Scope s>
+template <class T, class K>
+template <typename ItemScope<T, K>::Scope s>
 void
-ItemScope::erase(Key const & key)
+ItemScope<T, K>::erase(Key const & key)
 {
   verifyScopeIndex(s);
 
@@ -139,9 +154,10 @@ ItemScope::erase(Key const & key)
 }
 
 
-template <Scope s>
+template <class T, class K>
+template <typename ItemScope<T, K>::Scope s>
 void
-ItemScope::erase(ItemIndex index)
+ItemScope<T, K>::erase(ItemIndex index)
 {
   verifyScopeIndex(s);
 
@@ -151,10 +167,11 @@ ItemScope::erase(ItemIndex index)
 
 
 
-template <Scope s>
+template <class T, class K>
+template <typename ItemScope<T, K>::Scope s>
 typename
-ItemScope::Item &
-ItemScope::find(Key key)
+ItemScope<T, K>::Item &
+ItemScope<T, K>::find(Key key)
 {
   verifyScopeIndex(s);
 
@@ -167,10 +184,11 @@ ItemScope::find(Key key)
 }
 
 
-template <Scope s>
+template <class T, class K>
+template <typename ItemScope<T, K>::Scope s>
 typename
-ItemScope::Item &
-ItemScope::find(ItemIndex index)
+ItemScope<T, K>::Item &
+ItemScope<T, K>::find(ItemIndex index)
 {
   verifyScopeIndex(s);
 
@@ -182,9 +200,10 @@ ItemScope::find(ItemIndex index)
 }
 
 
+template <class T, class K>
 typename
-ItemScope::Item &
-ItemScope::find(Key key)
+ItemScope<T, K>::Item &
+ItemScope<T, K>::find(Key key)
 {
   Item * item = &find<LOCAL>(key);
 
@@ -200,9 +219,10 @@ ItemScope::find(Key key)
 }
 
 
+template <class T, class K>
 typename
-ItemScope::Item &
-ItemScope::find(ItemIndex index)
+ItemScope<T, K>::Item &
+ItemScope<T, K>::find(ItemIndex index)
 {
   Item * item = &find<LOCAL>(index);
 
@@ -219,10 +239,11 @@ ItemScope::find(ItemIndex index)
 
 
 
-template <Scope s>
+template <class T, class K>
+template <typename ItemScope<T, K>::Scope s>
 typename
-ItemScope::Item &
-ItemScope::at(Key key)
+ItemScope<T, K>::Item &
+ItemScope<T, K>::at(Key key)
 {
   Item & item = find<s>(key);
 
@@ -232,10 +253,11 @@ ItemScope::at(Key key)
 }
 
 
-template <Scope s>
+template <class T, class K>
+template <typename ItemScope<T, K>::Scope s>
 typename
-ItemScope::Item &
-ItemScope::at(ItemIndex index)
+ItemScope<T, K>::Item &
+ItemScope<T, K>::at(ItemIndex index)
 {
   Item & item = find<s>(index);
 
@@ -245,9 +267,10 @@ ItemScope::at(ItemIndex index)
 }
 
 
+template <class T, class K>
 typename
-ItemScope::Item &
-ItemScope::at(Key key)
+ItemScope<T, K>::Item &
+ItemScope<T, K>::at(Key key)
 {
   Item & item = find(key);
 
@@ -257,9 +280,10 @@ ItemScope::at(Key key)
 }
 
 
+template <class T, class K>
 typename
-ItemScope::Item &
-ItemScope::at(ItemIndex index)
+ItemScope<T, K>::Item &
+ItemScope<T, K>::at(ItemIndex index)
 {
   Item & item = find(index);
 
