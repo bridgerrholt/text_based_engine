@@ -25,7 +25,7 @@ RunInfo::RunInfo(State          stateSet,
                  ArgumentList   argsSet) :
   state {stateSet},
   kind  {kindSet},
-  args  {argsSet}
+  args  (std::move(argsSet))
 {
 
 

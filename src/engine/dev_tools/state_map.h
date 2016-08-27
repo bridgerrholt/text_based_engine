@@ -36,6 +36,7 @@ class StateMap
       public:
         typedef std::vector<std::string> Container;
 
+        State();
         State(Container commands,
               Container variables);
 
@@ -47,22 +48,68 @@ class StateMap
         Container variables_;
     };
 
+    typedef std::unordered_map<std::string, State> StateContainer;
+
 
     StateMap(Scope shared, Scope global);
 
-    void pushState(std::string name, State state);
+    void pushState(StateContainer::key_type name, State state);
+    void setState(StateContainer::key_type name);
+    
+    CommandMap::mapped_type::element_type *
+    getCommand(StateContainer::key_type const & name);
+
+    VariableMap::mapped_type *
+    getVariable(StateContainer::key_type const & name);
 
 
   private:
-    typedef std::unordered_map<std::string, State> StateContainer;
     StateContainer           states_;
     StateContainer::key_type currentState_;
 
     void verifyState(State const & state);
 
+
     Scope shared_;
     Scope global_;
+
+    template <class T>
+    T *
+    getObject(StateContainer::key_type const & name,
+              State::Container         const & allowedNames,
+              MapType<T>                     & shared,
+              MapType<T>                     & global);
+
 };
+
+
+
+template <class T>
+T *
+StateMap::getObject(StateContainer::key_type const & name,
+                    State::Container         const & allowedNames,
+                    MapType<T>                     & shared,
+                    MapType<T>                     & global)
+{
+  for (auto const & i : allowedNames) {
+    if (name == i) {
+      return &shared[name];
+    }
+  }
+
+
+  // Not in the shared pool, try to find in the global pool.
+  auto command = global.find(name);
+
+  if (command != global.end())
+    return &command->second;
+
+
+  // Doesn't exist.
+  return nullptr;
+}
+
+
 
 }
 

@@ -54,7 +54,7 @@ Engine::Engine() :
 Engine::Engine(std::locale locale) :
   locale_(std::move(locale)),
   inputManager_(locale_),
-  commandProcessor_(locale_, stateMap_)
+  commandProcessor_(locale_, StateMap::VariableMap(), StateMap::VariableMap())
 {
   using namespace commands;
 
@@ -66,12 +66,16 @@ Engine::Engine(std::locale locale) :
   stateOptions_[LOBBY] = {{}, 0};
   stateOptions_[PLAYER_RESPONSE] = {{}, 1};*/
   
-  commandProcessor_.pushCommandState(BAD, { QUIT });
+  /*commandProcessor_.pushCommandState(BAD, { QUIT });
   commandProcessor_.pushCommandState(LOBBY, {});
-  commandProcessor_.pushCommandState(PLAYER_RESPONSE, {});
+  commandProcessor_.pushCommandState(PLAYER_RESPONSE, {});*/
+  
+  commandProcessor_.getStateMap().pushState("bad", {});
+  commandProcessor_.getStateMap().pushState("lobby", {});
+  commandProcessor_.getStateMap().pushState("player_response", {});
 
-  stateMap_.insertGlobalVar<types::Bool>("dev",     false);
-  stateMap_.insertGlobalVar<types::Bool>("to_quit", false);
+  /*stateMap_.insertGlobalVar<types::Bool>("dev",     false);
+  stateMap_.insertGlobalVar<types::Bool>("to_quit", false);*/
 
   commandProcessor_.readCommandV2("hey there");
 

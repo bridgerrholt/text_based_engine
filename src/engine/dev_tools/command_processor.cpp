@@ -1,24 +1,59 @@
 #include "command_processor.h"
 
-namespace tbe {
+namespace {
 
-CommandProcessor::CommandProcessor(
-  std::locale const & localeSet,
-  GameStateMap      & stateMapSet) :
+using namespace tbe;
 
-  locale  (localeSet),
-  stateMap(stateMapSet)
+template <class T>
+std::unique_ptr<CommandBase> pull(T * value)
 {
-  commandMap_.insert({ "quit",       commands::QUIT });
-  commandMap_.insert({ "list-paths", commands::LIST_PATHS });
-  commandMap_.insert({ "dev-on",     commands::DEV_ON });
-
-  commandObjects_.emplace(
-    "set", std::unique_ptr<CommandBase> (new commands::Set {}));
+  return std::move(std::unique_ptr<CommandBase>(value));
 }
 
 
 
+StateMap::CommandMap
+sharedCommands()
+{
+  StateMap::CommandMap toReturn;
+
+  toReturn.emplace("list-paths", std::move(pull(new commands::ListPaths())));
+  
+  return std::move(toReturn);
+}
+
+
+
+StateMap::CommandMap
+globalCommands()
+{
+  StateMap::CommandMap toReturn;
+
+  toReturn.emplace("set", std::move(pull(new commands::Set())));
+
+  return std::move(toReturn);
+}
+
+}
+
+namespace tbe {
+
+
+
+CommandProcessor::CommandProcessor(
+  std::locale     const & localeSet,
+  StateMap::VariableMap   sharedVariables,
+  StateMap::VariableMap   globalVariables) :
+
+  locale   (localeSet),
+  stateMap_({std::move(sharedVariables), std::move(::sharedCommands())},
+            {std::move(globalVariables), std::move(::globalCommands())})
+{
+
+}
+
+
+/*
 commands::Kind
 CommandProcessor::readCommand(std::string commandText)
 {
@@ -101,7 +136,7 @@ CommandProcessor::readCommand(std::string     commandText,
       return RunInfo::INVALID;
   }
 }
-
+*/
 
 
 RunInfo
@@ -130,7 +165,10 @@ CommandProcessor::readCommandV2(std::string commandText)
     ++i;
   }
 
-  if (commandName.empty() || commandObjects_.count(commandName) == 0)
+
+  CommandBase * command;
+
+  if (commandName.empty() || !(command = stateMap_.getCommand(commandName)))
     return { RunInfo::NONE };
 
   if (i != commandText.end())
@@ -138,8 +176,8 @@ CommandProcessor::readCommandV2(std::string commandText)
 
   commandText.erase(commandText.begin(), i);
 
-  return commandObjects_[commandName]->run(
-    stateMap, commandText, locale
+  return command->run(
+    stateMap_, commandText, locale
   );
 }
 
@@ -160,7 +198,7 @@ CommandProcessor::setCommandLeader(std::string commandLeader)
 }
 
 
-
+/*
 void
 CommandProcessor::pushCommandState(
   typename CommandStateMap::key_type key,
@@ -179,7 +217,7 @@ CommandProcessor::setCurrentCommandState(
 
   currentCommandState_ = std::move(currentCommandState);
 }
-
+*/
 
 
 }
