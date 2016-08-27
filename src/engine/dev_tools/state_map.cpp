@@ -8,8 +8,8 @@
 namespace tbe {
 
 StateMap::StateMap(Scope shared, Scope global) :
-  shared_(shared),
-  global_(global)
+  shared_(std::move(shared)),
+  global_(std::move(global))
 {
 
 }
@@ -17,15 +17,50 @@ StateMap::StateMap(Scope shared, Scope global) :
 
 
 void
-StateMap::pushState(std::string name, State state)
+StateMap::pushState(StateContainer::key_type name, State state)
 {
   if (states_.find(name) != states_.end())
     throw std::runtime_error("State (" + name + ") already exists");
 
   else {
     verifyState(state);
-    states_.insert({name, state});
+    states_.insert({std::move(name), std::move(state)});
   }
+}
+
+
+
+void
+StateMap::setState(StateContainer::key_type name)
+{
+  if (states_.find(name) == states_.end())
+    throw std::runtime_error("State (" + name + ") doesn't exist");
+
+  else
+    currentState_ = std::move(name);
+}
+
+
+
+StateMap::CommandMap::mapped_type::element_type *
+StateMap::getCommand(StateContainer::key_type const & name)
+{
+  auto i = getObject(name, states_[currentState_].getCommands(),
+                     shared_.commands, global_.commands);
+
+  if (i)
+    return i->get();
+  else
+    return nullptr;
+}
+
+
+
+StateMap::VariableMap::mapped_type *
+StateMap::getVariable(StateContainer::key_type const & name)
+{
+  return getObject(name, states_[currentState_].getCommands(),
+                   shared_.variables, global_.variables);
 }
 
 
@@ -48,6 +83,23 @@ StateMap::verifyState(State const & state)
       throw std::runtime_error("No such variable: " + i);
     }
   }
+}
+
+
+
+
+StateMap::State::State()
+{
+
+}
+
+
+StateMap::State::State(Container commands,
+                       Container variables) :
+  commands_ (commands),
+  variables_(variables)
+{
+
 }
 
 }

@@ -10,6 +10,7 @@
 #include "../../argument.h"
 #include "../run_info.h"
 #include "kind.h"
+#include "../state_map.h"
 
 namespace tbe {
   namespace commands {
@@ -27,44 +28,17 @@ class BasicCommand : public CommandBase
     getSignature() const { return signature_; }
 
   private:
-    RunInfo::State execute(GameStateMap &                     stateMap,
-                           ArgumentList::const_iterator       i,
-                           ArgumentList::const_iterator const end);
+    RunInfo::State execute(ExecutionArgs data);
 
     static CommandBase::Signature signature_;
 };
 
 
-typedef BasicCommand<SET> Set;
+typedef BasicCommand<SET>        Set;
+typedef BasicCommand<LIST_PATHS> ListPaths;
 
 
-template <>
-CommandBase::Signature
-Set::signature_ = {
-  ArgumentBase::OPTION,
-  ArgumentBase::OBJECT
-};
 
-
-template <>
-RunInfo::State
-Set::execute(GameStateMap &                     stateMap,
-             ArgumentList::const_iterator       i,
-             ArgumentList::const_iterator const end)
-{
-  auto var = stateMap.var(dep::ofDynamic<arg_types::Option>(i->get())->data);
-  ++i;
-
-  if (var) {
-    auto setTo = dep::ofDynamic<arg_types::Object>(i->get());
-    if (var->get()->getKind() == setTo->data->getKind()) {
-      var->reset(std::move(setTo->data.get()));
-      return RunInfo::VALID;
-    }
-  }
-  
-  return RunInfo::INVALID;
-}
 
 
   }

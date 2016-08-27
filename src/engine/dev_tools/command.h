@@ -14,24 +14,34 @@
 #include "commands/kind.h"
 
 #include "parameter_list.h"
-//#include "basic_command_processor.h"
-#include "game_state_map.h"
 #include "../argument.h"
 #include "run_info.h"
 
 namespace tbe {
 
+class StateMap;
+
 class CommandBase
 {
   public:
+    class ExecutionArgPack
+    {
+      public:
+        StateMap                         & stateMap;
+        ArgumentList::const_iterator       i,
+                                     const end;
+    };
+
+    typedef ExecutionArgPack ExecutionArgs;
+
     typedef std::vector<ArgumentBase::Kind> Signature;
 
     CommandBase();
 
     virtual
-    ~CommandBase() = 0;
+    ~CommandBase() = 0 {};
     
-    RunInfo run(GameStateMap      & stateMap,
+    RunInfo run(StateMap          & stateMap,
                 std::string const & args,
                 std::locale const & locale);
 
@@ -40,9 +50,7 @@ class CommandBase
     commands::Kind getKind() const = 0;
 
     virtual
-    RunInfo::State execute(GameStateMap &                     stateMap,
-                           ArgumentList::const_iterator       i,
-                           ArgumentList::const_iterator const end) = 0;
+    RunInfo::State execute(ExecutionArgs data) = 0;
 
     virtual
     Signature const & getSignature() const = 0;

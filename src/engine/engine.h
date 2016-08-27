@@ -21,7 +21,7 @@
 
 #include "dev_tools/commands/kind.h"
 #include "dev_tools/command_processor.h"
-#include "dev_tools/game_state_map.h"
+//#include "dev_tools/game_state_map.h"
 
 #include "ask_question.h"
 
@@ -155,8 +155,6 @@ class Engine
 
     /// Primary CommandProcessor.
     CommandProcessor commandProcessor_;
-
-    GameStateMap stateMap_;
 
     RunningState state_ = BAD;
 

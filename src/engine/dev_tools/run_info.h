@@ -30,7 +30,6 @@ class RunInfo
     State          state;
     commands::Kind kind;
     ArgumentList   args;
-
 };
 
 

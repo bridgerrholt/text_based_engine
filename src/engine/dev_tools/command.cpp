@@ -12,6 +12,8 @@
 
 #include "run_info.h"
 
+#include "state_map.h"
+
 namespace {
 
 using namespace tbe;
@@ -283,7 +285,7 @@ CommandBase::CommandBase()
 
     
 RunInfo
-CommandBase::run(GameStateMap      & stateMap,
+CommandBase::run(StateMap          & stateMap,
                  std::string const & args,
                  std::locale const & locale)
 {
@@ -310,7 +312,7 @@ CommandBase::run(GameStateMap      & stateMap,
     return { RunInfo::INVALID, getKind(), std::move(argList) };
   }
 
-  auto input = execute(stateMap, argList.begin(), argList.end());
+  auto input = execute({stateMap, argList.begin(), argList.end()});
 
   return { input, getKind(), std::move(argList) };
 }
