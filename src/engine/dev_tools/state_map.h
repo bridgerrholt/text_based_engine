@@ -14,6 +14,8 @@
 
 namespace tbe {
 
+/// Contains and manages commands and variables which may be accessed through
+/// specified "states".
 class StateMap
 {
   public:
@@ -23,6 +25,8 @@ class StateMap
     typedef MapType<sql::DynamicVar>               VariableMap;
     typedef MapType<std::unique_ptr<CommandBase> > CommandMap;
 
+
+    /// Contains variables and commands meant to be in a specific scope.
     class Scope
     {
       public:
@@ -31,6 +35,7 @@ class StateMap
     };
 
 
+    /// Contains references to useable commands and variables.
     class State
     {
       public:
