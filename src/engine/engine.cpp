@@ -27,6 +27,8 @@
 #include "ask_question.h"
 #include "dev_tools/run_info.h"
 
+#include <SQLiteCpp/SQLiteCpp.h>
+
 namespace {
 
 using namespace tbe::sql;
@@ -112,21 +114,15 @@ Engine::~Engine()
 void
 Engine::openDatabase(std::string const & fileName)
 {
-  database_ = DatabaseHandle(fileName);
-  
-  ColumnList columns ({
-    &::actors.name,
-    &::actors.introId
-  });
+  database_.reset(new SQLite::Database(
+    fileName, SQLITE_OPEN_READWRITE | SQLITE_OPEN_CREATE
+  ));
 
-  for (auto & i : actors_) {
-    std::cerr << i.col(::actors.name)    << ' ' <<
-                 i.col(::actors.introId) << '\n';
-  }
-  
-  DynamicQuery dyQ { *database_, "actors", columns };
+	actors_.reset(new SQLite::Statement(*database_, "SELECT * FROM actors"));
 
-  actors_ = dyQ.run();
+	while (actors_->executeStep()) {
+		std::cout << actors_->getColumn(0) << '\n';
+	}
 }
 
 
@@ -157,76 +153,14 @@ Engine::run()
   using namespace commands;
 
   if (toQuit) return;
-
-  // Used to define the columns for all the queries, it is cleared every
-  // time it passes its data to a query.
-  ColumnList columns;
-
-
-  // Columns for the "actors" query.
-  columns.push({
-    &::actors.name,
-    &::actors.introId
-  });
   
   // The contents of columns is swapped out with a fresh ColumnList.
-  DynamicQuery actorQuery { *database_, "actors", columns };
+  actors_->reset();
 
+	SQLite::Statement optionQuery { *database_, "SELECT * FROM options" };
 
-  // Columns for the "options" query.
-  columns.push({
-    &::options.id,
-    &::options.characterId,
-    &::options.optionListId,
-    &::options.textDisplay,
-    &::options.textSpeak,
-    &::options.nextId
-  });
+	SQLite::Statement responseQuery { *database_, "SELECT * FROM responses" };
 
-  // Only 1 specific option list is pulled at a time, based on its unique id.
-  std::unique_ptr<Expression> idExpression {
-    new Expression(::options.optionListId, "=", "")
-  };
-  
-  // Since only the pointers are passed around (no other data is moved),
-  // it's safe to reference values. This is faster and simpler than dynamically casting the
-  // expression back every time it needs to be accessed.
-  std::string & nextOptionList = idExpression->valueText;
-
-  WhereClause::ExpressionType
-    idExpressionGeneric { std::move(idExpression) };
-
-  std::string optionTable = "options";
-  sql::DynamicQuery optionQuery { *database_, optionTable, columns,
-    std::unique_ptr<WhereClauseBase>(
-      new WhereClause(std::move(idExpressionGeneric))
-    )
-  };
-
-
-  // Columns for the "responses" query.
-  columns.push({
-    &::responses.id,
-    &::responses.textSpeak,
-    &::responses.nextId
-  });
-
-  // Only 1 response is pulled at a time.
-  idExpression.reset(new Expression(::responses.id, "=", ""));
-  
-  std::string & nextResponse = idExpression->valueText;
-
-  idExpressionGeneric = std::move(idExpression);
-
-  sql::DynamicQuery responseQuery { *database_, "responses", columns,
-    std::unique_ptr<WhereClauseBase>(
-      new WhereClause(std::move(idExpressionGeneric))
-    )
-  };
-
-
-
-  actors_ = actorQuery.run();
 
   state_ = LOBBY;
 
@@ -256,7 +190,7 @@ Engine::run()
     switch (state_) {
       case LOBBY :
         // Exit the function if the database doesn't contain any actors.
-        if (actors_.size() == 0) {
+        if (actors_->getColumnCount() == 0) {
           dep::printLine("Nobody seems to be around.");
 
           if (createActor()) {

@@ -23,6 +23,8 @@
 #include "dev_tools/command_processor.h"
 //#include "dev_tools/game_state_map.h"
 
+#include <SQLiteCpp/SQLiteCpp.h>
+
 #include "ask_question.h"
 
 namespace tbe {
@@ -144,10 +146,10 @@ class Engine
     /// Primary InputManager.
     dep::InputManager inputManager_;
 
-    sql::DatabaseHandle database_;
+    std::unique_ptr<SQLite::Database> database_;
 
     /// All the actors specified in the database.
-    sql::QueryResult actors_;
+    std::unique_ptr<SQLite::Statement> actors_;
 
     /// Primary SleepEvent.
     /// Secondary SleepEvents may be added in the future.
