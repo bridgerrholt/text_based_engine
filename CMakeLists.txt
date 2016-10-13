@@ -6,7 +6,7 @@ set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -std=c++11")
 set(DIRECTORY_SQLITE_CPP "SQLiteCpp")
 set(DIRECTORY_BOOST "../_libs/boost_1_62_0/build")
 
-include_directories("${DIRECTORY_SQLITE_CPP}/include" "${DIRECTORY_BOOST}/include" "src/dependencies")
+include_directories("${DIRECTORY_SQLITE_CPP}/include" "${DIRECTORY_BOOST}/include" "src/dependencies" "../_libs/sqlite3")
 add_subdirectory(${DIRECTORY_SQLITE_CPP})
 
 link_directories("${DIRECTORY_BOOST}/lib")
@@ -27,4 +27,4 @@ else()
     target_link_libraries(text_based_engine SQLiteCpp sqlite3)
 endif()
 
-target_link_libraries(text_based_engine libboost_filesystem libboost_system engine)
+target_link_libraries(text_based_engine libboost_filesystem libboost_system engine sql_support)

@@ -64,9 +64,9 @@ Engine::Engine(std::locale locale) :
 
   loadRoot();
 
-  /*stateOptions_[BAD];
+  stateOptions_[BAD];
   stateOptions_[LOBBY] = {{}, 0};
-  stateOptions_[PLAYER_RESPONSE] = {{}, 1};*/
+  stateOptions_[PLAYER_RESPONSE] = {{}, 1};
   
   /*commandProcessor_.pushCommandState(BAD, { QUIT });
   commandProcessor_.pushCommandState(LOBBY, {});
@@ -155,18 +155,25 @@ Engine::run()
   if (toQuit) return;
   
   // The contents of columns is swapped out with a fresh ColumnList.
-  actors_->reset();
+  if (actors_) actors_->reset();
+  
+	SQLite::Statement optionQuerySingle { *database_, "SELECT * FROM options WHERE id = ?" };
+	SQLite::Statement optionQueryList { *database_, "SELECT * FROM options WHERE option_list_id = ?" };
 
-	SQLite::Statement optionQuery { *database_, "SELECT * FROM options" };
-
-	SQLite::Statement responseQuery { *database_, "SELECT * FROM responses" };
+	SQLite::Statement responseQuery { *database_, "SELECT * FROM responses WHERE id = ?" };
 
 
   state_ = LOBBY;
 
-  QueryObject * currentActor { 0 };
+  std::string nextResponse;
+
+  //QueryObject * currentActor { 0 };
+  SQLite::Statement currentActor { *database_, "SELECT * FROM actors WHERE id = ?" };
+  currentActor.bind(1, 0);
 
   QueryResult optionLists;
+
+  std::vector<int> optionIds;
 
   // The ID of the next actor response.
   int next { 0 };
@@ -194,7 +201,7 @@ Engine::run()
           dep::printLine("Nobody seems to be around.");
 
           if (createActor()) {
-            actors_ = actorQuery.run();
+            actors_->reset();
             continue;
           }
 
@@ -204,8 +211,11 @@ Engine::run()
         else {
           // All the old actors are removed and all the current actors are added.
           stateOptions_[LOBBY].optionList.resize(constantOptionsCount);
-          for (auto & i : actors_)
-            stateOptions_[LOBBY].optionList.push_back(i.col(actors.name));
+          actors_->reset();
+          while (actors_->executeStep()) {
+            stateOptions_[LOBBY].optionList.push_back(
+              actors_->getColumn("name"));
+          }
 
           postText = "Who would you like to talk to?";
         }
@@ -218,33 +228,19 @@ Engine::run()
         if (toLobby(next)) continue;
 
         nextResponse = std::to_string(next);
+        responseQuery.reset();
+        responseQuery.bind(1, next);
 
-        QueryResult responseList = responseQuery.run();
-
-        // Fail if there isn't exactly 1 response with the given id.
-        if (responseList.size() != 1) {
-          std::string errorMessage;
-
-          if (responseList.size() == 0)
-            errorMessage = "No response";
-          else
-            errorMessage = "Multiple responses";
-
-          throw std::runtime_error(
-            errorMessage + " with the id of " + nextResponse
-          );
-        }
-
-        QueryObject response = std::move(responseList[0]);
-        std::cerr << response.varList.size() << '\n';
+        bool valid = responseQuery.executeStep();
+        assert(valid);
 
         // Outputs the actor's dialogue and sleeps.
         // %name%: %textSpeak%-sleep-
         std::cout << '\n' <<
-          currentActor->col(::actors.name) << ": " <<
-          response.col(::responses.textSpeak) << sleepEvent_ << '\n';
+          currentActor.getColumn("name") << ": " <<
+          responseQuery.getColumn("text_speak") << sleepEvent_ << '\n';
 
-        int nextOptionListId { response.col(::responses.nextId) };
+        int nextOptionListId { responseQuery.getColumn("next_id") };
 
         std::cerr << "Response: " << nextOptionListId << '\n';
 
@@ -252,23 +248,25 @@ Engine::run()
         if (toLobby(nextOptionListId)) continue;
 
 
-        nextOptionList = std::to_string(nextOptionListId);
+        optionQueryList.reset();
+        optionQueryList.bind(1, nextOptionListId);
 
-        optionLists = optionQuery.run();
-
-        if (optionLists.size() == 0) {
+        if (!optionQueryList.executeStep()) {
           throw std::runtime_error(
-            "No option list (within table \"" + optionTable +
-            "\") with the id of " + nextOptionList
+            "No option list (within table \"options"
+            "\") with the id of " + std::to_string(nextOptionListId)
           );
         }
 
-        std::cerr << "Got options\n";
-
         // Lists all the textDisplay strings from the options.
         currentOptions().optionList.clear();
-        for (auto & i : optionLists)
-          currentOptions().optionList.push_back(i.col(::options.textDisplay));
+        optionIds.clear();
+
+        do {
+          currentOptions().optionList.push_back(optionQueryList.getColumn("text_display"));
+          optionIds.push_back(optionQueryList.getColumn("id"));
+        } while (optionQueryList.executeStep());
+
         std::cerr << "Option text list\n";
 
         break;
@@ -333,6 +331,7 @@ Engine::run()
     else {
       switch (state_) {
         case LOBBY :
+        {
           // All the constant options are handled.
           // QUIT
           if (optionIndex == 0) {
@@ -343,15 +342,19 @@ Engine::run()
           // The actor index must be offset backwards from the constant option offset.
           // In other words, to map the optionIndex to the actors_ list, the amount of
           // non-actor options must be subtracted.
-          currentActor = &actors_[optionIndex-constantOptionsCount];
+          std::size_t id { optionIndex - constantOptionsCount + 1 };
+          currentActor.reset();
+          currentActor.bind(1, id);
+          bool valid = currentActor.executeStep();
+          assert(valid);
 
           // The ID of the next actor response.
-          next = currentActor->col(actors.introId);
+          next = currentActor.getColumn("intro_id");
           std::cerr << next << '\n';
 
           // If the intro ID is 0, that indicates no conversation will take place.
           if (next == 0) {
-            std::cout << currentActor->col(actors.name) <<
+            std::cout << currentActor.getColumn("name") <<
               " doesn't want to speak right now.\n";
 
             // Stays in the lobby.
@@ -363,15 +366,20 @@ Engine::run()
           }
 
           break;
-
+        }
         case PLAYER_RESPONSE :
           std::cerr << "PLAYER_RESPONSE\n";
           // Displays the user's response and sleeps.
+          optionQuerySingle.reset();
+          optionQuerySingle.bind(1, optionIds[optionIndex]);
+          optionQuerySingle.executeStep();
+          assert(!optionQuerySingle.isDone());
+
           std::cout << '\n' <<
-            optionLists[optionIndex].col(::options.textSpeak) << '\n' <<
+            optionQuerySingle.getColumn("text_speak") << '\n' <<
             sleepEvent_;
 
-          next = optionLists[optionIndex].col(::options.nextId);
+          next = optionQuerySingle.getColumn("next_id");
           std::cerr << "last next: " << next << '\n';
           break;
 
@@ -394,6 +402,8 @@ bool
 Engine::databaseSetup(int argc, char* argv[])
 {
   using namespace commands;
+
+  std::cerr << "databaseSetup()\n";
 
   std::string fileName = rootPath_;
 
@@ -433,8 +443,13 @@ Engine::databaseSetup(int argc, char* argv[])
       break;
     }
   }
+  
+  database_.reset(new SQLite::Database(
+    fileName, SQLITE_OPEN_READWRITE | SQLITE_OPEN_CREATE
+  ));
 
-  database_ = DatabaseHandle(fileName);
+	actors_.reset(new SQLite::Statement(*database_, "SELECT * FROM actors"));
+
   return true;
 }
 
@@ -443,7 +458,7 @@ Engine::databaseSetup(int argc, char* argv[])
 void
 Engine::createDatabase(std::string const & fileName)
 {
-  database_ = DatabaseHandle(fileName);
+  database_.reset(new SQLite::Database(fileName));
 
   std::ifstream file { fromRoot("table_signatures.txt") };
 
@@ -453,22 +468,27 @@ Engine::createDatabase(std::string const & fileName)
   std::string toPush      { frontText };
   bool        hasContents { false };
 
+  SQLite::Statement stmt { *database_, "CREATE TABLE IF NOT EXISTS ?" };
+  std::string tableName;
+
   while (file >> std::noskipws >> c) {
     if (!hasContents && std::isspace(c, locale_))
       continue;
     
-    toPush += c;
-    hasContents = true;
-
     if (c == ';') {
-      std::cerr << "toPush: " << toPush << '\n';
-      Query query {
-        *database_,
-         toPush
-      };
-      query.nextRow();
-      toPush.erase(toPush.begin() + frontText.size(), toPush.end());
+      //std::cerr << "toPush: " << toPush << '\n';
+      std::cerr << "tableName: " << tableName << '\n';
+
+      stmt.bind(1, tableName);
+      
+      //toPush.erase(toPush.begin() + frontText.size(), toPush.end());
       hasContents = false;
+
+      tableName = "";
+    }
+    else {
+      tableName += c;
+      hasContents = true;
     }
   }
 }
@@ -556,9 +576,9 @@ Engine::createActor()
     std::string actorName = inputManager_.promptClean();
     int introId = 0;
 
-    Query countQuery { *database_, "SELECT COUNT(*) FROM actors" };
-    countQuery.nextRow();
-    introId = sqlite3_column_int(countQuery.getHandle(), 0);
+    SQLite::Statement countQuery { *database_, "SELECT COUNT(*) FROM actors" };
+    countQuery.executeStep();
+    introId = countQuery.getColumn(0);
 
     std::cerr << "actorName: " << actorName << '\n';
     std::cerr << "introId:   " << introId << '\n';
@@ -569,11 +589,8 @@ Engine::createActor()
        std::to_string(introId) + ");"
     };
 
-    Query query {
-      *database_, text
-    };
-
-    query.nextRow();
+    SQLite::Statement creation { *database_, text };
+    creation.exec();
 
     return true;
   }

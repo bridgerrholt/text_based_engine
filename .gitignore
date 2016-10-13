@@ -1,7 +1,9 @@
 .DS_Store
 .idea
+visual
 SQLiteCpp
 sftp-config.json
+
 *.o
 *.exe
 *.dmg

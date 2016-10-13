@@ -1,6 +1,9 @@
-file(GLOB_RECURSE engine_source_files *.cpp *.h)
+file(GLOB_RECURSE engine_source_files *.cpp)
+file(GLOB_RECURSE engine_header_files *.h)
 
-source_group(engine FILES ${engine_source_files})
-add_library(engine ${engine_source_files})
+source_group("Source Files" FILES ${engine_source_files})
+source_group("Header Files" FILES ${engine_header_files})
 
-target_link_libraries(engine SQLiteCpp)
+add_library(engine ${engine_source_files} ${engine_header_files})
+
+target_link_libraries(engine SQLiteCpp sql_support sqlite3)

@@ -8,8 +8,6 @@
 #include <string>
 #include <unordered_map>
 
-#include <sqlite3.h>
-
 #include <dep/input_manager.h>
 #include <dep/sleep_event.h>
 #include <dep/enum_class_hash.h>

@@ -28,8 +28,8 @@ class CommandBase
     {
       public:
         StateMap                         & stateMap;
-        ArgumentList::const_iterator       i,
-                                     const end;
+        ArgumentList::const_iterator       i;
+        ArgumentList::const_iterator const end;
     };
 
     typedef ExecutionArgPack ExecutionArgs;
