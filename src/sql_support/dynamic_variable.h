@@ -12,20 +12,17 @@
 namespace tbe {
   namespace sql {
 
-class DynamicVariable
+using DynamicTypePtr = std::unique_ptr<DynamicType>;
+
+class DynamicVariable : public DynamicTypePtr
 {
   public:
-    typedef std::unique_ptr<DynamicType> ObjectType;
-
-    DynamicVariable();
-    DynamicVariable(ObjectType object);
+    constexpr DynamicVariable() {}
+    DynamicVariable(DynamicTypePtr ptr);
 
     template <class T>
-    DynamicVariable(T data) : object_(new BasicType(data))
-    { }
-
-  private:
-    ObjectType object_;
+    DynamicVariable(T data) :
+      DynamicTypePtr(new types::BasicType<T>(data)) {}
 };
 
 

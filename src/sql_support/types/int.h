@@ -10,9 +10,9 @@ namespace tbe {
   namespace sql {
     namespace types {
       
-/// @typedef BasicType<int, INT> Int
+/// @typedef BasicType<int> Int
 /// BasicType instantiation representing an SQL int value.
-typedef BasicType<int, INT> Int;
+using Int = BasicType<int>;
 
     }
   }

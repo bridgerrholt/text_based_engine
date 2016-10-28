@@ -12,9 +12,9 @@ namespace tbe {
   namespace sql {
     namespace types {
       
-/// @typedef BasicType<std::string, TEXT> Text
+/// @typedef BasicType<std::string> Text
 /// BasicType instantiation representing an SQL text value.
-typedef BasicType<std::string, TEXT> Text;
+using Text = BasicType<std::string>;
 
     }
   }

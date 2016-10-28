@@ -17,11 +17,11 @@ class DynamicType
     /// @param kind Sets the underlying kind (@ref kind_).
     DynamicType(types::Kind kind);
     
-    /// Makes the class abstract.
+    /// Abstract class.
     virtual
     ~DynamicType() = 0;
 
-    /// Returns the underlying kind (@ ref kind_).
+    /// Returns the underlying kind (@ref kind_).
     types::Kind getKind() const { return kind_; }
 
 

@@ -9,7 +9,7 @@
 #include <unordered_map>
 #include <memory>
 
-#include "../sql_support/dynamic_type.h"
+#include "../sql_support/dynamic_variable.h"
 #include "command.h"
 
 namespace tbe {
@@ -22,7 +22,7 @@ class StateMap
     template <class T, class K = std::string>
     using MapType = std::unordered_map<K, T>;
 
-    typedef MapType<sql::DynamicVar>               VariableMap;
+    typedef MapType<sql::DynamicTypePtr>           VariableMap;
     typedef MapType<std::unique_ptr<CommandBase> > CommandMap;
 
 

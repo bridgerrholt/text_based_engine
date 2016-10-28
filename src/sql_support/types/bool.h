@@ -10,9 +10,9 @@ namespace tbe {
   namespace sql {
     namespace types {
       
-/// @typedef BasicType<bool, BOOL> Bool
+/// @typedef BasicType<bool> Bool
 /// BasicType instantiation representing an SQL bool value.
-typedef BasicType<bool, BOOL> Bool;
+using Bool = BasicType<bool>;
 
     }
   }

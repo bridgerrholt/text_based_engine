@@ -13,11 +13,28 @@
 namespace tbe {
   namespace sql {
     namespace types {
+      namespace support {
+      
+template <class T>
+constexpr Kind matchUp();
+
+template <>
+constexpr Kind matchUp<bool>() { return BOOL; }
+
+template <>
+constexpr Kind matchUp<int>() { return INT; }
+
+template <>
+constexpr Kind matchUp<std::string>() { return TEXT; }
+
+      }
+
+
 
 /// Class template to be used for all the supported SQL types.
 /// @tparam T The underlying type to use for representing the SQL type.
 /// @tparam k The name (within the enum Kind) for identification.
-template <class T, Kind k>
+template <class T, Kind k = support::matchUp<T>()>
 class BasicType : public DynamicType
 {
   public:
@@ -33,7 +50,9 @@ class BasicType : public DynamicType
 
     /// The underlying data.
     DataType data;
+
 };
+
 
     }
   }

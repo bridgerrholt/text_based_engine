@@ -1,6 +1,6 @@
 #include "command_processor.h"
 
-#include "../../sql_support/types/bool.h"
+#include "../../sql_support/dynamic_variable.h"
 
 
 namespace {
@@ -19,7 +19,7 @@ makeStateMap(StateMap::VariableMap sharedVariables,
              StateMap::VariableMap globalVariables)
 {
   globalVariables.emplace(
-    "dev-mode", sql::DynamicVar(new sql::types::Bool(false))
+    "dev-mode", sql::DynamicVariable(false)
   );
   
 
