@@ -7,6 +7,11 @@
 
 namespace tbe {
 
+StateMap::StateMap()
+{
+
+}
+
 StateMap::StateMap(Scope shared, Scope global) :
   shared_(std::move(shared)),
   global_(std::move(global))
@@ -42,6 +47,15 @@ StateMap::setState(StateContainer::key_type name)
 
 
 
+StateMap::VariableMap::mapped_type *
+StateMap::getVariable(StateContainer::key_type const & name)
+{
+  return getObject(name, states_[currentState_].getCommands(),
+                   shared_.variables, global_.variables);
+}
+
+
+
 StateMap::CommandMap::mapped_type::element_type *
 StateMap::getCommand(StateContainer::key_type const & name)
 {
@@ -56,11 +70,40 @@ StateMap::getCommand(StateContainer::key_type const & name)
 
 
 
-StateMap::VariableMap::mapped_type *
-StateMap::getVariable(StateContainer::key_type const & name)
+void
+StateMap::pushGlobalVariable(VariableMap::key_type    name,
+                             VariableMap::mapped_type variable)
 {
-  return getObject(name, states_[currentState_].getCommands(),
-                   shared_.variables, global_.variables);
+  genericPush(std::move(name), std::move(variable),
+    global_.variables, "Global variable");
+}
+
+
+void
+StateMap::pushSharedVariable(VariableMap::key_type    name,
+                             VariableMap::mapped_type variable)
+{
+  genericPush(std::move(name), std::move(variable),
+    shared_.variables, "Shared variable");
+}
+
+
+
+void
+StateMap::pushGlobalCommand(CommandMap::key_type    name,
+                            CommandMap::mapped_type command)
+{
+  genericPush(std::move(name), std::move(command),
+    global_.commands, "Global command");
+}
+
+
+void
+StateMap::pushSharedCommand(CommandMap::key_type    name,
+                            CommandMap::mapped_type command)
+{
+  genericPush(std::move(name), std::move(command),
+    shared_.commands, "Shared command");
 }
 
 

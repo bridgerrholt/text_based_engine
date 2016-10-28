@@ -27,4 +27,4 @@ else()
     target_link_libraries(text_based_engine SQLiteCpp sqlite3)
 endif()
 
-target_link_libraries(text_based_engine libboost_filesystem libboost_system engine sql_support)
+target_link_libraries(text_based_engine libboost_filesystem libboost_system tbe_engine tbe_sql_support)

@@ -55,8 +55,8 @@ Engine::Engine() :
 
 Engine::Engine(std::locale locale) :
   locale_(std::move(locale)),
-  inputManager_(locale_),
-  commandProcessor_(locale_, StateMap::VariableMap(), StateMap::VariableMap())
+  inputManager_("> ", locale_),
+  commandProcessor_(StateMap::VariableMap(), StateMap::VariableMap())
 {
   using namespace commands;
 
@@ -157,7 +157,7 @@ Engine::run()
   // The contents of columns is swapped out with a fresh ColumnList.
   if (actors_) actors_->reset();
   
-	SQLite::Statement optionQuerySingle { *database_, "SELECT * FROM options WHERE id = ?" };
+  SQLite::Statement optionQuerySingle { *database_, "SELECT * FROM options WHERE id = ?" };
 	SQLite::Statement optionQueryList { *database_, "SELECT * FROM options WHERE option_list_id = ?" };
 
 	SQLite::Statement responseQuery { *database_, "SELECT * FROM responses WHERE id = ?" };

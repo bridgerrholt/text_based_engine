@@ -30,10 +30,11 @@ class CommandProcessor
     typedef std::vector<commands::Kind>         CommandState;
     typedef std::unordered_map<std::size_t, CommandState> CommandStateMap;
 
+    
+    CommandProcessor();
 
-    CommandProcessor(std::locale     const & localeSet,
-                     StateMap::VariableMap   sharedVariables,
-                     StateMap::VariableMap   globalVariables);
+    CommandProcessor(StateMap::VariableMap sharedVariables,
+                     StateMap::VariableMap globalVariables);
 
     /*
     /// Attempts to read the given line.
@@ -58,8 +59,6 @@ class CommandProcessor
       CommandStateMap::key_type currentCommandState);*/
 
     StateMap & getStateMap() { return stateMap_; }
-
-    std::locale const & locale;
 
 
   private:

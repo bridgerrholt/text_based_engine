@@ -14,10 +14,10 @@ class StringFormatter
 {
   public:
     /// Primary constructor.
-    /// @param[in] locale   The program-wide locale used.
     /// @param[in] contents The string to be formatted.
-    StringFormatter(std::locale const & locale,
-                    std::string         contents);
+    /// @param[in] locale   The locale to use for formatting.
+    StringFormatter(std::string contents,
+                    std::locale locale = std::locale());
 
     /// Copies the string's current state.
     /// @return The copied version of @ref contents_.
@@ -43,10 +43,7 @@ class StringFormatter
 
 
   private:
-    /// Reference to the program-wide locale.
-    std::locale const & locale_;
-
-    /// The string being formatted.
+    std::locale locale_;
     std::string contents_;
 };
 

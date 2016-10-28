@@ -55,17 +55,30 @@ class StateMap
 
     typedef std::unordered_map<std::string, State> StateContainer;
 
-
+    StateMap();
     StateMap(Scope shared, Scope global);
 
     void pushState(StateContainer::key_type name, State state);
     void setState(StateContainer::key_type name);
     
+    VariableMap::mapped_type *
+    getVariable(StateContainer::key_type const & name);
+
     CommandMap::mapped_type::element_type *
     getCommand(StateContainer::key_type const & name);
 
-    VariableMap::mapped_type *
-    getVariable(StateContainer::key_type const & name);
+    
+    void pushGlobalVariable(VariableMap::key_type    name,
+                            VariableMap::mapped_type variable);
+
+    void pushSharedVariable(VariableMap::key_type    name,
+                            VariableMap::mapped_type variable);
+    
+    void pushGlobalCommand(CommandMap::key_type    name,
+                           CommandMap::mapped_type command);
+
+    void pushSharedCommand(CommandMap::key_type    name,
+                           CommandMap::mapped_type command);
 
 
   private:
@@ -84,6 +97,12 @@ class StateMap
               State::Container         const & allowedNames,
               MapType<T>                     & shared,
               MapType<T>                     & global);
+
+    template <class T>
+    void genericPush(typename MapType<T>::key_type name,
+                     T                             object,
+                     MapType<T>                  & map,
+                     std::string const           & objectDescription);
 
 };
 
@@ -115,6 +134,23 @@ StateMap::getObject(StateContainer::key_type const & name,
 }
 
 
+template <class T>
+void
+StateMap::genericPush(typename MapType<T>::key_type name,
+                      T                             object,
+                      MapType<T>                  & map,
+                      std::string const           & objectDescription)
+{
+  auto i = map.find(name);
+
+  if (i != map.end()) {
+    throw std::runtime_error(
+      objectDescription + " \"" + name + "\" already exists"
+    );
+  }
+
+  map.insert({std::move(name), std::move(object)});
+}
 
 }
 

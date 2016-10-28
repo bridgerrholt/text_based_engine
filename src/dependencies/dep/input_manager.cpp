@@ -5,11 +5,11 @@
 
 namespace dep {
 
-InputManager::InputManager(std::locale const & localeSet,
-                           std::string         promptTextSet) :
-  locale(localeSet),
+InputManager::InputManager(std::string promptTextSet,
+                           std::locale locale) :
+  promptText(promptTextSet),
 
-  promptText(promptTextSet)
+  locale_(std::move(locale))
 {
 
 }
@@ -28,7 +28,7 @@ StringFormatter
 InputManager::get(std::string & inputString) const
 {
   getPure(inputString);
-  return StringFormatter(locale, inputString);
+  return StringFormatter(inputString, locale_);
 }
 
 

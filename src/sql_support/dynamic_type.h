@@ -9,7 +9,7 @@
 namespace tbe {
   namespace sql {
 
-/// Used for representing SQL types.
+/// Base class used for representing SQL types.
 class DynamicType
 {
   public:

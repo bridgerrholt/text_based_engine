@@ -21,8 +21,8 @@ class InputManager
     /// Primary constructor.
     /// @param[in] localeSet The program-wide locale to be
     ///                      passed to returned StringFormatter objects.
-    InputManager(std::locale const & localeSet,
-                 std::string         promptTextSet = "> ");
+    InputManager(std::string promptTextSet,
+                 std::locale locale = std::locale());
 
     /// Reads the user input into a StringFormatter.
     /// @return The StringFormatter constructed from the string.
@@ -47,15 +47,13 @@ class InputManager
     /// Trims the input.
     std::string promptClean() const;
 
-
-    /// The program-wide locale, is currently only used to create StringFormatter objects.
-    std::locale const & locale;
-
     /// Displayed at the beginning of prompt functions.
     std::string promptText;
 
 
   private:
+    // Locale for formatting.
+    std::locale locale_;
 
 };
   

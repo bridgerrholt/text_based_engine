@@ -1,53 +1,56 @@
 #include "command_processor.h"
 
+#include "../../sql_support/types/bool.h"
+
+
 namespace {
 
 using namespace tbe;
 
 template <class T>
-std::unique_ptr<CommandBase> pull(T * value)
+std::unique_ptr<CommandBase>
+pull(T * value)
 {
-  return std::move(std::unique_ptr<CommandBase>(value));
+  return std::unique_ptr<CommandBase>(value);
 }
 
-
-
-StateMap::CommandMap
-sharedCommands()
+StateMap
+makeStateMap(StateMap::VariableMap sharedVariables,
+             StateMap::VariableMap globalVariables)
 {
-  StateMap::CommandMap toReturn;
-
-  toReturn.emplace("list-paths", std::move(pull(new commands::ListPaths())));
+  globalVariables.emplace(
+    "dev-mode", sql::DynamicVar(new sql::types::Bool(false))
+  );
   
-  return std::move(toReturn);
-}
+
+  StateMap::CommandMap sharedCommands;
+  sharedCommands.emplace("list-paths", pull(new commands::ListPaths()));
+  
+  StateMap::CommandMap globalCommands;
+  globalCommands.emplace("set", pull(new commands::Set()));
 
 
-
-StateMap::CommandMap
-globalCommands()
-{
-  StateMap::CommandMap toReturn;
-
-  toReturn.emplace("set", std::move(pull(new commands::Set())));
-
-  return std::move(toReturn);
+  return {{std::move(sharedVariables), std::move(sharedCommands)},
+          {std::move(globalVariables), std::move(globalCommands)}};
 }
 
 }
+
 
 namespace tbe {
+  
+CommandProcessor::CommandProcessor()
+{
 
+}
 
 
 CommandProcessor::CommandProcessor(
-  std::locale     const & localeSet,
   StateMap::VariableMap   sharedVariables,
   StateMap::VariableMap   globalVariables) :
 
-  locale   (localeSet),
-  stateMap_({std::move(sharedVariables), std::move(::sharedCommands())},
-            {std::move(globalVariables), std::move(::globalCommands())})
+  stateMap_(::makeStateMap(
+    std::move(sharedVariables), std::move(globalVariables)))
 {
 
 }
@@ -153,7 +156,7 @@ CommandProcessor::readCommandV2(std::string commandText)
   std::string commandName;
 
   while (i != commandText.end()) {
-    if (std::isspace(*i, locale)) {
+    if (std::isspace(*i, std::locale())) {
       if (commandName.empty())
         continue;
       else
@@ -177,7 +180,7 @@ CommandProcessor::readCommandV2(std::string commandText)
   commandText.erase(commandText.begin(), i);
 
   return command->run(
-    stateMap_, commandText, locale
+    stateMap_, commandText, std::locale()
   );
 }
 
@@ -186,7 +189,7 @@ CommandProcessor::readCommandV2(std::string commandText)
 void
 CommandProcessor::setCommandLeader(std::string commandLeader)
 {
-  dep::StringFormatter str { locale, std::move(commandLeader) };
+  dep::StringFormatter str { std::move(commandLeader) };
 
   if (str.trim().strRef().empty()) {
     throw std::runtime_error(
