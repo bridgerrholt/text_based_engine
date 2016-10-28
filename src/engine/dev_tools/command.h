@@ -39,7 +39,7 @@ class CommandBase
     CommandBase();
 
     virtual
-    ~CommandBase() = 0 {};
+    ~CommandBase() = 0;
     
     RunInfo run(StateMap          & stateMap,
                 std::string const & args,

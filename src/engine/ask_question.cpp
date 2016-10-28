@@ -133,7 +133,7 @@ processResponseIndex(
 {
   std::cerr << "Process OptionIndex: " << optionIndex << '\n';
   if (dep::isInt(input)) {
-    optionIndex = std::stoi(input);
+    optionIndex = std::stoul(input);
     if (optionIndex >= startNum && optionIndex < optionCount+startNum) {
       optionIndex -= startNum;
       return true;

@@ -17,7 +17,7 @@ using DynamicTypePtr = std::unique_ptr<DynamicType>;
 class DynamicVariable : public DynamicTypePtr
 {
   public:
-    constexpr DynamicVariable() {}
+    DynamicVariable() {}
     DynamicVariable(DynamicTypePtr ptr);
 
     template <class T>

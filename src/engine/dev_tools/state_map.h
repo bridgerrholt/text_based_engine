@@ -149,7 +149,7 @@ StateMap::genericPush(typename MapType<T>::key_type name,
     );
   }
 
-  map.insert({std::move(name), std::move(object)});
+  map.emplace(std::move(name), std::move(object));
 }
 
 }

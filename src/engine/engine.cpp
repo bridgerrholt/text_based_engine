@@ -184,7 +184,7 @@ Engine::run()
 
   // Specifies how many options always remain while in the lobby.
   // primaryOptions is resized to it in the lobby in case actors change.
-  const std::size_t constantOptionsCount { 1 };
+  const long constantOptionsCount { 1 };
 
   stateOptions_[LOBBY].optionList.push_back("QUIT"); // Breaks out of the main loop.
 
@@ -291,7 +291,10 @@ Engine::run()
 
     bool isCommand { false };
     RunInfo command;
-    std::size_t optionIndex { 0 };
+
+	  // TODO: Make not error-prone due to unsigned mismatch.
+    long optionIndex { 0 };
+	  std::size_t optionIndexCollect { 0 };
 
     // Gets the player input.
     while (true) {
@@ -301,8 +304,9 @@ Engine::run()
 
       else {
         if (processResponseIndex(inputString, currentOptions().optionList.size(),
-                                 optionIndex, currentOptions().startNum))
+                                 optionIndexCollect, currentOptions().startNum))
         {
+	        optionIndex = (long)optionIndexCollect;
           std::cerr << "Processed " << optionIndex << '\n';
           break;
         }
@@ -343,9 +347,9 @@ Engine::run()
           // The actor index must be offset backwards from the constant option offset.
           // In other words, to map the optionIndex to the actors_ list, the amount of
           // non-actor options must be subtracted.
-          std::size_t id { optionIndex - constantOptionsCount + 1 };
+          long id { optionIndex - constantOptionsCount + 1 };
           currentActor.reset();
-          currentActor.bind(1, id);
+          currentActor.bind(1, (long long)id);
           bool valid = currentActor.executeStep();
           assert(valid);
 

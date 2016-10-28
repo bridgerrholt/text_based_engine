@@ -283,6 +283,12 @@ CommandBase::CommandBase()
 }
 
 
+CommandBase::~CommandBase()
+{
+
+}
+
+
     
 RunInfo
 CommandBase::run(StateMap          & stateMap,
