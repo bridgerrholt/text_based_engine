@@ -16,7 +16,6 @@
 #include <dep/print_line.h>
 
 #include "dev_tools/types/common/include.h"
-#include "dev_tools/types/dynamic_variable.h"
 
 #include "ask_question.h"
 #include "dev_tools/run_info.h"

@@ -4,15 +4,15 @@
 #ifndef TEXT_BASED_ENGINE_ENGINE_DEV_TOOLS_TYPES_COMMON_INT_H
 #define TEXT_BASED_ENGINE_ENGINE_DEV_TOOLS_TYPES_COMMON_INT_H
 
-#include "basic_type.h"
+#include "basic_object.h"
 
 namespace tbe {
   namespace dev_tools {
     namespace types {
       
-/// @typedef BasicType<int> Int
-/// BasicType instantiation representing an SQL int value.
-using Int = BasicType<int>;
+/// @typedef BasicObject<int> Int
+/// BasicObject instantiation representing an SQL int value.
+using Int = BasicObject<int>;
 
     }
   }

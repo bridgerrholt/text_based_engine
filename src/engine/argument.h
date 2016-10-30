@@ -8,7 +8,7 @@
 #include <string>
 #include <vector>
 
-#include "dev_tools/types/common/var_list.h"
+#include "dev_tools/types/common/object_list.h"
 
 namespace tbe {
 
@@ -50,8 +50,8 @@ class BasicArgument : public ArgumentBase
 };
 
 
-typedef BasicArgument<dev_tools::types::DynamicVar, ArgumentBase::OBJECT> Object;
-typedef BasicArgument<std::string,                  ArgumentBase::OPTION> Option;
+typedef BasicArgument<dev_tools::types::ObjectPtr, ArgumentBase::OBJECT> Object;
+typedef BasicArgument<std::string,                 ArgumentBase::OPTION> Option;
 
   }
 }

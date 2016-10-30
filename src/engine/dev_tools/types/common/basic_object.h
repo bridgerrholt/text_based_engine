@@ -1,12 +1,12 @@
 /// @file basic_type.h
-/// Definition of the class template tbe::sql::types::BasicType.
+/// Definition of the class template tbe::sql::types::BasicObject.
 
 #ifndef TEXT_BASED_ENGINE_ENGINE_DEV_TOOLS_TYPES_COMMON_BASIC_TYPE_H
 #define TEXT_BASED_ENGINE_ENGINE_DEV_TOOLS_TYPES_COMMON_BASIC_TYPE_H
 
 #include <string>
 
-#include "../type_base.h"
+#include "../object_base.h"
 
 #include "../kind.h"
 
@@ -35,7 +35,7 @@ constexpr Kind matchUp<std::string>() { return TEXT; }
 /// @tparam T The underlying type to use for representing the SQL type.
 /// @tparam k The name (within the enum Kind) for identification.
 template <class T, Kind k = support::matchUp<T>()>
-class BasicType : public TypeBase
+class BasicObject : public ObjectBase
 {
   public:
     /// Allows usage of the type elsewhere.
@@ -43,7 +43,7 @@ class BasicType : public TypeBase
 
     /// Primary constructor.
     /// @param[in] dataSet Moves into @ref data.
-    BasicType(DataType dataSet) : TypeBase(k)
+    BasicObject(DataType dataSet) : ObjectBase(k)
     {
       data = std::move(dataSet);
     }

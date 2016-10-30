@@ -6,15 +6,15 @@
 
 #include <string>
 
-#include "basic_type.h"
+#include "basic_object.h"
 
 namespace tbe {
   namespace dev_tools {
     namespace types {
       
-/// @typedef BasicType<std::string> Text
-/// BasicType instantiation representing an SQL text value.
-using Text = BasicType<std::string>;
+/// @typedef BasicObject<std::string> Text
+/// BasicObject instantiation representing an SQL text value.
+using Text = BasicObject<std::string>;
 
     }
   }

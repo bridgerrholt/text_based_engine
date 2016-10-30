@@ -7,14 +7,13 @@
 #include <vector>
 #include <memory>
 
-#include "../type_base.h"
+#include "../object_ptr.h"
 
 namespace tbe {
   namespace dev_tools {
     namespace types {
 
-typedef std::unique_ptr<TypeBase>   DynamicVar;
-typedef std::vector    <DynamicVar> VarList;
+typedef std::vector<ObjectPtr> ObjectList;
 
     }
   }

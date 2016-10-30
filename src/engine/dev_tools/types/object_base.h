@@ -1,5 +1,5 @@
 /// @file type_base.h
-/// Declaration of the abstract base class tbe::dev_tools::types::TypeBase.
+/// Declaration of the abstract base class tbe::dev_tools::types::ObjectBase.
 
 #ifndef TEXT_BASED_ENGINE_ENGINE_DEV_TOOLS_TYPE_BASE_H
 #define TEXT_BASED_ENGINE_ENGINE_DEV_TOOLS_TYPE_BASE_H
@@ -10,16 +10,16 @@ namespace tbe {
   namespace dev_tools {
     namespace types {
 
-/// Base class for all the engine's specified types.
-class TypeBase
+/// Base class for all the engine's objects.
+class ObjectBase
 {
   public:
     /// Primary constructor.
     /// @param kind Sets the underlying kind (@ref kind_).
-    TypeBase(Kind kind);
+    ObjectBase(Kind kind);
     
     virtual
-    ~TypeBase() = 0;
+    ~ObjectBase() = 0;
 
     /// Returns the underlying kind (@ref kind_).
     Kind getKind() const { return kind_; }

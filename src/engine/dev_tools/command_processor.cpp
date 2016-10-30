@@ -1,7 +1,5 @@
 #include "command_processor.h"
 
-#include "types/dynamic_variable.h"
-
 
 
 namespace {
@@ -25,7 +23,7 @@ makeStateMap(StateMap::VariableMap sharedVariables,
   using namespace commands;
 
   globalVariables.emplace(
-    "dev-mode", types::makeDynamicVariable(false)
+    "dev-mode", types::makeObjectPtr(false)
   );
   
 

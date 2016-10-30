@@ -23,7 +23,7 @@ void
 emplaceObject(ArgumentList & argList, T t)
 {
   argList.emplace_back(new arg_types::Object {
-    dev_tools::types::DynamicVar { t }
+    dev_tools::types::ObjectPtr { t }
   });
 }
 

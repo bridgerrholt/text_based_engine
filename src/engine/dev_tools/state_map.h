@@ -9,7 +9,7 @@
 #include <unordered_map>
 #include <memory>
 
-#include "types/dynamic_variable.h"
+#include "types/object_ptr.h"
 #include "command.h"
 
 namespace tbe {
@@ -23,7 +23,7 @@ class StateMap
     template <class T, class K = std::string>
     using MapType = std::unordered_map<K, T>;
 
-    typedef MapType<types::DynamicTypePtr>         VariableMap;
+    typedef MapType<types::ObjectPtr>              VariableMap;
     typedef MapType<std::unique_ptr<CommandBase> > CommandMap;
 
 
