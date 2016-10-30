@@ -1,12 +1,13 @@
 /// @file dynamic_type.cpp
 /// Definition of the abstract base class tbe::sql::DynamicType.
 
-#include "dynamic_type.h"
+#include "type_base.h"
 
 namespace tbe {
-  namespace sql {
+  namespace dev_tools {
+    namespace types {
 
-DynamicType::DynamicType(types::Kind kind) :
+TypeBase::TypeBase(types::Kind kind) :
   kind_(kind)
 {
 
@@ -14,11 +15,12 @@ DynamicType::DynamicType(types::Kind kind) :
 
 
 
-DynamicType::~DynamicType()
+TypeBase::~TypeBase()
 {
 
 }
 
 
+    }
   }
 }

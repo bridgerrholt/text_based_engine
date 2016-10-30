@@ -1,14 +1,14 @@
 #include "dynamic_variable.h"
-#include "types/include.h"
+#include "common/include.h"
 
 namespace tbe {
-  namespace sql {
-
+  namespace dev_tools {
+/*
 DynamicVariable::DynamicVariable(DynamicTypePtr ptr) :
   DynamicTypePtr(std::move(ptr))
 {
 
-}
+}*/
 
 
   }

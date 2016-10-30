@@ -1,17 +1,17 @@
 /// @file basic_type.h
 /// Definition of the class template tbe::sql::types::BasicType.
 
-#ifndef TEXT_BASED_ENGINE_SQL_SUPPORT_TYPES_BASIC_TYPE_H
-#define TEXT_BASED_ENGINE_SQL_SUPPORT_TYPES_BASIC_TYPE_H
+#ifndef TEXT_BASED_ENGINE_ENGINE_DEV_TOOLS_TYPES_COMMON_BASIC_TYPE_H
+#define TEXT_BASED_ENGINE_ENGINE_DEV_TOOLS_TYPES_COMMON_BASIC_TYPE_H
 
 #include <string>
 
-#include "../dynamic_type.h"
+#include "../type_base.h"
 
-#include "kind.h"
+#include "../kind.h"
 
 namespace tbe {
-  namespace sql {
+  namespace dev_tools {
     namespace types {
       namespace support {
       
@@ -35,7 +35,7 @@ constexpr Kind matchUp<std::string>() { return TEXT; }
 /// @tparam T The underlying type to use for representing the SQL type.
 /// @tparam k The name (within the enum Kind) for identification.
 template <class T, Kind k = support::matchUp<T>()>
-class BasicType : public DynamicType
+class BasicType : public TypeBase
 {
   public:
     /// Allows usage of the type elsewhere.
@@ -43,14 +43,13 @@ class BasicType : public DynamicType
 
     /// Primary constructor.
     /// @param[in] dataSet Moves into @ref data.
-    BasicType(DataType dataSet) : DynamicType(k)
+    BasicType(DataType dataSet) : TypeBase(k)
     {
       data = std::move(dataSet);
     }
 
     /// The underlying data.
     DataType data;
-
 };
 
 

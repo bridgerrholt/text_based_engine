@@ -8,7 +8,7 @@
 #include <dep/print_line.h>
 #include <dep/of_dynamic.h>
 
-#include "../sql_support/types/include.h"
+#include "types/common/include.h"
 
 #include "run_info.h"
 
@@ -23,7 +23,7 @@ void
 emplaceObject(ArgumentList & argList, T t)
 {
   argList.emplace_back(new arg_types::Object {
-    sql::DynamicVar { t }
+    dev_tools::types::DynamicVar { t }
   });
 }
 
@@ -162,7 +162,7 @@ ArgParser::parseString()
 
     assert(foundEnd);
 
-    emplaceObject(new sql::types::Text { std::move(text) });
+    emplaceObject(new dev_tools::types::Text { std::move(text) });
 
     return true;
   }
@@ -205,7 +205,7 @@ ArgParser::parseNumber()
       throw std::runtime_error("Floats are not supported");
     }
     else {
-      emplaceObject(new sql::types::Int {
+      emplaceObject(new dev_tools::types::Int {
         std::stoi(text)
       });
     }
@@ -234,7 +234,7 @@ ArgParser::parseText()
     }
 
     if (text == "true" || text == "false") {
-      emplaceObject(new sql::types::Bool { (text == "true") });
+      emplaceObject(new dev_tools::types::Bool { (text == "true") });
     }
     else {
       currentList_->emplace_back(new arg_types::Option {
@@ -276,6 +276,7 @@ checkString(std::string::const_iterator     & i,
 }
 
 namespace tbe {
+  namespace dev_tools {
 
 CommandBase::CommandBase()
 {
@@ -327,5 +328,5 @@ CommandBase::run(StateMap          & stateMap,
 
 
 
-
+  }
 }

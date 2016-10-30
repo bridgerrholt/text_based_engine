@@ -1,33 +1,39 @@
 #include "command_processor.h"
 
-#include "../../sql_support/dynamic_variable.h"
+#include "types/dynamic_variable.h"
+
 
 
 namespace {
-
+  
 using namespace tbe;
+using namespace tbe::dev_tools;
 
 template <class T>
 std::unique_ptr<CommandBase>
-pull(T * value)
+makeCommand()
 {
-  return std::unique_ptr<CommandBase>(value);
+  return std::unique_ptr<CommandBase>(new T());
 }
 
-StateMap
+
+
+dev_tools::StateMap
 makeStateMap(StateMap::VariableMap sharedVariables,
              StateMap::VariableMap globalVariables)
 {
+  using namespace commands;
+
   globalVariables.emplace(
-    "dev-mode", sql::DynamicVariable(false)
+    "dev-mode", types::makeDynamicVariable(false)
   );
   
 
   StateMap::CommandMap sharedCommands;
-  sharedCommands.emplace("list-paths", pull(new commands::ListPaths()));
+  sharedCommands.emplace("list-paths", makeCommand<ListPaths>());
   
   StateMap::CommandMap globalCommands;
-  globalCommands.emplace("set", pull(new commands::Set()));
+  globalCommands.emplace("set", makeCommand<Set>());
 
 
   return {{std::move(sharedVariables), std::move(sharedCommands)},
@@ -38,6 +44,7 @@ makeStateMap(StateMap::VariableMap sharedVariables,
 
 
 namespace tbe {
+  namespace dev_tools {
   
 CommandProcessor::CommandProcessor()
 {
@@ -223,4 +230,5 @@ CommandProcessor::setCurrentCommandState(
 */
 
 
+  }
 }

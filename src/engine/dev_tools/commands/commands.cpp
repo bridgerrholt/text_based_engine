@@ -4,7 +4,8 @@
 #include "commands.h"
 
 namespace tbe {
-  namespace commands {
+  namespace dev_tools {
+    namespace commands {
 
 template <>
 CommandBase::Signature
@@ -50,5 +51,6 @@ ListPaths::execute(ExecutionArgs data)
 }
 
 
+    }
   }
 }

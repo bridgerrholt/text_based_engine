@@ -12,10 +12,10 @@
 #include <dep/sleep_event.h>
 #include <dep/enum_class_hash.h>
 
-#include "../sql_support/common/query_result.h"
+//#include "../sql_support/common/query_result.h"
 
-#include "../sql_support/column_list.h"
-#include "../sql_support/database_handle.h"
+//#include "../sql_support/column_list.h"
+//#include "../sql_support/database_handle.h"
 
 #include "dev_tools/commands/kind.h"
 #include "dev_tools/command_processor.h"
@@ -111,10 +111,10 @@ class Engine
     /// @param[out] command The command entered.
     /// @param[out] input   The player's input.
     /// @return Whether there was a command attempt.
-    bool getInputCommand(RunInfo & command,
+    bool getInputCommand(dev_tools::RunInfo & command,
                          std::string    & input);
 
-    void processGenericCommand(RunInfo const & command);
+    void processGenericCommand(dev_tools::RunInfo const & command);
 
     /// @return Whether they specified yes or no. Yes is true, no is false.
     bool promptBinaryOption(std::string const & question);
@@ -154,7 +154,7 @@ class Engine
     dep::SleepEvent sleepEvent_ = 500;
 
     /// Primary CommandProcessor.
-    CommandProcessor commandProcessor_;
+    dev_tools::CommandProcessor commandProcessor_;
 
     RunningState state_ = BAD;
 

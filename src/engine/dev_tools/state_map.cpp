@@ -6,6 +6,7 @@
 #include <stdexcept>
 
 namespace tbe {
+  namespace dev_tools {
 
 StateMap::StateMap()
 {
@@ -145,4 +146,6 @@ StateMap::State::State(Container commands,
 
 }
 
+
+  }
 }

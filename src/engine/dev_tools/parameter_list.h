@@ -1,8 +1,8 @@
 /// @file parameter_list.h
 /// Declarations of the class tbe::ParameterList.
 
-#ifndef TEXT_BASED_ENGINE_ENGINE_PARAMETER_LIST_H
-#define TEXT_BASED_ENGINE_ENGINE_PARAMETER_LIST_H
+#ifndef TEXT_BASED_ENGINE_ENGINE_DEV_TOOLS_PARAMETER_LIST_H
+#define TEXT_BASED_ENGINE_ENGINE_DEV_TOOLS_PARAMETER_LIST_H
 
 #include <memory>
 #include <string>
@@ -12,6 +12,7 @@
 #include "../argument.h"
 
 namespace tbe {
+  namespace dev_tools {
 
 class ParameterInfoBase
 {
@@ -31,6 +32,7 @@ class ParameterList
     std::vector<DynamicParameterInfo> paramters;
 };
 
+  }
 }
 
 #endif

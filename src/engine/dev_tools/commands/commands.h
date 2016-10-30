@@ -13,7 +13,8 @@
 #include "../state_map.h"
 
 namespace tbe {
-  namespace commands {
+  namespace dev_tools {
+    namespace commands {
   
 template <Kind c>
 class BasicCommand : public CommandBase
@@ -40,7 +41,7 @@ typedef BasicCommand<LIST_PATHS> ListPaths;
 
 
 
-
+    }
   }
 }
 

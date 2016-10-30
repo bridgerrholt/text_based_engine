@@ -5,7 +5,8 @@
 #define TEXT_BASED_ENGINE_ENGINE_COMMANDS_KIND_H
 
 namespace tbe {
-  namespace commands {
+  namespace dev_tools {
+    namespace commands {
 
 enum Kind
 {
@@ -18,6 +19,8 @@ enum Kind
   SET
 };
 
+
+    }
   }
 }
 

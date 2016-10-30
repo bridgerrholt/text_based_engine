@@ -1,5 +1,5 @@
-#ifndef TEXT_BASED_ENGINE_ENGINE_COMMAND_PROCESSOR_H
-#define TEXT_BASED_ENGINE_ENGINE_COMMAND_PROCESSOR_H
+#ifndef TEXT_BASED_ENGINE_ENGINE_DEV_TOOLS_COMMAND_PROCESSOR_H
+#define TEXT_BASED_ENGINE_ENGINE_DEV_TOOLS_COMMAND_PROCESSOR_H
 
 #include <locale>
 #include <string>
@@ -19,6 +19,7 @@
 #include "run_info.h"
 
 namespace tbe {
+  namespace dev_tools {
 
 // TODO: Get rid of template, make based on the enum within Engine,
 //       but take that enum out into a separate file.
@@ -69,7 +70,7 @@ class CommandProcessor
 };
 
 
-
+  }
 }
 
 #endif

@@ -9,10 +9,11 @@
 #include <unordered_map>
 #include <memory>
 
-#include "../sql_support/dynamic_variable.h"
+#include "types/dynamic_variable.h"
 #include "command.h"
 
 namespace tbe {
+  namespace dev_tools {
 
 /// Contains and manages commands and variables which may be accessed through
 /// specified "states".
@@ -22,7 +23,7 @@ class StateMap
     template <class T, class K = std::string>
     using MapType = std::unordered_map<K, T>;
 
-    typedef MapType<sql::DynamicTypePtr>           VariableMap;
+    typedef MapType<types::DynamicTypePtr>         VariableMap;
     typedef MapType<std::unique_ptr<CommandBase> > CommandMap;
 
 
@@ -152,6 +153,8 @@ StateMap::genericPush(typename MapType<T>::key_type name,
   map.emplace(std::move(name), std::move(object));
 }
 
+
+  }
 }
 
 #endif

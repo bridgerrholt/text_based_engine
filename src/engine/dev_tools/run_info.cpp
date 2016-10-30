@@ -4,6 +4,7 @@
 #include "run_info.h"
 
 namespace tbe {
+  namespace dev_tools {
 
 RunInfo::RunInfo() :
   RunInfo(NONE)
@@ -31,4 +32,6 @@ RunInfo::RunInfo(State          stateSet,
 
 }
 
+
+  }
 }

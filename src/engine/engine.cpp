@@ -15,37 +15,18 @@
 #include <dep/sleep_event.h>
 #include <dep/print_line.h>
 
-#include "../sql_support/types/include.h"
-#include "../sql_support/dynamic_variable.h"
-//#include "../sql_support/dynamic_query.h"
-//#include "../sql_support/query_object.h"
-//#include "../sql_support/column_list.h"
+#include "dev_tools/types/common/include.h"
+#include "dev_tools/types/dynamic_variable.h"
 
-//#include "../sql_support/where_clause/expression.h"
-//#include "../sql_support/where_clause/where_clause.h"
-
-#include "database_structure.h"
 #include "ask_question.h"
 #include "dev_tools/run_info.h"
 
 #include <SQLiteCpp/SQLiteCpp.h>
-
-namespace {
-
-using namespace tbe::sql;
-
-Tables              tables;
-Tables::Actors    & actors    = tables.actors;
-Tables::Responses & responses = tables.responses;
-Tables::Options   & options   = tables.options;
-
-}
+#include <sqlite3.h>
 
 
 
 namespace tbe {
-
-using namespace tbe::sql;
 
 Engine::Engine() :
   Engine(std::locale())
@@ -57,9 +38,9 @@ Engine::Engine() :
 Engine::Engine(std::locale locale) :
   locale_(std::move(locale)),
   inputManager_("> ", locale_),
-  commandProcessor_(StateMap::VariableMap(), StateMap::VariableMap())
+  commandProcessor_(dev_tools::StateMap::VariableMap(), dev_tools::StateMap::VariableMap())
 {
-  using namespace commands;
+  using namespace dev_tools::commands;
 
   dep::printLineErr("Engine constructor called");
 
@@ -151,7 +132,7 @@ Engine::run(std::string const & fileName)
 void
 Engine::run()
 {
-  using namespace commands;
+  using namespace dev_tools::commands;
 
   if (toQuit) return;
   
@@ -171,8 +152,6 @@ Engine::run()
   //QueryObject * currentActor { 0 };
   SQLite::Statement currentActor { *database_, "SELECT * FROM actors WHERE id = ?" };
   currentActor.bind(1, 0);
-
-  QueryResult optionLists;
 
   std::vector<int> optionIds;
 
@@ -290,7 +269,7 @@ Engine::run()
     std::string inputString;
 
     bool isCommand { false };
-    RunInfo command;
+    dev_tools::RunInfo command;
 
 	  // TODO: Make not error-prone due to unsigned mismatch.
     long optionIndex { 0 };
@@ -406,7 +385,7 @@ Engine::run()
 bool
 Engine::databaseSetup(int argc, char* argv[])
 {
-  using namespace commands;
+  using namespace dev_tools::commands;
 
   std::cerr << "databaseSetup()\n";
 
@@ -424,7 +403,7 @@ Engine::databaseSetup(int argc, char* argv[])
       std::cout << "\nDatabase file name:\n";
 
       std::string inputString;
-      RunInfo     command;
+      dev_tools::RunInfo     command;
 
       // Keep prompting until the user enters something other than a command.
       while (getInputCommand(command, inputString)) {
@@ -501,8 +480,8 @@ Engine::createDatabase(std::string const & fileName)
 
 
 bool
-Engine::getInputCommand(RunInfo & command,
-                        std::string & input)
+Engine::getInputCommand(dev_tools::RunInfo & command,
+                        std::string  & input)
 {
   input = inputManager_.promptClean();
   std::cerr << "getInputCommand: " << input << '\n';
@@ -513,15 +492,15 @@ Engine::getInputCommand(RunInfo & command,
   command = commandProcessor_.readCommandV2(input);
 
   switch (command.state) {
-    case RunInfo::NONE :
+    case dev_tools::RunInfo::NONE :
       return false;
 
-    case RunInfo::VALID :
+    case dev_tools::RunInfo::VALID :
       processGenericCommand(command);
   
       return true;
 
-    case RunInfo::INVALID :
+    case dev_tools::RunInfo::INVALID :
       std::cout << "No such command\n";
       return true;
 
@@ -532,9 +511,9 @@ Engine::getInputCommand(RunInfo & command,
 
 
 void
-Engine::processGenericCommand(RunInfo const & command)
+Engine::processGenericCommand(dev_tools::RunInfo const & command)
 {
-  using namespace commands;
+  using namespace dev_tools::commands;
 
   switch (command.kind) {
     case DEV_ON :
