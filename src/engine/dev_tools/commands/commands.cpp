@@ -24,7 +24,7 @@ Set::execute(ExecutionArgs data)
 
   if (var) {
     auto setTo = dep::ofDynamic<arg_types::Object>(data.i->get());
-    if (var->get()->getKind() == setTo->data->getKind()) {
+    if (var->get()->getTypeId() == setTo->data->getTypeId()) {
       var->reset(std::move(setTo->data.get()));
       return RunInfo::VALID;
     }

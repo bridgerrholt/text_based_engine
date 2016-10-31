@@ -7,8 +7,8 @@ namespace tbe {
   namespace dev_tools {
     namespace types {
 
-ObjectBase::ObjectBase(types::Kind kind) :
-  kind_(kind)
+ObjectBase::ObjectBase(types::TypeId typeId) :
+  typeId_(typeId)
 {
 
 }

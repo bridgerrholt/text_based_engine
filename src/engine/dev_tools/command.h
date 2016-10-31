@@ -9,7 +9,7 @@
 #include <unordered_map>
 #include <locale>
 
-#include "types/kind.h"
+#include "types/type_id.h"
 
 #include "commands/kind.h"
 

@@ -4,7 +4,7 @@
 #ifndef TEXT_BASED_ENGINE_ENGINE_DEV_TOOLS_TYPE_BASE_H
 #define TEXT_BASED_ENGINE_ENGINE_DEV_TOOLS_TYPE_BASE_H
 
-#include "kind.h"
+#include "type_id.h"
 
 namespace tbe {
   namespace dev_tools {
@@ -16,18 +16,18 @@ class ObjectBase
   public:
     /// Primary constructor.
     /// @param kind Sets the underlying kind (@ref kind_).
-    ObjectBase(Kind kind);
+    ObjectBase(TypeId typeId);
     
     virtual
     ~ObjectBase() = 0;
 
-    /// Returns the underlying kind (@ref kind_).
-    Kind getKind() const { return kind_; }
+    /// Returns the id of the type (@ref kind_).
+    TypeId getTypeId() const { return typeId_; }
 
 
   private:
     /// Used for determining what type the object is.
-    Kind kind_;
+    TypeId typeId_;
 };
 
 

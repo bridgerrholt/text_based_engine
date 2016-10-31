@@ -8,7 +8,7 @@
 
 #include "../object_base.h"
 
-#include "../kind.h"
+#include "../type_id.h"
 
 namespace tbe {
   namespace dev_tools {
@@ -16,25 +16,25 @@ namespace tbe {
       namespace support {
       
 template <class T>
-constexpr Kind matchUp();
+constexpr TypeId matchUp();
 
 template <>
-constexpr Kind matchUp<bool>() { return BOOL; }
+constexpr TypeId matchUp<bool>() { return BOOL; }
 
 template <>
-constexpr Kind matchUp<int>() { return INT; }
+constexpr TypeId matchUp<int>() { return INT; }
 
 template <>
-constexpr Kind matchUp<std::string>() { return TEXT; }
+constexpr TypeId matchUp<std::string>() { return TEXT; }
 
-      }
+      } // support
 
 
 
 /// Class template to be used for all the supported SQL types.
 /// @tparam T The underlying type to use for representing the SQL type.
-/// @tparam k The name (within the enum Kind) for identification.
-template <class T, Kind k = support::matchUp<T>()>
+/// @tparam k The name (within the enum TypeId) for identification.
+template <class T, TypeId k = support::matchUp<T>()>
 class BasicObject : public ObjectBase
 {
   public:
