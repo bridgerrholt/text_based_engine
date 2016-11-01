@@ -1,5 +1,5 @@
 /// @file int.h
-/// Declaration of the template instantiation typedef tbe::sql::types::Int.
+/// Declaration of the template instantiation alias tbe::sql::types::Int.
 
 #ifndef TEXT_BASED_ENGINE_ENGINE_DEV_TOOLS_TYPES_COMMON_INT_H
 #define TEXT_BASED_ENGINE_ENGINE_DEV_TOOLS_TYPES_COMMON_INT_H
@@ -11,7 +11,7 @@ namespace tbe {
     namespace types {
       
 /// @typedef BasicObject<int> Int
-/// BasicObject instantiation representing an SQL int value.
+/// BasicObject instantiation representing an integer type.
 using Int = BasicObject<int>;
 
     }

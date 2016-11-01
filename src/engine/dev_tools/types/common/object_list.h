@@ -1,8 +1,8 @@
-/// @file var_list.h
-/// Declares the typedefs tbe::sql::DynamicVar and tbe::sql::VarList.
+/// @file object_list.h
+/// Defines the alias tbe::dev_tools::types::ObjectList.
 
-#ifndef TEXT_BASED_ENGINE_ENGINE_DEV_TOOLS_TYPES_COMMON_VAR_LIST_H
-#define TEXT_BASED_ENGINE_ENGINE_DEV_TOOLS_TYPES_COMMON_VAR_LIST_H
+#ifndef TEXT_BASED_ENGINE_ENGINE_DEV_TOOLS_TYPES_COMMON_OBJECT_LIST_H
+#define TEXT_BASED_ENGINE_ENGINE_DEV_TOOLS_TYPES_COMMON_OBJECT_LIST_H
 
 #include <vector>
 #include <memory>
@@ -13,7 +13,7 @@ namespace tbe {
   namespace dev_tools {
     namespace types {
 
-typedef std::vector<ObjectPtr> ObjectList;
+using ObjectList = std::vector<ObjectPtr>;
 
     }
   }

@@ -1,5 +1,5 @@
-/// @file text.h
-/// Declaration of the template instantiation typedef tbe::sql::types::Text.
+/// @file string.h
+/// Declaration of the template instantiation alias tbe::sql::types::Text.
 
 #ifndef TEXT_BASED_ENGINE_ENGINE_DEV_TOOLS_TYPES_COMMON_TEXT_H
 #define TEXT_BASED_ENGINE_ENGINE_DEV_TOOLS_TYPES_COMMON_TEXT_H
@@ -13,8 +13,8 @@ namespace tbe {
     namespace types {
       
 /// @typedef BasicObject<std::string> Text
-/// BasicObject instantiation representing an SQL text value.
-using Text = BasicObject<std::string>;
+/// BasicObject instantiation representing a string type.
+using String = BasicObject<std::string>;
 
     }
   }

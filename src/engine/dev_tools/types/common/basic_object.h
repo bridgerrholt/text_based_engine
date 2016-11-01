@@ -13,28 +13,11 @@
 namespace tbe {
   namespace dev_tools {
     namespace types {
-      namespace support {
-      
-template <class T>
-constexpr TypeId matchUp();
-
-template <>
-constexpr TypeId matchUp<bool>() { return BOOL; }
-
-template <>
-constexpr TypeId matchUp<int>() { return INT; }
-
-template <>
-constexpr TypeId matchUp<std::string>() { return TEXT; }
-
-      } // support
-
-
 
 /// Class template to be used for all the supported SQL types.
 /// @tparam T The underlying type to use for representing the SQL type.
 /// @tparam k The name (within the enum TypeId) for identification.
-template <class T, TypeId k = support::matchUp<T>()>
+template <class T, TypeId id = matchToTypeId<T>()>
 class BasicObject : public ObjectBase
 {
   public:
@@ -43,7 +26,7 @@ class BasicObject : public ObjectBase
 
     /// Primary constructor.
     /// @param[in] dataSet Moves into @ref data.
-    BasicObject(DataType dataSet) : ObjectBase(k)
+    BasicObject(DataType dataSet) : ObjectBase(id)
     {
       data = std::move(dataSet);
     }
@@ -51,6 +34,7 @@ class BasicObject : public ObjectBase
     /// The underlying data.
     DataType data;
 };
+
 
 
     }

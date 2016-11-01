@@ -162,7 +162,7 @@ ArgParser::parseString()
 
     assert(foundEnd);
 
-    emplaceObject(new dev_tools::types::Text { std::move(text) });
+    emplaceObject(new dev_tools::types::String { std::move(text) });
 
     return true;
   }

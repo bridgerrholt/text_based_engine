@@ -1,4 +1,4 @@
-/// @file kind.h
+/// @file type_id.h
 /// Definition of the enum tbe::sql::types::TypeId.
 
 #ifndef TEXT_BASED_ENGINE_ENGINE_DEV_TOOLS_TYPES_KIND_H
@@ -10,28 +10,31 @@ namespace tbe {
   namespace dev_tools {
     namespace types {
 
-/// Contains every supported type.
-/// Starts at 1 to avoid being represented as false.
-enum TypeId
+/// Expresses a certain engine type.
+enum class TypeId
 {
-  BOOL = 1,
+  BOOL,
   INT,
-  TEXT
+  STRING
 };
 
 
-
 template <class T>
-constexpr TypeId matchUp();
+static constexpr TypeId matchToTypeId();
+
 
 template <>
-constexpr TypeId matchUp<bool>() { return BOOL; }
+constexpr TypeId
+matchToTypeId<bool>() { return TypeId::BOOL; }
 
 template <>
-constexpr TypeId matchUp<int>() { return INT; }
+constexpr TypeId
+matchToTypeId<int>() { return TypeId::INT; }
 
 template <>
-constexpr TypeId matchUp<std::string>() { return TEXT; }
+constexpr TypeId
+matchToTypeId<std::string>() { return TypeId::STRING; }
+
 
     }
   }

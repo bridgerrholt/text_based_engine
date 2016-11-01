@@ -1,5 +1,5 @@
 /// @file bool.h
-/// Declaration of the template instantiation typedef tbe::sql::types::Bool.
+/// Declaration of the template instantiation alias tbe::sql::types::Bool.
 
 #ifndef TEXT_BASED_ENGINE_ENGINE_DEV_TOOLS_TYPES_COMMON_BOOL_H
 #define TEXT_BASED_ENGINE_ENGINE_DEV_TOOLS_TYPES_COMMON_BOOL_H
@@ -11,7 +11,7 @@ namespace tbe {
     namespace types {
       
 /// @typedef BasicObject<bool> Bool
-/// BasicObject instantiation representing an SQL bool value.
+/// BasicObject instantiation representing a boolean type.
 using Bool = BasicObject<bool>;
 
     }

@@ -27,6 +27,7 @@ class ObjectBase
 
   private:
     /// Used for determining what type the object is.
+    /// May be replaced with a pure virtual function instead.
     TypeId typeId_;
 };
 
@@ -36,3 +37,7 @@ class ObjectBase
 }
 
 #endif
+
+
+
+

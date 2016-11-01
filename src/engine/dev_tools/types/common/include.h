@@ -6,6 +6,6 @@
 
 #include "bool.h"
 #include "int.h"
-#include "text.h"
+#include "string.h"
 
 #endif

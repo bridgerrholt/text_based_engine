@@ -21,10 +21,6 @@
 namespace tbe {
   namespace dev_tools {
 
-// TODO: Get rid of template, make based on the enum within Engine,
-//       but take that enum out into a separate file.
-//       Or make it based on a string wrapper class.
-
 class CommandProcessor
 {
   public:

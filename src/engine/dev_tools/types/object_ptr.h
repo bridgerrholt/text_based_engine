@@ -12,7 +12,6 @@ namespace tbe {
   namespace dev_tools {
     namespace types {
 
-
 using ObjectPtr = std::unique_ptr<ObjectBase>;
 
 
@@ -21,7 +20,6 @@ ObjectPtr makeObjectPtr(T data)
 {
   return ObjectPtr { new types::BasicObject<T>(std::move(data)) };
 }
-
 
 
     }
