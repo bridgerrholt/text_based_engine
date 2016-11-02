@@ -19,54 +19,55 @@
 #include "run_info.h"
 
 namespace tbe {
-  namespace dev_tools {
+	namespace dev_tools {
+
 
 class CommandProcessor
 {
-  public:
-    typedef std::vector<commands::Kind>         CommandState;
-    typedef std::unordered_map<std::size_t, CommandState> CommandStateMap;
-
-    
-    CommandProcessor();
-
-    CommandProcessor(StateMap::VariableMap sharedVariables,
-                     StateMap::VariableMap globalVariables);
-
-    /*
-    /// Attempts to read the given line.
-    /// @return The command.
-    commands::Kind readCommand(std::string commandText);
-
-    /// @return Info about what the user inputted.
-    RunInfo::State readCommand(std::string     commandText,
-                               commands::Kind& command);*/
-
-    RunInfo readCommandV2(std::string commandText);
-
-    void setCommandLeader(std::string commandLeader);
-
-   /* void pushCommandState(
-      typename
-      CommandStateMap::key_type key,
-      CommandState commandState);
-
-    void setCurrentCommandState(
-      typename
-      CommandStateMap::key_type currentCommandState);*/
-
-    StateMap & getStateMap() { return stateMap_; }
+	public:
+		using CommandState    = std::vector       <commands::Kind>;
+		using CommandStateMap = std::unordered_map<std::size_t, CommandState>;
 
 
-  private:
-    /// Must be at the front of a command.
-    std::string commandLeader_ { ":" };
+		CommandProcessor();
 
-    StateMap stateMap_;
+		CommandProcessor(StateMap::VariableMap sharedVariables,
+		                 StateMap::VariableMap globalVariables);
+
+		/*
+		/// Attempts to read the given line.
+		/// @return The command.
+		commands::Kind readCommand(std::string commandText);
+
+		/// @return Info about what the user inputted.
+		RunInfo::State readCommand(std::string     commandText,
+		                           commands::Kind& command);*/
+
+		RunInfo readCommandV2(std::string commandText);
+
+		void setCommandLeader(std::string commandLeader);
+
+		/* void pushCommandState(
+		typename
+		CommandStateMap::key_type key,
+		CommandState commandState);
+
+		void setCurrentCommandState(
+			typename
+			CommandStateMap::key_type currentCommandState);*/
+
+		StateMap & getStateMap() { return stateMap_; }
+
+
+	private:
+		/// Must be at the front of a command.
+		std::string commandLeader_ { ":" };
+
+		StateMap stateMap_;
 };
 
 
-  }
+	}
 }
 
 #endif

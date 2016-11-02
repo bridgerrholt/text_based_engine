@@ -15,17 +15,16 @@ class InputManager;
 }
 
 
-
 namespace tbe {
-  namespace internal {
+	namespace internal {
 
 /// The default startNum argument.
 std::size_t const RESPONSE_OPTIONS_START_NUM = 1;
 
-  }
+	}
 
 
-typedef std::vector<std::string> ResponseOptionList;
+using ResponseOptionList = std::vector<std::string>;
 
 
 /// Outputs the given list of user responses.
@@ -34,8 +33,8 @@ typedef std::vector<std::string> ResponseOptionList;
 /// @param[in] startNum        What number the first response should be labeled as.
 void
 printResponseOptions(
-  ResponseOptionList const & responseOptions,
-  std::size_t startNum = internal::RESPONSE_OPTIONS_START_NUM);
+	ResponseOptionList const & responseOptions,
+	std::size_t startNum = internal::RESPONSE_OPTIONS_START_NUM);
 
 
 
@@ -52,24 +51,24 @@ printResponseOptions(
 ///         meaning startNum is subtracted from the user's choice.
 std::size_t
 getResponseIndex(
-  dep::InputManager inputManager,
-  std::size_t       optionCount,
-  std::size_t startNum = internal::RESPONSE_OPTIONS_START_NUM);
+	dep::InputManager inputManager,
+	std::size_t       optionCount,
+	std::size_t startNum = internal::RESPONSE_OPTIONS_START_NUM);
 
 
 std::size_t
 getResponseIndex(
-  std::string const & input,
-  std::size_t         optionCount,
-  std::size_t startNum = internal::RESPONSE_OPTIONS_START_NUM);
+	std::string const & input,
+	std::size_t         optionCount,
+	std::size_t startNum = internal::RESPONSE_OPTIONS_START_NUM);
 
 
 bool
 processResponseIndex(
-  std::string const & input,
-  std::size_t         optionCount,
-  std::size_t       & optionIndex,
-  std::size_t startNum = internal::RESPONSE_OPTIONS_START_NUM);
+	std::string const & input,
+	std::size_t         optionCount,
+	std::size_t       & optionIndex,
+	std::size_t startNum = internal::RESPONSE_OPTIONS_START_NUM);
 
 
 
@@ -77,36 +76,35 @@ processResponseIndex(
 /// Prints out @p responseOptions and gets the player's selected index.
 std::size_t
 askQuestion(
-  dep::InputManager                inputManager,
-  ResponseOptionList const & responseOptions,
-  std::size_t startNum = internal::RESPONSE_OPTIONS_START_NUM);
+	dep::InputManager                inputManager,
+	ResponseOptionList       const & responseOptions,
+	std::size_t startNum = internal::RESPONSE_OPTIONS_START_NUM);
 
 
 /// Prints out @p responseOptions and @p question, and gets the player's selected index.
 /// @param question The question to be displayed before input is gathered.
 std::size_t
 askQuestion(
-  dep::InputManager                inputManager,
-  ResponseOptionList const & responseOptions,
-  std::string              const & question,
-  std::size_t startNum = internal::RESPONSE_OPTIONS_START_NUM);
+	dep::InputManager                inputManager,
+	ResponseOptionList       const & responseOptions,
+	std::string              const & question,
+	std::size_t startNum = internal::RESPONSE_OPTIONS_START_NUM);
 
 
 std::size_t
 askQuestion(
-  dep::InputManager   inputManager,
-  std::size_t         optionCount,
-  std::string const & question,
-  std::size_t startNum = internal::RESPONSE_OPTIONS_START_NUM);
+	dep::InputManager   inputManager,
+	std::size_t         optionCount,
+	std::string const & question,
+	std::size_t startNum = internal::RESPONSE_OPTIONS_START_NUM);
 
 
 std::size_t
 askQuestion(
-  std::string const & input,
-  std::size_t         optionCount,
-  std::string const & question,
-  std::size_t startNum = internal::RESPONSE_OPTIONS_START_NUM);
-
+	std::string const & input,
+	std::size_t         optionCount,
+	std::string const & question,
+	std::size_t startNum = internal::RESPONSE_OPTIONS_START_NUM);
 
 
 }

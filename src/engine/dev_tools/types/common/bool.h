@@ -7,15 +7,17 @@
 #include "basic_object.h"
 
 namespace tbe {
-  namespace dev_tools {
-    namespace types {
-      
+	namespace dev_tools {
+		namespace types {
+
+
 /// @typedef BasicObject<bool> Bool
 /// BasicObject instantiation representing a boolean type.
 using Bool = BasicObject<bool>;
 
-    }
-  }
+
+		}
+	}
 }
 
 #endif

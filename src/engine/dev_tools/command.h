@@ -18,47 +18,49 @@
 #include "run_info.h"
 
 namespace tbe {
-  namespace dev_tools {
+	namespace dev_tools {
+
 
 class StateMap;
 
 class CommandBase
 {
-  public:
-    class ExecutionArgPack
-    {
-      public:
-        StateMap                         & stateMap;
-        ArgumentList::const_iterator       i;
-        ArgumentList::const_iterator const end;
-    };
+	public:
+		class ExecutionArgPack
+		{
+			public:
+				StateMap                         & stateMap;
+				ArgumentList::const_iterator       i;
+				ArgumentList::const_iterator const end;
+		};
 
-    typedef ExecutionArgPack ExecutionArgs;
+		using ExecutionArgs = ExecutionArgPack;
+		using Signature     = std::vector<ArgumentBase::Kind>;
 
-    typedef std::vector<ArgumentBase::Kind> Signature;
 
-    CommandBase();
+		CommandBase();
 
-    virtual
-    ~CommandBase() = 0;
-    
-    RunInfo run(StateMap          & stateMap,
-                std::string const & args,
-                std::locale const & locale);
+		virtual
+		~CommandBase() = 0;
 
-  private:
-    virtual
-    commands::Kind getKind() const = 0;
+		RunInfo run(StateMap          & stateMap,
+		            std::string const & args,
+		            std::locale const & locale);
 
-    virtual
-    RunInfo::State execute(ExecutionArgs data) = 0;
 
-    virtual
-    Signature const & getSignature() const = 0;
+	private:
+		virtual
+		commands::Kind getKind() const = 0;
+
+		virtual
+		RunInfo::State execute(ExecutionArgs data) = 0;
+
+		virtual
+		Signature const & getSignature() const = 0;
 };
 
 
-  }
+	}
 }
 
 #endif

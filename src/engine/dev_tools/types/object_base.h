@@ -7,33 +7,34 @@
 #include "type_id.h"
 
 namespace tbe {
-  namespace dev_tools {
-    namespace types {
+	namespace dev_tools {
+		namespace types {
+
 
 /// Base class for all the engine's objects.
 class ObjectBase
 {
-  public:
-    /// Primary constructor.
-    /// @param kind Sets the underlying kind (@ref kind_).
-    ObjectBase(TypeId typeId);
-    
-    virtual
-    ~ObjectBase() = 0;
+	public:
+		/// Primary constructor.
+		/// @param typeId Sets the underlying TypeId (@ref typeId_).
+		ObjectBase(TypeId typeId);
 
-    /// Returns the id of the type (@ref kind_).
-    TypeId getTypeId() const { return typeId_; }
+		virtual
+			~ObjectBase() = 0;
+
+		/// Returns the id of the type (@ref typeId_).
+		TypeId getTypeId() const { return typeId_; }
 
 
-  private:
-    /// Used for determining what type the object is.
-    /// May be replaced with a pure virtual function instead.
-    TypeId typeId_;
+	private:
+		/// Used for determining what type the object is.
+		/// May be replaced with a pure virtual function instead.
+		TypeId typeId_;
 };
 
 
-    }
-  }
+		}
+	}
 }
 
 #endif

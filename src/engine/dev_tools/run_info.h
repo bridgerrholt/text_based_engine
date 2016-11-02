@@ -8,33 +8,32 @@
 #include "../argument.h"
 
 namespace tbe {
-  namespace dev_tools {
+	namespace dev_tools {
+
 
 class RunInfo
 {
-  public:
-    enum State
-    {
-      NONE,
-      INVALID,
-      VALID
-    };
+	public:
+		enum State
+		{
+			NONE,
+			INVALID,
+			VALID
+		};
 
-    RunInfo();
+		RunInfo();
+		RunInfo(State          stateSet);
+		RunInfo(State          stateSet,
+		        commands::Kind kindSet,
+		        ArgumentList   argsSet);
 
-    RunInfo(State          stateSet);
-
-    RunInfo(State          stateSet,
-            commands::Kind kindSet,
-            ArgumentList   argsSet);
-
-    State          state;
-    commands::Kind kind;
-    ArgumentList   args;
+		State          state;
+		commands::Kind kind;
+		ArgumentList   args;
 };
 
 
-  }
+	}
 }
 
 #endif

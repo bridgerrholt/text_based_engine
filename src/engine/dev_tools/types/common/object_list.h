@@ -10,13 +10,15 @@
 #include "../object_ptr.h"
 
 namespace tbe {
-  namespace dev_tools {
-    namespace types {
+	namespace dev_tools {
+		namespace types {
+
 
 using ObjectList = std::vector<ObjectPtr>;
 
-    }
-  }
+
+		}
+	}
 }
 
 #endif

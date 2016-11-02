@@ -9,15 +9,17 @@
 #include "basic_object.h"
 
 namespace tbe {
-  namespace dev_tools {
-    namespace types {
-      
+	namespace dev_tools {
+		namespace types {
+
+
 /// @typedef BasicObject<std::string> Text
 /// BasicObject instantiation representing a string type.
 using String = BasicObject<std::string>;
 
-    }
-  }
+
+		}
+	}
 }
 
 #endif

@@ -7,8 +7,9 @@
 #include <string>
 
 namespace tbe {
-  namespace dev_tools {
-    namespace types {
+	namespace dev_tools {
+		namespace types {
+
 
 /// Expresses a certain engine type.
 enum class TypeId
@@ -36,8 +37,8 @@ constexpr TypeId
 matchToTypeId<std::string>() { return TypeId::STRING; }
 
 
-    }
-  }
+		}
+	}
 }
 
 #endif

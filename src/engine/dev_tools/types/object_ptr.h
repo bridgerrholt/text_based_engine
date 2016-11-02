@@ -9,8 +9,9 @@
 #include "common/basic_object.h"
 
 namespace tbe {
-  namespace dev_tools {
-    namespace types {
+	namespace dev_tools {
+		namespace types {
+
 
 using ObjectPtr = std::unique_ptr<ObjectBase>;
 
@@ -18,12 +19,12 @@ using ObjectPtr = std::unique_ptr<ObjectBase>;
 template <class T>
 ObjectPtr makeObjectPtr(T data)
 {
-  return ObjectPtr { new types::BasicObject<T>(std::move(data)) };
+	return ObjectPtr { new types::BasicObject<T>(std::move(data)) };
 }
 
 
-    }
-  }
+		}
+	}
 }
 
 #endif

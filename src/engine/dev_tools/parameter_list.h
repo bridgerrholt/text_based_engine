@@ -12,27 +12,27 @@
 #include "../argument.h"
 
 namespace tbe {
-  namespace dev_tools {
+	namespace dev_tools {
+
 
 class ParameterInfoBase
 {
-  public:
-    ArgumentBase::Kind const kind;
+	public:
+		ArgumentBase::Kind const kind;
 };
 
 
-typedef std::unique_ptr<ParameterInfoBase> DynamicParameterInfo;
-
-
+using ParameterInfoPtr = std::unique_ptr<ParameterInfoBase>;
 
 
 class ParameterList
 {
-  public:
-    std::vector<DynamicParameterInfo> paramters;
+	public:
+		std::vector<ParameterInfoPtr> parameters;
 };
 
-  }
+
+	}
 }
 
 #endif

@@ -12,48 +12,48 @@
 
 namespace tbe {
 
+
 class ArgumentBase
 {
-  public:
-    enum Kind
-    {
-      OBJECT = 1,
-      OPTION
-    };
+	public:
+		enum Kind
+		{
+			OBJECT = 1,
+			OPTION
+		};
 
-    ArgumentBase(Kind kindSet);
+		ArgumentBase(Kind kindSet);
 
-    virtual
-    ~ArgumentBase() = 0;
+		virtual
+		~ArgumentBase() = 0;
 
-    Kind const kind;
+		Kind const kind;
 };
 
 
-typedef std::unique_ptr<ArgumentBase> DynamicArgument;
-typedef std::vector<DynamicArgument>  ArgumentList;
+using DynamicArgument = std::unique_ptr<ArgumentBase>;
+using ArgumentList    = std::vector    <DynamicArgument>;
 
 
 
-  namespace arg_types {
+	namespace arg_types {
+
 
 template <class T, ArgumentBase::Kind k>
 class BasicArgument : public ArgumentBase
 {
-  public:
-    BasicArgument(T t) : ArgumentBase(k)
-    {
-      data = std::move(t);
-    }
+	public:
+		BasicArgument(T t) : ArgumentBase(k), data(std::move(t)) { }
 
-    T data;
+		T data;
 };
 
 
-typedef BasicArgument<dev_tools::types::ObjectPtr, ArgumentBase::OBJECT> Object;
-typedef BasicArgument<std::string,                 ArgumentBase::OPTION> Option;
+using Object = BasicArgument<dev_tools::types::ObjectPtr, ArgumentBase::OBJECT>;
+using Option = BasicArgument<std::string,                 ArgumentBase::OPTION>;
 
-  }
+
+	}
 }
 
 #endif

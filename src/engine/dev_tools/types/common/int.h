@@ -7,15 +7,17 @@
 #include "basic_object.h"
 
 namespace tbe {
-  namespace dev_tools {
-    namespace types {
-      
+	namespace dev_tools {
+		namespace types {
+
+
 /// @typedef BasicObject<int> Int
 /// BasicObject instantiation representing an integer type.
 using Int = BasicObject<int>;
 
-    }
-  }
+
+		}
+	}
 }
 
 #endif

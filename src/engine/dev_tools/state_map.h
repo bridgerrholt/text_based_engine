@@ -13,98 +13,98 @@
 #include "command.h"
 
 namespace tbe {
-  namespace dev_tools {
+	namespace dev_tools {
+
 
 /// Contains and manages commands and variables which may be accessed through
 /// specified "states".
 class StateMap
 {
-  public:
-    template <class T, class K = std::string>
-    using MapType = std::unordered_map<K, T>;
+	public:
+		template <class T, class K = std::string>
+		using MapType = std::unordered_map<K, T>;
 
-    typedef MapType<types::ObjectPtr>              VariableMap;
-    typedef MapType<std::unique_ptr<CommandBase> > CommandMap;
-
-
-    /// Contains variables and commands meant to be in a specific scope.
-    class Scope
-    {
-      public:
-        VariableMap variables;
-        CommandMap  commands;
-    };
+		using VariableMap = MapType<types::ObjectPtr>;
+		using CommandMap  = MapType<std::unique_ptr<CommandBase> >;
 
 
-    /// Contains references to useable commands and variables.
-    class State
-    {
-      public:
-        typedef std::vector<std::string> Container;
-
-        State();
-        State(Container commands,
-              Container variables);
-
-        Container const & getCommands()  const { return commands_; }
-        Container const & getVariables() const { return variables_; }
-
-      private:
-        Container commands_;
-        Container variables_;
-    };
-
-    typedef std::unordered_map<std::string, State> StateContainer;
-
-    StateMap();
-    StateMap(Scope shared, Scope global);
-
-    void pushState(StateContainer::key_type name, State state);
-    void setState(StateContainer::key_type name);
-    
-    VariableMap::mapped_type *
-    getVariable(StateContainer::key_type const & name);
-
-    CommandMap::mapped_type::element_type *
-    getCommand(StateContainer::key_type const & name);
-
-    
-    void pushGlobalVariable(VariableMap::key_type    name,
-                            VariableMap::mapped_type variable);
-
-    void pushSharedVariable(VariableMap::key_type    name,
-                            VariableMap::mapped_type variable);
-    
-    void pushGlobalCommand(CommandMap::key_type    name,
-                           CommandMap::mapped_type command);
-
-    void pushSharedCommand(CommandMap::key_type    name,
-                           CommandMap::mapped_type command);
+		/// Contains variables and commands meant to be in a specific scope.
+		class Scope
+		{
+			public:
+				VariableMap variables;
+				CommandMap  commands;
+		};
 
 
-  private:
-    StateContainer           states_;
-    StateContainer::key_type currentState_;
+		/// Contains references to useable commands and variables.
+		class State
+		{
+			public:
+				using Container = std::vector<std::string>;
 
-    void verifyState(State const & state);
+				State();
+				State(Container commands,
+				      Container variables);
+
+				Container const & getCommands()  const { return commands_; }
+				Container const & getVariables() const { return variables_; }
+
+			private:
+				Container commands_;
+				Container variables_;
+		};
+
+		using StateContainer = std::unordered_map<std::string, State>;
+
+		StateMap();
+		StateMap(Scope shared, Scope global);
+
+		void pushState(StateContainer::key_type name, State state);
+		void setState (StateContainer::key_type name);
+
+		VariableMap::mapped_type *
+		getVariable(StateContainer::key_type const & name);
+
+		CommandMap::mapped_type::element_type *
+		getCommand(StateContainer::key_type const & name);
 
 
-    Scope shared_;
-    Scope global_;
+		void pushGlobalVariable(VariableMap::key_type    name,
+		                        VariableMap::mapped_type variable);
 
-    template <class T>
-    T *
-    getObject(StateContainer::key_type const & name,
-              State::Container         const & allowedNames,
-              MapType<T>                     & shared,
-              MapType<T>                     & global);
+		void pushSharedVariable(VariableMap::key_type    name,
+		                        VariableMap::mapped_type variable);
 
-    template <class T>
-    void genericPush(typename MapType<T>::key_type name,
-                     T                             object,
-                     MapType<T>                  & map,
-                     std::string const           & objectDescription);
+		void pushGlobalCommand(CommandMap::key_type    name,
+		                       CommandMap::mapped_type command);
 
+		void pushSharedCommand(CommandMap::key_type    name,
+		                       CommandMap::mapped_type command);
+
+
+	private:
+		StateContainer           states_;
+		StateContainer::key_type currentState_;
+
+		void verifyState(State const & state);
+
+
+		Scope shared_;
+		Scope global_;
+
+		template <class T>
+		T *
+		getObject(StateContainer::key_type const & name,
+		          State::Container         const & allowedNames,
+		          MapType<T>                     & shared,
+		          MapType<T>                     & global);
+
+		template <class T>
+		void genericPush(typename MapType<T>::key_type name,
+		                 T                             object,
+		                 MapType<T>                  & map,
+		                 std::string const           & objectDescription);
 };
 
 
@@ -116,23 +116,24 @@ StateMap::getObject(StateContainer::key_type const & name,
                     MapType<T>                     & shared,
                     MapType<T>                     & global)
 {
-  for (auto const & i : allowedNames) {
-    if (name == i) {
-      return &shared[name];
-    }
-  }
+	for (auto const & i : allowedNames) {
+		if (name == i) {
+			return &shared[name];
+		}
+	}
 
 
-  // Not in the shared pool, try to find in the global pool.
-  auto command = global.find(name);
+	// Not in the shared pool, try to find in the global pool.
+	auto command = global.find(name);
 
-  if (command != global.end())
-    return &command->second;
+	if (command != global.end())
+		return &command->second;
 
 
-  // Doesn't exist.
-  return nullptr;
+	// Doesn't exist.
+	return nullptr;
 }
+
 
 
 template <class T>
@@ -142,19 +143,19 @@ StateMap::genericPush(typename MapType<T>::key_type name,
                       MapType<T>                  & map,
                       std::string const           & objectDescription)
 {
-  auto i = map.find(name);
+	auto i = map.find(name);
 
-  if (i != map.end()) {
-    throw std::runtime_error(
-      objectDescription + " \"" + name + "\" already exists"
-    );
-  }
+	if (i != map.end()) {
+		throw std::runtime_error(
+			objectDescription + " \"" + name + "\" already exists"
+		);
+	}
 
-  map.emplace(std::move(name), std::move(object));
+	map.emplace(std::move(name), std::move(object));
 }
 
 
-  }
+	}
 }
 
 #endif

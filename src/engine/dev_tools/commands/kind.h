@@ -5,23 +5,24 @@
 #define TEXT_BASED_ENGINE_ENGINE_COMMANDS_KIND_H
 
 namespace tbe {
-  namespace dev_tools {
-    namespace commands {
+	namespace dev_tools {
+		namespace commands {
+
 
 enum Kind
 {
-  NO_COMMAND = 0,
+	NO_COMMAND = 0,
 
-  QUIT,
-  LIST_PATHS,
-  DEV_ON,
+	QUIT,
+	LIST_PATHS,
+	DEV_ON,
 
-  SET
+	SET
 };
 
 
-    }
-  }
+		}
+	}
 }
 
 #endif

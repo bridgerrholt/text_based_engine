@@ -11,8 +11,9 @@
 #include "../type_id.h"
 
 namespace tbe {
-  namespace dev_tools {
-    namespace types {
+	namespace dev_tools {
+		namespace types {
+
 
 /// Class template to be used for all the supported SQL types.
 /// @tparam T The underlying type to use for representing the SQL type.
@@ -20,25 +21,24 @@ namespace tbe {
 template <class T, TypeId id = matchToTypeId<T>()>
 class BasicObject : public ObjectBase
 {
-  public:
-    /// Allows usage of the type elsewhere.
-    typedef T DataType;
+	public:
+		/// Allows usage of the type elsewhere.
+		typedef T DataType;
 
-    /// Primary constructor.
-    /// @param[in] dataSet Moves into @ref data.
-    BasicObject(DataType dataSet) : ObjectBase(id)
-    {
-      data = std::move(dataSet);
-    }
+		/// Primary constructor.
+		/// @param[in] dataSet Moves into @ref data.
+		BasicObject(DataType dataSet) : ObjectBase(id)
+		{
+			data = std::move(dataSet);
+		}
 
-    /// The underlying data.
-    DataType data;
+		/// The underlying data.
+		DataType data;
 };
 
 
-
-    }
-  }
+		}
+	}
 }
 
 #endif
