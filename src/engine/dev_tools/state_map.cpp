@@ -8,10 +8,24 @@
 namespace tbe {
   namespace dev_tools {
 
+void swap(StateMap& first, StateMap& second)
+{
+	using std::swap;
+
+	swap(first.states_,       second.states_);
+	swap(first.currentState_, second.currentState_);
+
+	swap(first.shared_,       second.shared_);
+	swap(first.global_,       second.global_);
+}
+
+
+
 StateMap::StateMap()
 {
 
 }
+
 
 StateMap::StateMap(Scope shared, Scope global) :
   shared_(std::move(shared)),
@@ -22,8 +36,18 @@ StateMap::StateMap(Scope shared, Scope global) :
 
 
 
+StateMap&
+StateMap::operator=(StateMap other)
+{
+	swap(*this, other);
+
+	return *this;
+}
+
+
+
 void
-StateMap::pushState(StateContainer::key_type name, State state)
+StateMap::pushState(StateIdType name, State state)
 {
   if (states_.find(name) != states_.end())
     throw std::runtime_error("State (" + name + ") already exists");
@@ -39,7 +63,7 @@ StateMap::pushState(StateContainer::key_type name, State state)
 
 
 void
-StateMap::setState(StateContainer::key_type name)
+StateMap::setCurrentState(StateIdType name)
 {
   if (states_.find(name) == states_.end())
     throw std::runtime_error("State (" + name + ") doesn't exist");
@@ -49,8 +73,8 @@ StateMap::setState(StateContainer::key_type name)
 }
 
 
-StateMap::StateContainer::key_type const &
-StateMap::getState()
+StateMap::StateIdType const &
+StateMap::getCurrentState()
 {
   return currentState_;
 }
@@ -58,7 +82,7 @@ StateMap::getState()
 
 
 StateMap::VariableMap::mapped_type *
-StateMap::getVariable(StateContainer::key_type const & name)
+StateMap::getVariable(StateIdType const & name)
 {
   return getObject(name, states_.at(currentState_).getCommands(),
                    shared_.variables, global_.variables);
@@ -67,7 +91,7 @@ StateMap::getVariable(StateContainer::key_type const & name)
 
 
 StateMap::CommandMap::mapped_type::element_type *
-StateMap::getCommand(StateContainer::key_type const & name)
+StateMap::getCommand(StateIdType const & name)
 {
   auto i = getObject(name, states_.at(currentState_).getCommands(),
                      shared_.commands, global_.commands);
@@ -81,8 +105,8 @@ StateMap::getCommand(StateContainer::key_type const & name)
 
 
 void
-StateMap::pushGlobalVariable(VariableMap::key_type    name,
-                             VariableMap::mapped_type variable)
+StateMap::pushGlobalVariable(NameType     name,
+                             VariableType variable)
 {
   genericPush(std::move(name), std::move(variable),
     global_.variables, "Global variable");
@@ -90,8 +114,8 @@ StateMap::pushGlobalVariable(VariableMap::key_type    name,
 
 
 void
-StateMap::pushSharedVariable(VariableMap::key_type    name,
-                             VariableMap::mapped_type variable)
+StateMap::pushSharedVariable(NameType     name,
+                             VariableType variable)
 {
   genericPush(std::move(name), std::move(variable),
     shared_.variables, "Shared variable");
@@ -100,8 +124,8 @@ StateMap::pushSharedVariable(VariableMap::key_type    name,
 
 
 void
-StateMap::pushGlobalCommand(CommandMap::key_type    name,
-                            CommandMap::mapped_type command)
+StateMap::pushGlobalCommand(NameType    name,
+                            CommandType command)
 {
   genericPush(std::move(name), std::move(command),
     global_.commands, "Global command");
@@ -109,11 +133,19 @@ StateMap::pushGlobalCommand(CommandMap::key_type    name,
 
 
 void
-StateMap::pushSharedCommand(CommandMap::key_type    name,
-                            CommandMap::mapped_type command)
+StateMap::pushSharedCommand(NameType    name,
+                            CommandType command)
 {
   genericPush(std::move(name), std::move(command),
     shared_.commands, "Shared command");
+}
+
+
+
+void
+StateMap::clear()
+{
+	swap(*this, StateMap());
 }
 
 

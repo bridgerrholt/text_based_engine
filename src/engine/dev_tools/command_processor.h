@@ -36,29 +36,14 @@ class CommandProcessor
 		CommandProcessor(StateMap::VariableMap sharedVariables,
 		                 StateMap::VariableMap globalVariables);
 
-		/*
-		/// Attempts to read the given line.
-		/// @return The command.
-		commands::CommandId readCommand(std::string commandText);
 
-		/// @return Info about what the user inputted.
-		RunInfo::State readCommand(std::string     commandText,
-		                           commands::CommandId& command);*/
-
-		RunInfo readCommandV2(std::string commandText);
+		RunInfo readCommand(std::string commandText);
 
 		void setCommandLeader(std::string commandLeader);
 
-		/* void pushCommandState(
-		typename
-		CommandStateMap::key_type key,
-		CommandState commandState);
-
-		void setCurrentCommandState(
-			typename
-			CommandStateMap::key_type currentCommandState);*/
-
 		StateMap & getStateMap() { return stateMap_; }
+		void resetStateMap(StateMap::VariableMap sharedVariables,
+										   StateMap::VariableMap globalVariables);
 
 
 	private:

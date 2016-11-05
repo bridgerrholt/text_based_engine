@@ -40,7 +40,8 @@ makeStateMap(StateMap::VariableMap sharedVariables,
 namespace tbe {
   namespace dev_tools {
   
-CommandProcessor::CommandProcessor()
+CommandProcessor::CommandProcessor() :
+	CommandProcessor({}, {})
 {
 
 }
@@ -57,94 +58,9 @@ CommandProcessor::CommandProcessor(
 }
 
 
-/*
-commands::CommandId
-CommandProcessor::readCommand(std::string commandText)
-{
-  dep::StringFormatter strFor { locale, std::move(commandText) };
-
-  if (strFor.trim().strRef().empty())
-    return commands::NO_COMMAND;
-
-  std::string str = strFor.moveOut();
-
-  if (str.substr(0, commandLeader_.size()) != commandLeader_)
-    return commands::NO_COMMAND;
-
-  str.erase(0, commandLeader_.size());
-
-  if (commandMap_.count(str) == 0)
-    throw std::runtime_error("No command: " + str);
-
-  commands::CommandId command = commandMap_[str];
-
-  switch (command) {
-    // Upcoming commands are all handled by the Engine.
-    case commands::NO_COMMAND:
-    case commands::QUIT:
-    case commands::LIST_PATHS:
-    case commands::DEV_ON:
-      return command;
-
-    // Upcoming commands are all handled by the CommandProcessor.
-
-    // Unknown enum code.
-    default:
-      throw std::runtime_error(
-        "Invalid command code: " + std::to_string(command)
-      );
-  }
-}
-
-
-
-RunInfo::State
-CommandProcessor::readCommand(std::string     commandText,
-                                      commands::CommandId& command)
-{
-  dep::StringFormatter strFor { locale, std::move(commandText) };
-
-  if (strFor.trim().strRef().empty()) {
-    command = commands::NO_COMMAND;
-    return RunInfo::NONE;
-  }
-
-  std::string str = strFor.moveOut();
-
-  if (str.substr(0, commandLeader_.size()) != commandLeader_) {
-    command = commands::NO_COMMAND;
-    return RunInfo::NONE;
-  }
-
-  str.erase(0, commandLeader_.size());
-
-  if (commandMap_.count(str) == 0) {
-    command = commands::NO_COMMAND;
-    return RunInfo::INVALID;
-  }
-
-  command = commandMap_[str];
-
-  switch (command) {
-    // Upcoming commands are all handled by the Engine.
-    case commands::NO_COMMAND:
-    case commands::QUIT:
-    case commands::LIST_PATHS:
-    case commands::DEV_ON:
-      return RunInfo::VALID;
-
-    // Upcoming commands are all handled by the CommandProcessor.
-
-    // Unknown enum code.
-    default:
-      return RunInfo::INVALID;
-  }
-}
-*/
-
 
 RunInfo
-CommandProcessor::readCommandV2(std::string commandText)
+CommandProcessor::readCommand(std::string commandText)
 {
   // No command if the command leader was not at the beginning.
   if (commandText.substr(0, commandLeader_.size()) != commandLeader_) {
@@ -204,26 +120,13 @@ CommandProcessor::setCommandLeader(std::string commandLeader)
 }
 
 
-/*
 void
-CommandProcessor::pushCommandState(
-  typename CommandStateMap::key_type key,
-           CommandState              commandState)
+CommandProcessor::resetStateMap(StateMap::VariableMap sharedVariables,
+																StateMap::VariableMap globalVariables)
 {
-  commandStates_.insert({std::move(key), std::move(commandState)});
+	swap(stateMap_, makeStateMap(std::move(sharedVariables), std::move(globalVariables)));
 }
 
-
-
-void
-CommandProcessor::setCurrentCommandState(
-      typename CommandStateMap::key_type currentCommandState)
-{
-  assert(commandStates_.count(currentCommandState) != 0);
-
-  currentCommandState_ = std::move(currentCommandState);
-}
-*/
 
 
   }

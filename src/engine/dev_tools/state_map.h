@@ -21,11 +21,16 @@ namespace tbe {
 class StateMap
 {
 	public:
-		template <class T, class K = std::string>
+		using StateIdType = std::string;
+		using NameType = std::string;
+		using VariableType = types::ObjectPtr;
+		using CommandType  = commands::CommandPtr;
+
+		template <class T, class K = NameType>
 		using MapType = std::unordered_map<K, T>;
 
-		using VariableMap = MapType<types::ObjectPtr>;
-		using CommandMap  = MapType<commands::CommandPtr>;
+		using VariableMap = MapType<VariableType>;
+		using CommandMap  = MapType<CommandType>;
 
 
 		/// Contains variables and commands meant to be in a specific scope.
@@ -41,7 +46,7 @@ class StateMap
 		class State
 		{
 			public:
-				using Container = std::vector<std::string>;
+				using Container = std::vector<NameType>;
 
 				State();
 				State(Container commands,
@@ -55,39 +60,51 @@ class StateMap
 				Container variables_;
 		};
 
-		using StateContainer = std::unordered_map<std::string, State>;
+		using StateContainer = std::unordered_map<StateIdType, State>;
+
+		
+		friend void swap(StateMap& first, StateMap& second);
 
 		StateMap();
 		StateMap(Scope shared, Scope global);
 		~StateMap() {}
 
-		void pushState(StateContainer::key_type name, State state);
-		void setState (StateContainer::key_type name);
-		StateContainer::key_type const & getState();
-
-		VariableMap::mapped_type *
-		getVariable(StateContainer::key_type const & name);
-
-		CommandMap::mapped_type::element_type *
-		getCommand(StateContainer::key_type const & name);
+		StateMap& operator=(StateMap other);
 
 
-		void pushGlobalVariable(VariableMap::key_type    name,
-		                        VariableMap::mapped_type variable);
+		void pushState(StateIdType name, State state);
+		void setCurrentState(StateIdType name);
+		StateIdType const & getCurrentState();
+		
+		VariableType *
+		getVariable(StateIdType const & name);
 
-		void pushSharedVariable(VariableMap::key_type    name,
-		                        VariableMap::mapped_type variable);
+		template <class T>
+		typename T::DataType &
+		getVariableValue(StateIdType const & name);
 
-		void pushGlobalCommand(CommandMap::key_type    name,
-		                       CommandMap::mapped_type command);
+		CommandType::element_type *
+		getCommand(StateIdType const & name);
 
-		void pushSharedCommand(CommandMap::key_type    name,
-		                       CommandMap::mapped_type command);
+
+		void pushGlobalVariable(NameType    name,
+		                        VariableType variable);
+
+		void pushSharedVariable(NameType    name,
+		                        VariableType variable);
+
+		void pushGlobalCommand(NameType    name,
+		                       CommandType command);
+
+		void pushSharedCommand(NameType    name,
+		                       CommandType command);
+
+		void clear();
 
 
 	private:
-		StateContainer           states_;
-		StateContainer::key_type currentState_;
+		StateContainer states_;
+		StateIdType    currentState_;
 
 		void verifyState(State const & state);
 
@@ -97,11 +114,13 @@ class StateMap
 
 		template <class T>
 		T *
-		getObject(StateContainer::key_type const & name,
-		          State::Container         const & allowedNames,
-		          MapType<T>                     & shared,
-		          MapType<T>                     & global);
+		getObject(NameType         const & name,
+		          State::Container const & allowedNames,
+		          MapType<T>             & shared,
+		          MapType<T>             & global);
 
+		/// @param objectDescription Used in error messages to describe what kind of
+		///                          object caused the error.
 		template <class T>
 		void genericPush(typename MapType<T>::key_type name,
 		                 T                             object,
@@ -110,13 +129,24 @@ class StateMap
 };
 
 
+template <class T>
+typename T::DataType &
+StateMap::getVariableValue(StateIdType const & name)
+{
+	auto* variable = getVariable(name);
+	assert(variable);
+
+	return dep::ofDynamic<T>(variable->get())->data;
+}
+
+
 
 template <class T>
 T *
-StateMap::getObject(StateContainer::key_type const & name,
-                    State::Container         const & allowedNames,
-                    MapType<T>                     & shared,
-                    MapType<T>                     & global)
+StateMap::getObject(NameType         const & name,
+                    State::Container const & allowedNames,
+                    MapType<T>             & shared,
+                    MapType<T>             & global)
 {
 	for (auto const & i : allowedNames) {
 		if (name == i) {

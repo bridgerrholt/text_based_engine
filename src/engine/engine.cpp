@@ -24,9 +24,31 @@
 #include <SQLiteCpp/SQLiteCpp.h>
 #include <sqlite3.h>
 
-
-
 namespace tbe {
+
+class EngineData
+{
+	public:
+		/// The locale used.
+		std::locale locale;
+
+		/// Primary InputManager.
+		dep::InputManager inputManager;
+		
+		/// Path to the root of the application.
+		std::string rootPath;
+
+		dev_tools::CommandProcessor commandProcessor;
+};
+
+
+}
+
+
+namespace {
+
+using namespace tbe;
+using namespace tbe::dev_tools;
 
 namespace states
 {
@@ -37,156 +59,202 @@ namespace states
 
 };
 
-Engine::Engine() :
-Engine(std::locale())
+
+
+class Execution
 {
+	public:
+		/// Highest-level constructor.
+		/// Meant to take in the supplied terminal commands. Opens the database if provided,
+		/// otherwise asks for one.
+		Execution(EngineData & engineData, int argc, char* argv[]);
 
-}
+		Execution(EngineData & engineData, std::string const & fileName);
+
+		/// Unloads the database (if opened) and all active queries.
+		~Execution();
 
 
-Engine::Engine(std::locale locale) :
-	locale_(std::move(locale)),
-	inputManager_("> ", locale_),
-	commandProcessor_(dev_tools::StateMap::VariableMap(), dev_tools::StateMap::VariableMap()),
-	stateMap_(commandProcessor_.getStateMap()),
-	currentState_(stateMap_.getState())
+	private:
+		class OptionDisplay
+		{
+			public:
+				ResponseOptionList options;
+				std::string        startText;
+				std::string        endText;
+		};
+
+		class FullOptionList
+		{
+			public:
+				ResponseOptionList optionList;
+				std::size_t        startNum;
+				std::size_t        lastingOptionCount;
+
+				void resize() { optionList.resize(lastingOptionCount); }
+		};
+
+		Execution(EngineData & engineData);
+
+		void run();
+
+		/// Opens the provided database and gathers needed data.
+		/// If a database is already open, it is closed before the new one is opened.
+		/// @param[in] fileName The path and name of the database file.
+		void openDatabase(std::string const & fileName);
+
+		bool databaseSetup(int argc, char* argv[]);
+
+		/// Creates and opens a database, initializes the correct values.
+		void createDatabase(std::string const & fileName);
+
+		/// @param[out] command The command entered.
+		/// @param[out] input   The player's input.
+		/// @return Whether there was a command attempt.
+		bool getInputCommand(dev_tools::RunInfo & command,
+			std::string    & input);
+
+		void processGenericCommand(dev_tools::RunInfo const & command);
+
+		/// @return Whether they specified yes or no. Yes is true, no is false.
+		bool promptBinaryOption(std::string const & question);
+
+		bool createActor();
+
+		FullOptionList& currentOptions();
+
+		/// Decides whether the program should return to the lobby based on a passed value
+		/// representing the next dialogue id.
+		/// If it should return to the lobby, it also marks @ref state_ as @ref LOBBY.
+		///
+		/// @param[in] nextId If 0, the program should return to the lobby.
+		/// @return Whether the program should return to the lobby or not.
+		bool toLobby(int nextId);
+
+		std::string fromRoot(std::string path) const;
+
+		bool & getToQuit() {
+			return stateMap_.getVariableValue<types::Bool>("to-quit");
+		}
+
+		bool & getDevMode() {
+			return stateMap_.getVariableValue<types::Bool>("dev-mode");
+		}
+
+		EngineData & engineData_;
+
+
+		std::unique_ptr<SQLite::Database> database_;
+
+		/// All the actors specified in the database.
+		std::unique_ptr<SQLite::Statement> actors_;
+
+		/// Primary SleepEvent.
+		/// Secondary SleepEvents may be added in the future.
+		dep::SleepEvent sleepEvent_ = 500;
+
+		dev_tools::StateMap & stateMap_;
+		//dev_tools::StateMap::StateContainer::key_type const & currentState_;
+
+		std::unordered_map<dev_tools::StateMap::StateContainer::key_type,
+			FullOptionList> stateOptions_;
+};
+
+
+
+Execution::Execution(EngineData & engineData) :
+	engineData_(engineData),
+	stateMap_(engineData_.commandProcessor.getStateMap())
 {
 	using namespace dev_tools::commands;
 
-	dep::printLineErr("Engine constructor called");
+	dep::printLineErr("Execution constructor called");
 
-	loadRoot();
-
-	stateOptions_[BAD];
-	stateOptions_[LOBBY] = { {}, 0 };
-	stateOptions_[PLAYER_RESPONSE] = { {}, 1 };
-
-	/*commandProcessor_.pushCommandState(BAD, { QUIT });
-	commandProcessor_.pushCommandState(LOBBY, {});
-	commandProcessor_.pushCommandState(PLAYER_RESPONSE, {});*/
-
-	stateMap_.pushState(states::BAD, {});
-	stateMap_.pushState(states::LOBBY, {});
-	stateMap_.pushState(states::PLAYER_RESPONSE, {});
-
-	/*stateMap_.insertGlobalVar<types::Bool>("dev",     false);
-	stateMap_.insertGlobalVar<types::Bool>("to_quit", false);*/
-
-	//commandProcessor_.readCommandV2("hey there");
-
-	/*
-
-	enum class Command { SET };
-	enum       State   { BAD, LOBBY };
-
-	cp = CP();
-	cp.pushState(BAD, { QUIT });
-
-	*/
-
+	stateOptions_[states::BAD];
+	stateOptions_[states::LOBBY] = { {"QUIT"}, 0, 1 };
+	stateOptions_[states::PLAYER_RESPONSE] = { {}, 1, 0 };
+	
+	engineData_.commandProcessor.resetStateMap({}, {});
+	auto & stateMap = engineData_.commandProcessor.getStateMap();
+	stateMap.pushState(states::BAD, {});
+	stateMap.pushState(states::LOBBY, {});
+	stateMap.pushState(states::PLAYER_RESPONSE, {});
 }
 
 
-Engine::Engine(int argc, char* argv[]) :
-Engine()
+Execution::Execution(EngineData & engineData, int argc, char* argv[]) :
+	Execution(engineData)
 {
-	run(argc, argv);
-}
-
-
-
-Engine::~Engine()
-{
-	// Any member queries should be closed before the database is closed.
-
-	dep::printLineErr("Engine destructor called");
-}
-
-
-
-void
-Engine::openDatabase(std::string const & fileName)
-{
-	database_.reset(new SQLite::Database(
-		fileName, SQLITE_OPEN_READWRITE | SQLITE_OPEN_CREATE
-	));
-
-	actors_.reset(new SQLite::Statement(*database_, "SELECT * FROM actors"));
-
-	while (actors_->executeStep()) {
-		std::cout << actors_->getColumn(0) << '\n';
-	}
-}
-
-
-
-void
-Engine::run(int argc, char* argv[])
-{
-	if (toQuit) return;
-
-	if (databaseSetup(argc, argv))
+	if (!getToQuit() && databaseSetup(argc, argv))
 		run();
 }
 
 
-void
-Engine::run(std::string const & fileName)
+Execution::Execution(EngineData & engineData, std::string const & fileName) :
+	Execution(engineData)
 {
-	if (toQuit) return;
-
-	openDatabase(fileName);
-	run();
+	if (!getToQuit()) {
+		openDatabase(fileName);
+		run();
+	}
 }
 
 
+Execution::~Execution()
+{
+	// Any member queries should be closed before the database is closed.
+
+	dep::printLineErr("Execution destructor called");
+}
+
+
+
 void
-Engine::run()
+Execution::run()
 {
 	using namespace dev_tools::commands;
 
-	if (toQuit) return;
+	if (getToQuit()) return;
 
 	// The contents of columns is swapped out with a fresh ColumnList.
 	if (actors_) actors_->reset();
 
-	SQLite::Statement optionQuerySingle { *database_, "SELECT * FROM options WHERE id = ?" };
-	SQLite::Statement optionQueryList { *database_, "SELECT * FROM options WHERE option_list_id = ?" };
+	// SQL statements.
+	SQLite::Statement optionQuerySingle { *database_,
+		"SELECT * FROM options WHERE id = ?" };
 
-	SQLite::Statement responseQuery { *database_, "SELECT * FROM responses WHERE id = ?" };
+	SQLite::Statement optionQueryList { *database_,
+		"SELECT * FROM options WHERE option_list_id = ?" };
+
+	SQLite::Statement responseQuery { *database_,
+		"SELECT * FROM responses WHERE id = ?" };
+
+	SQLite::Statement currentActor { *database_,
+		"SELECT * FROM actors WHERE id = ?" };
 
 
-	state_ = LOBBY;
-	commandProcessor_.getStateMap().setState("lobby");
-
-	std::string nextResponse;
-
-	//QueryObject * currentActor { 0 };
-	SQLite::Statement currentActor { *database_, "SELECT * FROM actors WHERE id = ?" };
+	// Start with an actor index of 0, indicating we're in the lobby and
+	// haven't selected an actor to talk to.
 	currentActor.bind(1, 0);
+	stateMap_.setCurrentState(states::LOBBY);
 
 	std::vector<int> optionIds;
 
 	// The ID of the next actor response.
 	int next { 0 };
 
-	// Initialized before the main loop and resized in the lobby.
-	ResponseOptionList primaryOptions;
-
 	// Specifies how many options always remain while in the lobby.
 	// primaryOptions is resized to it in the lobby in case actors change.
 	const long constantOptionsCount { 1 };
 
-	stateOptions_[LOBBY].optionList.push_back("QUIT"); // Breaks out of the main loop.
-
-	while (currentState_ != states::BAD) {
+	while (stateMap_.getCurrentState() != states::BAD) {
 		bool toExit { false };
 
 		// Printed after printing the options.
 		std::string postText {};
 
 		// First processing.
-		if (currentState_ == states::LOBBY) {
+		if (stateMap_.getCurrentState() == states::LOBBY) {
 			// Exit the function if the database doesn't contain any actors.
 			if (actors_->getColumnCount() == 0) {
 				dep::printLine("Nobody seems to be around.");
@@ -201,10 +269,10 @@ Engine::run()
 			}
 			else {
 				// All the old actors are removed and all the current actors are added.
-				stateOptions_[LOBBY].optionList.resize(constantOptionsCount);
+				stateOptions_[states::LOBBY].resize();
 				actors_->reset();
 				while (actors_->executeStep()) {
-					stateOptions_[LOBBY].optionList.push_back(
+					stateOptions_[states::LOBBY].optionList.push_back(
 						actors_->getColumn("name"));
 				}
 
@@ -212,11 +280,10 @@ Engine::run()
 			}
 		}
 		
-		else if (currentState_ == states::PLAYER_RESPONSE) {
+		else if (stateMap_.getCurrentState() == states::PLAYER_RESPONSE) {
 			// The conversation is ongoing until one of the actions points to the ID of 0.
 			if (toLobby(next)) continue;
 
-			nextResponse = std::to_string(next);
 			responseQuery.reset();
 			responseQuery.bind(1, next);
 
@@ -230,8 +297,6 @@ Engine::run()
 				responseQuery.getColumn("text_speak") << sleepEvent_ << '\n';
 
 			int nextOptionListId { responseQuery.getColumn("next_id") };
-
-			std::cerr << "Response: " << nextOptionListId << '\n';
 
 			// The conversation is over if the next ID is marked as 0.
 			if (toLobby(nextOptionListId)) continue;
@@ -255,8 +320,6 @@ Engine::run()
 				currentOptions().optionList.push_back(optionQueryList.getColumn("text_display"));
 				optionIds.push_back(optionQueryList.getColumn("id"));
 			} while (optionQueryList.executeStep());
-
-			std::cerr << "Option text list\n";
 		}
 
 		else {
@@ -288,10 +351,6 @@ Engine::run()
 				// Player inputted a command.
 				if (isCommand) {
 					switch (command.commandId) {
-						case CommandId::QUIT:
-							toExit = true;
-							break;
-
 						case CommandId::LIST_PATHS:
 							// TODO: Handle all the different states, outputting the next dialogue for each option.
 							break;
@@ -301,11 +360,11 @@ Engine::run()
 								"Unhandled command (" + std::to_string(
 									dep::toUnderlyingValue(command.commandId)) + ")"
 							);*/
-							std::cout << "Unhandled command (" << 
-									dep::toUnderlyingValue(command.commandId) << ")";
+							/*std::cout << "Unhandled command (" << 
+									dep::toUnderlyingValue(command.commandId) << ")";*/
+							break;
 					}
 				}
-
 			}
 			
 			// Player inputted one of the listed options.
@@ -313,9 +372,8 @@ Engine::run()
 				if (processResponseIndex(inputString, currentOptions().optionList.size(),
 					optionIndexCollect, currentOptions().startNum)) {
 					optionIndex = (long)optionIndexCollect;
-					std::cerr << "Processed " << optionIndex << '\n';
 
-					if (currentState_ == states::LOBBY) {
+					if (stateMap_.getCurrentState() == states::LOBBY) {
 						// All the constant options are handled.
 						// QUIT
 						if (optionIndex == 0) {
@@ -334,7 +392,6 @@ Engine::run()
 
 						// The ID of the next actor response.
 						next = currentActor.getColumn("intro_id");
-						std::cerr << next << '\n';
 
 						// If the intro ID is 0, that indicates no conversation will take place.
 						if (next == 0) {
@@ -345,15 +402,13 @@ Engine::run()
 							//break;
 						}
 						else {
-							stateMap_.setState(states::PLAYER_RESPONSE);
-							std::cerr << "Wants to speak\n";
+							stateMap_.setCurrentState(states::PLAYER_RESPONSE);
 						}
 
 						//break;
 					}
 
-					else if (currentState_ == states::PLAYER_RESPONSE) {
-						std::cerr << "PLAYER_RESPONSE\n";
+					else if (stateMap_.getCurrentState() == states::PLAYER_RESPONSE) {
 						// Displays the user's response and sleeps.
 						optionQuerySingle.reset();
 						optionQuerySingle.bind(1, optionIds[optionIndex]);
@@ -365,10 +420,9 @@ Engine::run()
 							sleepEvent_;
 
 						next = optionQuerySingle.getColumn("next_id");
-						std::cerr << "last next: " << next << '\n';
 					}
 
-					else if (currentState_ == states::BAD) {
+					else if (stateMap_.getCurrentState() == states::BAD) {
 						toExit = true;
 					}
 
@@ -383,14 +437,31 @@ Engine::run()
 
 
 
+
+void
+Execution::openDatabase(std::string const & fileName)
+{
+	database_.reset(new SQLite::Database(
+		fileName, SQLITE_OPEN_READWRITE | SQLITE_OPEN_CREATE
+	));
+
+	actors_.reset(new SQLite::Statement(*database_, "SELECT * FROM actors"));
+
+	while (actors_->executeStep()) {
+		std::cout << actors_->getColumn(0) << '\n';
+	}
+}
+
+
+
 bool
-Engine::databaseSetup(int argc, char* argv[])
+Execution::databaseSetup(int argc, char* argv[])
 {
 	using namespace dev_tools::commands;
 
 	std::cerr << "databaseSetup()\n";
 
-	std::string fileName = rootPath_;
+	std::string fileName = engineData_.rootPath;
 
 	if (argc >= 2)
 		fileName += argv[1];
@@ -416,7 +487,7 @@ Engine::databaseSetup(int argc, char* argv[])
 				if (promptBinaryOption(
 					"That file cannot be found, create a new database?"
 				)) {
-					inDevMode_ = true;
+					getDevMode() = true;
 					createDatabase(fileName);
 					return true;
 				}
@@ -441,7 +512,7 @@ Engine::databaseSetup(int argc, char* argv[])
 
 
 void
-Engine::createDatabase(std::string const & fileName)
+Execution::createDatabase(std::string const & fileName)
 {
 	database_.reset(new SQLite::Database(fileName));
 
@@ -457,7 +528,7 @@ Engine::createDatabase(std::string const & fileName)
 	std::string tableName;
 
 	while (file >> std::noskipws >> c) {
-		if (!hasContents && std::isspace(c, locale_))
+		if (!hasContents && std::isspace(c, engineData_.locale))
 			continue;
 
 		if (c == ';') {
@@ -481,16 +552,15 @@ Engine::createDatabase(std::string const & fileName)
 
 
 bool
-Engine::getInputCommand(dev_tools::RunInfo & command,
+Execution::getInputCommand(dev_tools::RunInfo & command,
 	std::string  & input)
 {
-	input = inputManager_.promptClean();
-	std::cerr << "getInputCommand: " << input << '\n';
+	input = engineData_.inputManager.promptClean();
 
 	if (input.empty())
 		return true;
 
-	command = commandProcessor_.readCommandV2(input);
+	command = engineData_.commandProcessor.readCommand(input);
 
 	switch (command.state) {
 		case dev_tools::RunInfo::NONE:
@@ -512,19 +582,11 @@ Engine::getInputCommand(dev_tools::RunInfo & command,
 
 
 void
-Engine::processGenericCommand(dev_tools::RunInfo const & command)
+Execution::processGenericCommand(dev_tools::RunInfo const & command)
 {
 	using namespace dev_tools::commands;
 
 	switch (command.commandId) {
-		case CommandId::DEV_ON:
-			inDevMode_ = true;
-			break;
-
-		case CommandId::QUIT:
-			toQuit = true;
-			break;
-
 		case CommandId::NONE:
 			// Fall-through
 		default:
@@ -535,7 +597,7 @@ Engine::processGenericCommand(dev_tools::RunInfo const & command)
 
 
 bool
-Engine::promptBinaryOption(std::string const & question)
+Execution::promptBinaryOption(std::string const & question)
 {
 	std::cout << question << std::endl;
 
@@ -544,7 +606,7 @@ Engine::promptBinaryOption(std::string const & question)
 
 	printResponseOptions(binaryOptions);
 	std::size_t input =
-		getResponseIndex(inputManager_, binaryOptions.size());
+		getResponseIndex(engineData_.inputManager, binaryOptions.size());
 
 	return (input == 0);
 }
@@ -552,13 +614,13 @@ Engine::promptBinaryOption(std::string const & question)
 
 
 bool
-Engine::createActor()
+Execution::createActor()
 {
-	if (!inDevMode_) return false;
+	if (!getDevMode()) return false;
 
 	if (promptBinaryOption("Create an actor?")) {
 		std::cout << "Actor name:\n";
-		std::string actorName = inputManager_.promptClean();
+		std::string actorName = engineData_.inputManager.promptClean();
 		int introId = 0;
 
 		SQLite::Statement countQuery { *database_, "SELECT COUNT(*) FROM actors" };
@@ -585,19 +647,19 @@ Engine::createActor()
 
 
 
-Engine::FullOptionList&
-Engine::currentOptions()
+Execution::FullOptionList&
+Execution::currentOptions()
 {
-	return stateOptions_[state_];
+	return stateOptions_.at(stateMap_.getCurrentState());
 }
 
 
 
 bool
-Engine::toLobby(int nextId)
+Execution::toLobby(int nextId)
 {
 	if (nextId == 0) {
-		stateMap_.setState(states::LOBBY);
+		stateMap_.setCurrentState(states::LOBBY);
 		return true;
 	}
 
@@ -606,21 +668,83 @@ Engine::toLobby(int nextId)
 
 
 
-void
-Engine::loadRoot()
+std::string
+Execution::fromRoot(std::string path) const
 {
-	std::string rootFileName = "root.txt";
-	assert(dep::checkFileExists(rootFileName));
+	return engineData_.rootPath + path;
+}
 
-	getline(std::ifstream { rootFileName }, rootPath_);
+
+
+}
+
+
+
+namespace tbe {
+
+Engine::Engine() :
+	Engine(std::locale())
+{
+
+}
+
+
+Engine::Engine(std::locale locale) :
+	data_ (new EngineData {locale, {"> ", locale}, loadRoot(), {}})
+{
+
+}
+
+
+Engine::Engine(int argc, char* argv[]) :
+	Engine()
+{
+	run(argc, argv);
+}
+
+
+
+Engine::~Engine()
+{
+	// Any member queries should be closed before the database is closed.
+
+	dep::printLineErr("Engine destructor called");
+}
+
+
+
+void
+Engine::run(int argc, char* argv[])
+{
+	Execution e { *data_.get(), argc, argv };
+}
+
+
+void
+Engine::run(std::string const & fileName)
+{
+	Execution e { *data_.get(), fileName };
+}
+
+
+
+void
+Engine::setLocale(std::locale locale)
+{
+	data_->locale = std::move(locale);
 }
 
 
 
 std::string
-Engine::fromRoot(std::string path) const
+Engine::loadRoot() const
 {
-	return rootPath_ + path;
+	std::string rootFileName = "root.txt";
+	assert(dep::checkFileExists(rootFileName));
+
+	std::string toReturn;
+	getline(std::ifstream { rootFileName }, toReturn);
+	return toReturn;
 }
 
 
