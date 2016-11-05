@@ -1,3 +1,6 @@
+/// @file command_processor.h
+/// Declarations of the class tbe::dev_tools::CommandProcessor.
+
 #ifndef TEXT_BASED_ENGINE_ENGINE_DEV_TOOLS_COMMAND_PROCESSOR_H
 #define TEXT_BASED_ENGINE_ENGINE_DEV_TOOLS_COMMAND_PROCESSOR_H
 
@@ -11,8 +14,7 @@
 
 #include <dep/string_formatter.h>
 
-#include "command.h"
-#include "commands/kind.h"
+#include "commands/command_id.h"
 #include "commands/commands.h"
 #include "state_map.h"
 
@@ -25,7 +27,7 @@ namespace tbe {
 class CommandProcessor
 {
 	public:
-		using CommandState    = std::vector       <commands::Kind>;
+		using CommandState    = std::vector       <commands::CommandId>;
 		using CommandStateMap = std::unordered_map<std::size_t, CommandState>;
 
 
@@ -37,11 +39,11 @@ class CommandProcessor
 		/*
 		/// Attempts to read the given line.
 		/// @return The command.
-		commands::Kind readCommand(std::string commandText);
+		commands::CommandId readCommand(std::string commandText);
 
 		/// @return Info about what the user inputted.
 		RunInfo::State readCommand(std::string     commandText,
-		                           commands::Kind& command);*/
+		                           commands::CommandId& command);*/
 
 		RunInfo readCommandV2(std::string commandText);
 

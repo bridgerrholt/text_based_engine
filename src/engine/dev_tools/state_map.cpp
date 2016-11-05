@@ -30,6 +30,8 @@ StateMap::pushState(StateContainer::key_type name, State state)
 
   else {
     verifyState(state);
+		if (states_.size() == 0)
+			currentState_ = name;
     states_.insert({std::move(name), std::move(state)});
   }
 }
@@ -47,11 +49,18 @@ StateMap::setState(StateContainer::key_type name)
 }
 
 
+StateMap::StateContainer::key_type const &
+StateMap::getState()
+{
+  return currentState_;
+}
+
+
 
 StateMap::VariableMap::mapped_type *
 StateMap::getVariable(StateContainer::key_type const & name)
 {
-  return getObject(name, states_[currentState_].getCommands(),
+  return getObject(name, states_.at(currentState_).getCommands(),
                    shared_.variables, global_.variables);
 }
 
@@ -60,7 +69,7 @@ StateMap::getVariable(StateContainer::key_type const & name)
 StateMap::CommandMap::mapped_type::element_type *
 StateMap::getCommand(StateContainer::key_type const & name)
 {
-  auto i = getObject(name, states_[currentState_].getCommands(),
+  auto i = getObject(name, states_.at(currentState_).getCommands(),
                      shared_.commands, global_.commands);
 
   if (i)

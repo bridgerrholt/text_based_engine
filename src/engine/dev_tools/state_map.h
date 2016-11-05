@@ -1,5 +1,5 @@
 /// @file state_map.h
-/// Declaration of the class tbe::StateMap.
+/// Declaration of the class tbe::dev_tools::StateMap.
 
 #ifndef TEXT_BASED_ENGINE_ENGINE_DEV_TOOLS_STATE_MAP_H
 #define TEXT_BASED_ENGINE_ENGINE_DEV_TOOLS_STATE_MAP_H
@@ -10,7 +10,7 @@
 #include <memory>
 
 #include "types/object_ptr.h"
-#include "command.h"
+#include "commands/command_ptr.h"
 
 namespace tbe {
 	namespace dev_tools {
@@ -25,7 +25,7 @@ class StateMap
 		using MapType = std::unordered_map<K, T>;
 
 		using VariableMap = MapType<types::ObjectPtr>;
-		using CommandMap  = MapType<std::unique_ptr<CommandBase> >;
+		using CommandMap  = MapType<commands::CommandPtr>;
 
 
 		/// Contains variables and commands meant to be in a specific scope.
@@ -59,9 +59,11 @@ class StateMap
 
 		StateMap();
 		StateMap(Scope shared, Scope global);
+		~StateMap() {}
 
 		void pushState(StateContainer::key_type name, State state);
 		void setState (StateContainer::key_type name);
+		StateContainer::key_type const & getState();
 
 		VariableMap::mapped_type *
 		getVariable(StateContainer::key_type const & name);

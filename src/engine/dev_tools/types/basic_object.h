@@ -1,14 +1,14 @@
-/// @file basic_type.h
-/// Definition of the class template tbe::sql::types::BasicObject.
+/// @file basic_object.h
+/// Definition of the class template tbe::dev_tools::types::BasicObject.
 
-#ifndef TEXT_BASED_ENGINE_ENGINE_DEV_TOOLS_TYPES_COMMON_BASIC_TYPE_H
-#define TEXT_BASED_ENGINE_ENGINE_DEV_TOOLS_TYPES_COMMON_BASIC_TYPE_H
+#ifndef TEXT_BASED_ENGINE_ENGINE_DEV_TOOLS_TYPES_BASIC_OBJECT_H
+#define TEXT_BASED_ENGINE_ENGINE_DEV_TOOLS_TYPES_BASIC_OBJECT_H
 
 #include <string>
 
-#include "../object_base.h"
+#include "object_base.h"
 
-#include "../type_id.h"
+#include "match_to_type_id.h"
 
 namespace tbe {
 	namespace dev_tools {

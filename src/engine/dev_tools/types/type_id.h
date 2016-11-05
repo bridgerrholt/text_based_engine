@@ -1,8 +1,8 @@
 /// @file type_id.h
-/// Definition of the enum tbe::sql::types::TypeId.
+/// Definition of the enum tbe::dev_tools::types::TypeId.
 
-#ifndef TEXT_BASED_ENGINE_ENGINE_DEV_TOOLS_TYPES_KIND_H
-#define TEXT_BASED_ENGINE_ENGINE_DEV_TOOLS_TYPES_KIND_H
+#ifndef TEXT_BASED_ENGINE_ENGINE_DEV_TOOLS_TYPES_TYPE_ID_H
+#define TEXT_BASED_ENGINE_ENGINE_DEV_TOOLS_TYPES_TYPE_ID_H
 
 #include <string>
 
@@ -18,23 +18,6 @@ enum class TypeId
   INT,
   STRING
 };
-
-
-template <class T>
-static constexpr TypeId matchToTypeId();
-
-
-template <>
-constexpr TypeId
-matchToTypeId<bool>() { return TypeId::BOOL; }
-
-template <>
-constexpr TypeId
-matchToTypeId<int>() { return TypeId::INT; }
-
-template <>
-constexpr TypeId
-matchToTypeId<std::string>() { return TypeId::STRING; }
 
 
 		}

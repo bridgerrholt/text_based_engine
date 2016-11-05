@@ -17,7 +17,7 @@
 //#include "../sql_support/column_list.h"
 //#include "../sql_support/database_handle.h"
 
-#include "dev_tools/commands/kind.h"
+#include "dev_tools/commands/command_id.h"
 #include "dev_tools/command_processor.h"
 //#include "dev_tools/game_state_map.h"
 
@@ -156,6 +156,8 @@ class Engine
 
 		/// Primary CommandProcessor.
 		dev_tools::CommandProcessor commandProcessor_;
+		dev_tools::StateMap &       stateMap_;
+		dev_tools::StateMap::StateContainer::key_type const & currentState_;
 
 		RunningState state_ = BAD;
 

@@ -1,10 +1,10 @@
 /// @file int.h
-/// Declaration of the template instantiation alias tbe::sql::types::Int.
+/// Definition of the tbe::dev_tools::types::BasicObject alias tbe::dev_tools::types::Int.
 
 #ifndef TEXT_BASED_ENGINE_ENGINE_DEV_TOOLS_TYPES_COMMON_INT_H
 #define TEXT_BASED_ENGINE_ENGINE_DEV_TOOLS_TYPES_COMMON_INT_H
 
-#include "basic_object.h"
+#include "../basic_object.h"
 
 namespace tbe {
 	namespace dev_tools {

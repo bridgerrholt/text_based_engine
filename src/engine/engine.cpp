@@ -14,8 +14,9 @@
 #include <dep/of_dynamic.h>
 #include <dep/sleep_event.h>
 #include <dep/print_line.h>
+#include <dep/to_underlying_value.h>
 
-#include "dev_tools/types/common/include.h"
+#include "dev_tools/types/types.h"
 
 #include "ask_question.h"
 #include "dev_tools/run_info.h"
@@ -27,8 +28,17 @@
 
 namespace tbe {
 
+namespace states
+{
+	constexpr char
+		BAD[]             = "bad",
+		LOBBY[]           = "lobby",
+		PLAYER_RESPONSE[] = "player_response";
+
+};
+
 Engine::Engine() :
-	Engine(std::locale())
+Engine(std::locale())
 {
 
 }
@@ -37,7 +47,9 @@ Engine::Engine() :
 Engine::Engine(std::locale locale) :
 	locale_(std::move(locale)),
 	inputManager_("> ", locale_),
-	commandProcessor_(dev_tools::StateMap::VariableMap(), dev_tools::StateMap::VariableMap())
+	commandProcessor_(dev_tools::StateMap::VariableMap(), dev_tools::StateMap::VariableMap()),
+	stateMap_(commandProcessor_.getStateMap()),
+	currentState_(stateMap_.getState())
 {
 	using namespace dev_tools::commands;
 
@@ -53,14 +65,14 @@ Engine::Engine(std::locale locale) :
 	commandProcessor_.pushCommandState(LOBBY, {});
 	commandProcessor_.pushCommandState(PLAYER_RESPONSE, {});*/
 
-	commandProcessor_.getStateMap().pushState("bad", {});
-	commandProcessor_.getStateMap().pushState("lobby", {});
-	commandProcessor_.getStateMap().pushState("player_response", {});
+	stateMap_.pushState(states::BAD, {});
+	stateMap_.pushState(states::LOBBY, {});
+	stateMap_.pushState(states::PLAYER_RESPONSE, {});
 
 	/*stateMap_.insertGlobalVar<types::Bool>("dev",     false);
 	stateMap_.insertGlobalVar<types::Bool>("to_quit", false);*/
 
-	commandProcessor_.readCommandV2("hey there");
+	//commandProcessor_.readCommandV2("hey there");
 
 	/*
 
@@ -76,7 +88,7 @@ Engine::Engine(std::locale locale) :
 
 
 Engine::Engine(int argc, char* argv[]) :
-	Engine()
+Engine()
 {
 	run(argc, argv);
 }
@@ -93,7 +105,7 @@ Engine::~Engine()
 
 
 void
-	Engine::openDatabase(std::string const & fileName)
+Engine::openDatabase(std::string const & fileName)
 {
 	database_.reset(new SQLite::Database(
 		fileName, SQLITE_OPEN_READWRITE | SQLITE_OPEN_CREATE
@@ -109,7 +121,7 @@ void
 
 
 void
-	Engine::run(int argc, char* argv[])
+Engine::run(int argc, char* argv[])
 {
 	if (toQuit) return;
 
@@ -119,7 +131,7 @@ void
 
 
 void
-	Engine::run(std::string const & fileName)
+Engine::run(std::string const & fileName)
 {
 	if (toQuit) return;
 
@@ -129,7 +141,7 @@ void
 
 
 void
-	Engine::run()
+Engine::run()
 {
 	using namespace dev_tools::commands;
 
@@ -145,6 +157,7 @@ void
 
 
 	state_ = LOBBY;
+	commandProcessor_.getStateMap().setState("lobby");
 
 	std::string nextResponse;
 
@@ -166,95 +179,88 @@ void
 
 	stateOptions_[LOBBY].optionList.push_back("QUIT"); // Breaks out of the main loop.
 
-	while (state_ != BAD) {
+	while (currentState_ != states::BAD) {
 		bool toExit { false };
 
 		// Printed after printing the options.
 		std::string postText {};
 
 		// First processing.
-		switch (state_) {
-			case LOBBY:
-				// Exit the function if the database doesn't contain any actors.
-				if (actors_->getColumnCount() == 0) {
-					dep::printLine("Nobody seems to be around.");
+		if (currentState_ == states::LOBBY) {
+			// Exit the function if the database doesn't contain any actors.
+			if (actors_->getColumnCount() == 0) {
+				dep::printLine("Nobody seems to be around.");
 
-					if (createActor()) {
-						actors_->reset();
-						continue;
-					}
-
-					toExit = true;
-					break;
-				}
-				else {
-					// All the old actors are removed and all the current actors are added.
-					stateOptions_[LOBBY].optionList.resize(constantOptionsCount);
+				if (createActor()) {
 					actors_->reset();
-					while (actors_->executeStep()) {
-						stateOptions_[LOBBY].optionList.push_back(
-							actors_->getColumn("name"));
-					}
-
-					postText = "Who would you like to talk to?";
+					continue;
 				}
 
-				break;
-
-			case PLAYER_RESPONSE:
-			{
-				// The conversation is ongoing until one of the actions points to the ID of 0.
-				if (toLobby(next)) continue;
-
-				nextResponse = std::to_string(next);
-				responseQuery.reset();
-				responseQuery.bind(1, next);
-
-				bool valid = responseQuery.executeStep();
-				assert(valid);
-
-				// Outputs the actor's dialogue and sleeps.
-				// %name%: %textSpeak%-sleep-
-				std::cout << '\n' <<
-					currentActor.getColumn("name") << ": " <<
-					responseQuery.getColumn("text_speak") << sleepEvent_ << '\n';
-
-				int nextOptionListId { responseQuery.getColumn("next_id") };
-
-				std::cerr << "Response: " << nextOptionListId << '\n';
-
-				// The conversation is over if the next ID is marked as 0.
-				if (toLobby(nextOptionListId)) continue;
-
-
-				optionQueryList.reset();
-				optionQueryList.bind(1, nextOptionListId);
-
-				if (!optionQueryList.executeStep()) {
-					throw std::runtime_error(
-						"No option list (within table \"options"
-						"\") with the id of " + std::to_string(nextOptionListId)
-					);
-				}
-
-				// Lists all the textDisplay strings from the options.
-				currentOptions().optionList.clear();
-				optionIds.clear();
-
-				do {
-					currentOptions().optionList.push_back(optionQueryList.getColumn("text_display"));
-					optionIds.push_back(optionQueryList.getColumn("id"));
-				} while (optionQueryList.executeStep());
-
-				std::cerr << "Option text list\n";
-
-				break;
-			}
-
-			case BAD: // Fallthrough
-			default:
 				toExit = true;
 				break;
+			}
+			else {
+				// All the old actors are removed and all the current actors are added.
+				stateOptions_[LOBBY].optionList.resize(constantOptionsCount);
+				actors_->reset();
+				while (actors_->executeStep()) {
+					stateOptions_[LOBBY].optionList.push_back(
+						actors_->getColumn("name"));
+				}
+
+				postText = "Who would you like to talk to?";
+			}
+		}
+		
+		else if (currentState_ == states::PLAYER_RESPONSE) {
+			// The conversation is ongoing until one of the actions points to the ID of 0.
+			if (toLobby(next)) continue;
+
+			nextResponse = std::to_string(next);
+			responseQuery.reset();
+			responseQuery.bind(1, next);
+
+			bool valid = responseQuery.executeStep();
+			assert(valid);
+
+			// Outputs the actor's dialogue and sleeps.
+			// %name%: %textSpeak%-sleep-
+			std::cout << '\n' <<
+				currentActor.getColumn("name") << ": " <<
+				responseQuery.getColumn("text_speak") << sleepEvent_ << '\n';
+
+			int nextOptionListId { responseQuery.getColumn("next_id") };
+
+			std::cerr << "Response: " << nextOptionListId << '\n';
+
+			// The conversation is over if the next ID is marked as 0.
+			if (toLobby(nextOptionListId)) continue;
+
+
+			optionQueryList.reset();
+			optionQueryList.bind(1, nextOptionListId);
+
+			if (!optionQueryList.executeStep()) {
+				throw std::runtime_error(
+					"No option list (within table \"options"
+					"\") with the id of " + std::to_string(nextOptionListId)
+				);
+			}
+
+			// Lists all the textDisplay strings from the options.
+			currentOptions().optionList.clear();
+			optionIds.clear();
+
+			do {
+				currentOptions().optionList.push_back(optionQueryList.getColumn("text_display"));
+				optionIds.push_back(optionQueryList.getColumn("id"));
+			} while (optionQueryList.executeStep());
+
+			std::cerr << "Option text list\n";
+		}
+
+		else {
+				toExit = true;
 		}
 
 		if (toExit) break;
@@ -276,101 +282,98 @@ void
 
 		// Gets the player input.
 		while (true) {
+			isCommand = false;
 			if (getInputCommand(command, inputString)) {
-				isCommand = (command.kind != NO_COMMAND);
-			}
+				isCommand = (command.commandId != CommandId::NONE);
+				// Player inputted a command.
+				if (isCommand) {
+					switch (command.commandId) {
+						case CommandId::QUIT:
+							toExit = true;
+							break;
 
+						case CommandId::LIST_PATHS:
+							// TODO: Handle all the different states, outputting the next dialogue for each option.
+							break;
+
+						default:
+							/*throw std::runtime_error(
+								"Unhandled command (" + std::to_string(
+									dep::toUnderlyingValue(command.commandId)) + ")"
+							);*/
+							std::cout << "Unhandled command (" << 
+									dep::toUnderlyingValue(command.commandId) << ")";
+					}
+				}
+
+			}
+			
+			// Player inputted one of the listed options.
 			else {
 				if (processResponseIndex(inputString, currentOptions().optionList.size(),
 					optionIndexCollect, currentOptions().startNum)) {
 					optionIndex = (long)optionIndexCollect;
 					std::cerr << "Processed " << optionIndex << '\n';
-					break;
-				}
-			}
 
-		}
+					if (currentState_ == states::LOBBY) {
+						// All the constant options are handled.
+						// QUIT
+						if (optionIndex == 0) {
+							toExit = true;
+							break;
+						}
 
-		// Player inputted a command.
-		if (isCommand) {
-			switch (command.kind) {
-				case QUIT:
-					toExit = true;
-					break;
+						// The actor index must be offset backwards from the constant option offset.
+						// In other words, to map the optionIndex to the actors_ list, the amount of
+						// non-actor options must be subtracted.
+						long id { optionIndex - constantOptionsCount + 1 };
+						currentActor.reset();
+						currentActor.bind(1, (long long)id);
+						bool valid = currentActor.executeStep();
+						assert(valid);
 
-				case LIST_PATHS:
-					// TODO: Handle all the different states, outputting the next dialogue for each option.
-					break;
+						// The ID of the next actor response.
+						next = currentActor.getColumn("intro_id");
+						std::cerr << next << '\n';
 
-				default:
-					throw std::runtime_error(
-						"Unhandled command (" + std::to_string(command.kind) + ")"
-					);
-			}
-		}
+						// If the intro ID is 0, that indicates no conversation will take place.
+						if (next == 0) {
+							std::cout << currentActor.getColumn("name") <<
+								" doesn't want to speak right now.\n";
 
-		// Player inputted one of the listed options.
-		else {
-			switch (state_) {
-				case LOBBY:
-				{
-					// All the constant options are handled.
-					// QUIT
-					if (optionIndex == 0) {
+							// Stays in the lobby.
+							//break;
+						}
+						else {
+							stateMap_.setState(states::PLAYER_RESPONSE);
+							std::cerr << "Wants to speak\n";
+						}
+
+						//break;
+					}
+
+					else if (currentState_ == states::PLAYER_RESPONSE) {
+						std::cerr << "PLAYER_RESPONSE\n";
+						// Displays the user's response and sleeps.
+						optionQuerySingle.reset();
+						optionQuerySingle.bind(1, optionIds[optionIndex]);
+						optionQuerySingle.executeStep();
+						assert(!optionQuerySingle.isDone());
+
+						std::cout << '\n' <<
+							optionQuerySingle.getColumn("text_speak") << '\n' <<
+							sleepEvent_;
+
+						next = optionQuerySingle.getColumn("next_id");
+						std::cerr << "last next: " << next << '\n';
+					}
+
+					else if (currentState_ == states::BAD) {
 						toExit = true;
-						break;
-					}
-
-					// The actor index must be offset backwards from the constant option offset.
-					// In other words, to map the optionIndex to the actors_ list, the amount of
-					// non-actor options must be subtracted.
-					long id { optionIndex - constantOptionsCount + 1 };
-					currentActor.reset();
-					currentActor.bind(1, (long long)id);
-					bool valid = currentActor.executeStep();
-					assert(valid);
-
-					// The ID of the next actor response.
-					next = currentActor.getColumn("intro_id");
-					std::cerr << next << '\n';
-
-					// If the intro ID is 0, that indicates no conversation will take place.
-					if (next == 0) {
-						std::cout << currentActor.getColumn("name") <<
-							" doesn't want to speak right now.\n";
-
-						// Stays in the lobby.
-						break;
-					}
-					else {
-						state_ = PLAYER_RESPONSE;
-						std::cerr << "Wants to speak\n";
 					}
 
 					break;
 				}
-				case PLAYER_RESPONSE:
-					std::cerr << "PLAYER_RESPONSE\n";
-					// Displays the user's response and sleeps.
-					optionQuerySingle.reset();
-					optionQuerySingle.bind(1, optionIds[optionIndex]);
-					optionQuerySingle.executeStep();
-					assert(!optionQuerySingle.isDone());
-
-					std::cout << '\n' <<
-						optionQuerySingle.getColumn("text_speak") << '\n' <<
-						sleepEvent_;
-
-					next = optionQuerySingle.getColumn("next_id");
-					std::cerr << "last next: " << next << '\n';
-					break;
-
-				case BAD:
-					toExit = true;
-					break;
-
-				default:
-					break;
 			}
 		}
 
@@ -381,7 +384,7 @@ void
 
 
 bool
-	Engine::databaseSetup(int argc, char* argv[])
+Engine::databaseSetup(int argc, char* argv[])
 {
 	using namespace dev_tools::commands;
 
@@ -405,7 +408,7 @@ bool
 
 			// Keep prompting until the user enters something other than a command.
 			while (getInputCommand(command, inputString)) {
-				if (command.kind == QUIT) return false;
+				if (command.commandId == CommandId::QUIT) return false;
 			}
 			fileName += inputString;
 
@@ -438,7 +441,7 @@ bool
 
 
 void
-	Engine::createDatabase(std::string const & fileName)
+Engine::createDatabase(std::string const & fileName)
 {
 	database_.reset(new SQLite::Database(fileName));
 
@@ -478,8 +481,8 @@ void
 
 
 bool
-	Engine::getInputCommand(dev_tools::RunInfo & command,
-		std::string  & input)
+Engine::getInputCommand(dev_tools::RunInfo & command,
+	std::string  & input)
 {
 	input = inputManager_.promptClean();
 	std::cerr << "getInputCommand: " << input << '\n';
@@ -509,20 +512,20 @@ bool
 
 
 void
-	Engine::processGenericCommand(dev_tools::RunInfo const & command)
+Engine::processGenericCommand(dev_tools::RunInfo const & command)
 {
 	using namespace dev_tools::commands;
 
-	switch (command.kind) {
-		case DEV_ON:
+	switch (command.commandId) {
+		case CommandId::DEV_ON:
 			inDevMode_ = true;
 			break;
 
-		case QUIT:
+		case CommandId::QUIT:
 			toQuit = true;
 			break;
 
-		case NO_COMMAND:
+		case CommandId::NONE:
 			// Fall-through
 		default:
 			break;
@@ -532,7 +535,7 @@ void
 
 
 bool
-	Engine::promptBinaryOption(std::string const & question)
+Engine::promptBinaryOption(std::string const & question)
 {
 	std::cout << question << std::endl;
 
@@ -549,7 +552,7 @@ bool
 
 
 bool
-	Engine::createActor()
+Engine::createActor()
 {
 	if (!inDevMode_) return false;
 
@@ -583,7 +586,7 @@ bool
 
 
 Engine::FullOptionList&
-	Engine::currentOptions()
+Engine::currentOptions()
 {
 	return stateOptions_[state_];
 }
@@ -591,10 +594,10 @@ Engine::FullOptionList&
 
 
 bool
-	Engine::toLobby(int nextId)
+Engine::toLobby(int nextId)
 {
 	if (nextId == 0) {
-		state_ = LOBBY;
+		stateMap_.setState(states::LOBBY);
 		return true;
 	}
 
@@ -604,7 +607,7 @@ bool
 
 
 void
-	Engine::loadRoot()
+Engine::loadRoot()
 {
 	std::string rootFileName = "root.txt";
 	assert(dep::checkFileExists(rootFileName));
@@ -615,7 +618,7 @@ void
 
 
 std::string
-	Engine::fromRoot(std::string path) const
+Engine::fromRoot(std::string path) const
 {
 	return rootPath_ + path;
 }

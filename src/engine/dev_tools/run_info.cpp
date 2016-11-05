@@ -14,19 +14,19 @@ RunInfo::RunInfo() :
 
 
 RunInfo::RunInfo(State stateSet) :
-  state {stateSet},
-  kind  {commands::NO_COMMAND}
+  state     (stateSet),
+  commandId (commands::CommandId::NONE)
 {
 
 }
 
 
-RunInfo::RunInfo(State          stateSet,
-                 commands::Kind kindSet,
-                 ArgumentList   argsSet) :
-  state {stateSet},
-  kind  {kindSet},
-  args  (std::move(argsSet))
+RunInfo::RunInfo(State                  stateSet,
+                 commands::CommandId    kindSet,
+                 argument::ArgumentList argsSet) :
+  state     (stateSet),
+  commandId (kindSet),
+  args      (std::move(argsSet))
 {
 
 

@@ -1,19 +1,15 @@
 #include "command_processor.h"
 
+#include "commands/command_ptr.h"
 
+#include "types/types.h"
+
+#include <iostream>
 
 namespace {
   
 using namespace tbe;
 using namespace tbe::dev_tools;
-
-template <class T>
-std::unique_ptr<CommandBase>
-makeCommand()
-{
-  return std::unique_ptr<CommandBase>(new T());
-}
-
 
 
 dev_tools::StateMap
@@ -21,17 +17,17 @@ makeStateMap(StateMap::VariableMap sharedVariables,
              StateMap::VariableMap globalVariables)
 {
   using namespace commands;
-
-  globalVariables.emplace(
-    "dev-mode", types::makeObjectPtr(false)
-  );
+	using namespace types;
+	
+  globalVariables.emplace("dev-mode", makeObjectPtr(false));
+  globalVariables.emplace("to-quit",  makeObjectPtr(false));
   
 
   StateMap::CommandMap sharedCommands;
-  sharedCommands.emplace("list-paths", makeCommand<ListPaths>());
+  sharedCommands.emplace("list-paths", makeCommandPtr<ListPaths>());
   
   StateMap::CommandMap globalCommands;
-  globalCommands.emplace("set", makeCommand<Set>());
+  globalCommands.emplace("set", makeCommandPtr<Set>());
 
 
   return {{std::move(sharedVariables), std::move(sharedCommands)},
@@ -51,8 +47,8 @@ CommandProcessor::CommandProcessor()
 
 
 CommandProcessor::CommandProcessor(
-  StateMap::VariableMap   sharedVariables,
-  StateMap::VariableMap   globalVariables) :
+  StateMap::VariableMap sharedVariables,
+  StateMap::VariableMap globalVariables) :
 
   stateMap_(::makeStateMap(
     std::move(sharedVariables), std::move(globalVariables)))
@@ -62,7 +58,7 @@ CommandProcessor::CommandProcessor(
 
 
 /*
-commands::Kind
+commands::CommandId
 CommandProcessor::readCommand(std::string commandText)
 {
   dep::StringFormatter strFor { locale, std::move(commandText) };
@@ -80,7 +76,7 @@ CommandProcessor::readCommand(std::string commandText)
   if (commandMap_.count(str) == 0)
     throw std::runtime_error("No command: " + str);
 
-  commands::Kind command = commandMap_[str];
+  commands::CommandId command = commandMap_[str];
 
   switch (command) {
     // Upcoming commands are all handled by the Engine.
@@ -104,7 +100,7 @@ CommandProcessor::readCommand(std::string commandText)
 
 RunInfo::State
 CommandProcessor::readCommand(std::string     commandText,
-                                      commands::Kind& command)
+                                      commands::CommandId& command)
 {
   dep::StringFormatter strFor { locale, std::move(commandText) };
 
@@ -174,7 +170,7 @@ CommandProcessor::readCommandV2(std::string commandText)
   }
 
 
-  CommandBase * command;
+  commands::CommandBase * command { nullptr };
 
   if (commandName.empty() || !(command = stateMap_.getCommand(commandName)))
     return { RunInfo::NONE };
@@ -184,9 +180,11 @@ CommandProcessor::readCommandV2(std::string commandText)
 
   commandText.erase(commandText.begin(), i);
 
-  return command->run(
+  auto toReturn = command->run(
     stateMap_, commandText, std::locale()
   );
+
+	return toReturn;
 }
 
 

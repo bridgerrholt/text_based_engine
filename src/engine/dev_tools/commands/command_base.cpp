@@ -1,28 +1,30 @@
 /// @file command.cpp
 /// Definition of the abstract class tbe::CommandBase.
 
-#include "command.h"
+#include "command_base.h"
 
 #include <cassert>
 
 #include <dep/print_line.h>
 #include <dep/of_dynamic.h>
 
-#include "types/common/include.h"
+#include "../types/types.h"
 
-#include "run_info.h"
+#include "../run_info.h"
 
-#include "state_map.h"
+#include "../state_map.h"
 
 namespace {
 
 using namespace tbe;
+using namespace tbe::dev_tools;
+using namespace tbe::dev_tools::argument;
 
 template <class T>
 void
 emplaceObject(ArgumentList & argList, T t)
 {
-  argList.emplace_back(new arg_types::Object {
+  argList.emplace_back(new argument::Object {
     dev_tools::types::ObjectPtr { t }
   });
 }
@@ -35,7 +37,7 @@ class ArgParser
     ArgParser(
       std::string::const_iterator       & i,
       std::string::const_iterator const   endSet,
-      ArgumentList                      & argList,
+      ArgumentList            & argList,
       std::locale                 const & localeSet) :
 
       end          { endSet },
@@ -70,8 +72,8 @@ class ArgParser
     void emplaceObject(T t) { ::emplaceObject(*currentList_, t); }
 
     std::string::const_iterator & i_;
-    ArgumentList   & argList_;
-    ArgumentList   * currentList_ { nullptr };
+    ArgumentList                & argList_;
+    ArgumentList                * currentList_ { nullptr };
 };
 
 
@@ -110,8 +112,12 @@ ArgParser::parseList(ArgumentList & argList)
     else {
       if (parseString() ||
           parseNumber() ||
-          parseText())
-        ++i_;
+          parseText()) {
+				if (i_ != end)
+					++i_;
+				else
+					break;
+			}
       else
         throw std::runtime_error("Unexpected character");
     }
@@ -237,7 +243,7 @@ ArgParser::parseText()
       emplaceObject(new dev_tools::types::Bool { (text == "true") });
     }
     else {
-      currentList_->emplace_back(new arg_types::Option {
+      currentList_->emplace_back(new argument::Option {
         std::move(text)
       });
     }
@@ -277,6 +283,7 @@ checkString(std::string::const_iterator     & i,
 
 namespace tbe {
   namespace dev_tools {
+		namespace commands {
 
 CommandBase::CommandBase()
 {
@@ -307,7 +314,7 @@ CommandBase::run(StateMap          & stateMap,
 
   else {
     for (ArgumentList::size_type i { 0 }; i < argList.size(); ++i) {
-      if (argList[i]->kind != getSignature()[i]) {
+      if (argList[i]->type != getSignature()[i]) {
         incorrectSignature = true;
         break;
       }
@@ -316,17 +323,17 @@ CommandBase::run(StateMap          & stateMap,
 
   if (incorrectSignature) {
     dep::printLine("Incorrect command signature");
-    return { RunInfo::INVALID, getKind(), std::move(argList) };
+    return { RunInfo::INVALID, getCommandId(), std::move(argList) };
   }
 
   auto input = execute({stateMap, argList.begin(), argList.end()});
 
-  return { input, getKind(), std::move(argList) };
+  return { input, getCommandId(), std::move(argList) };
 }
 
 
 
 
-
+		}
   }
 }

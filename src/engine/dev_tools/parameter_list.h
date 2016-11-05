@@ -1,5 +1,5 @@
 /// @file parameter_list.h
-/// Declarations of the class tbe::ParameterList.
+/// Declarations of the class tbe::dev_tools::ParameterList.
 
 #ifndef TEXT_BASED_ENGINE_ENGINE_DEV_TOOLS_PARAMETER_LIST_H
 #define TEXT_BASED_ENGINE_ENGINE_DEV_TOOLS_PARAMETER_LIST_H
@@ -9,7 +9,7 @@
 #include <vector>
 #include <unordered_map>
 
-#include "../argument.h"
+#include "argument/argument_type_id.h"
 
 namespace tbe {
 	namespace dev_tools {
@@ -18,7 +18,7 @@ namespace tbe {
 class ParameterInfoBase
 {
 	public:
-		ArgumentBase::Kind const kind;
+		argument::ArgumentTypeId const typeId;
 };
 
 
