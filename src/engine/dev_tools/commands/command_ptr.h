@@ -12,8 +12,8 @@ namespace tbe {
 	namespace dev_tools {
 		namespace commands {
 
-
-using CommandPtr = std::unique_ptr<CommandBase>;
+/// TODO: Change back to std::unique_ptr and fix the copy problem.
+using CommandPtr = std::shared_ptr<CommandBase>;
 
 template <class T>
 CommandPtr makeCommandPtr()

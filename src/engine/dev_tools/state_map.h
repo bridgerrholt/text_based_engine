@@ -8,6 +8,9 @@
 #include <vector>
 #include <unordered_map>
 #include <memory>
+#include <cassert>
+
+#include <dep/of_dynamic.h>
 
 #include "types/object_ptr.h"
 #include "commands/command_ptr.h"
@@ -37,6 +40,15 @@ class StateMap
 		class Scope
 		{
 			public:
+				friend void swap(Scope & first, Scope & second);
+
+				Scope();
+				Scope(VariableMap variablesSet, CommandMap commandsSet);
+				Scope(Scope &) = delete;
+				Scope(Scope && other);
+
+				Scope & operator=(Scope other);
+
 				VariableMap variables;
 				CommandMap  commands;
 		};
@@ -67,6 +79,8 @@ class StateMap
 
 		StateMap();
 		StateMap(Scope shared, Scope global);
+		StateMap(StateMap &) = delete;
+		StateMap(StateMap && other);
 		~StateMap() {}
 
 		StateMap& operator=(StateMap other);
@@ -175,7 +189,7 @@ StateMap::genericPush(typename MapType<T>::key_type name,
                       MapType<T>                  & map,
                       std::string const           & objectDescription)
 {
-	auto i = map.find(name);
+	typename MapType<T>::const_iterator i = map.find(name);
 
 	if (i != map.end()) {
 		throw std::runtime_error(

@@ -10,6 +10,8 @@
 
 #include "../types/types.h"
 
+#include "../argument/argument_types.h"
+
 #include "../run_info.h"
 
 #include "../state_map.h"
@@ -24,7 +26,7 @@ template <class T>
 void
 emplaceObject(ArgumentList & argList, T t)
 {
-  argList.emplace_back(new argument::Object {
+  argList.emplace_back(new Object {
     dev_tools::types::ObjectPtr { t }
   });
 }

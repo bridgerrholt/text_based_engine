@@ -124,7 +124,7 @@ void
 CommandProcessor::resetStateMap(StateMap::VariableMap sharedVariables,
 																StateMap::VariableMap globalVariables)
 {
-	swap(stateMap_, makeStateMap(std::move(sharedVariables), std::move(globalVariables)));
+  stateMap_ = makeStateMap(std::move(sharedVariables), std::move(globalVariables));
 }
 
 

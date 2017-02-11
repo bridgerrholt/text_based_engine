@@ -10,6 +10,8 @@
 #include <dep/input_manager.h>
 #include <dep/is_int.h>
 
+#include "print_line_debug.h"
+
 namespace {
 
 using namespace tbe;
@@ -66,9 +68,9 @@ printResponseOptions(
   ResponseOptionList const & responseOptions,
   std::size_t                startNum)
 {
-  std::cerr << "printResponseOptions\n";
+  printLineDebug("printResponseOptions");
   std::size_t optionCount = responseOptions.size();
-  std::cerr << optionCount << '\n';
+  printLineDebug(optionCount);
   if (optionCount == 0)
     throw std::runtime_error("Question with no response options.\n ");
 
@@ -76,7 +78,7 @@ printResponseOptions(
     std::cout << startNum + i << ": " << responseOptions[i] << '\n';
   }
 
-  std::cerr << "Outputted\n";
+   printLineDebug("Outputted");
 }
 
 
@@ -131,7 +133,7 @@ processResponseIndex(
   std::size_t       & optionIndex,
   std::size_t startNum)
 {
-  std::cerr << "Process OptionIndex: " << optionIndex << '\n';
+  printLineDebug("Process OptionIndex: " + std::to_string(optionIndex));
   if (dep::isInt(input)) {
     optionIndex = std::stoul(input);
     if (optionIndex >= startNum && optionIndex < optionCount+startNum) {

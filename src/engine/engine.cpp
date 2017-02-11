@@ -19,6 +19,7 @@
 #include "dev_tools/types/types.h"
 
 #include "ask_question.h"
+#include "print_line_debug.h"
 #include "dev_tools/run_info.h"
 
 #include <SQLiteCpp/SQLiteCpp.h>
@@ -168,14 +169,14 @@ Execution::Execution(EngineData & engineData) :
 {
 	using namespace dev_tools::commands;
 
-	dep::printLineErr("Execution constructor called");
+	printLineDebug("Execution constructor called");
 
 	stateOptions_[states::BAD];
 	stateOptions_[states::LOBBY] = { {"QUIT"}, 0, 1 };
 	stateOptions_[states::PLAYER_RESPONSE] = { {}, 1, 0 };
 	
 	engineData_.commandProcessor.resetStateMap({}, {});
-	auto & stateMap = engineData_.commandProcessor.getStateMap();
+	StateMap & stateMap = engineData_.commandProcessor.getStateMap();
 	stateMap.pushState(states::BAD, {});
 	stateMap.pushState(states::LOBBY, {});
 	stateMap.pushState(states::PLAYER_RESPONSE, {});
@@ -204,7 +205,7 @@ Execution::~Execution()
 {
 	// Any member queries should be closed before the database is closed.
 
-	dep::printLineErr("Execution destructor called");
+	printLineDebug("Execution destructor called");
 }
 
 
@@ -459,7 +460,7 @@ Execution::databaseSetup(int argc, char* argv[])
 {
 	using namespace dev_tools::commands;
 
-	std::cerr << "databaseSetup()\n";
+	printLineDebug("databaseSetup()");
 
 	std::string fileName = engineData_.rootPath;
 
@@ -532,8 +533,8 @@ Execution::createDatabase(std::string const & fileName)
 			continue;
 
 		if (c == ';') {
-			//std::cerr << "toPush: " << toPush << '\n';
-			std::cerr << "tableName: " << tableName << '\n';
+			//printLineDebug("toPush: " + toPush);
+			printLineDebug("tableName: " + tableName);
 
 			stmt.bind(1, tableName);
 
@@ -627,8 +628,8 @@ Execution::createActor()
 		countQuery.executeStep();
 		introId = countQuery.getColumn(0);
 
-		std::cerr << "actorName: " << actorName << '\n';
-		std::cerr << "introId:   " << introId << '\n';
+		printLineDebug("actorName: " + actorName);
+		printLineDebug("introId:   " + std::to_string(introId));
 
 		std::string text {
 			"INSERT INTO actors (name, intro_id) VALUES ('" +
@@ -708,7 +709,7 @@ Engine::~Engine()
 {
 	// Any member queries should be closed before the database is closed.
 
-	dep::printLineErr("Engine destructor called");
+	printLineDebug("Engine destructor called");
 }
 
 

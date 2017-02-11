@@ -12,8 +12,8 @@ namespace tbe {
 	namespace dev_tools {
 		namespace types {
 
-
-using ObjectPtr = std::unique_ptr<ObjectBase>;
+/// TODO: Change back to std::unique_ptr and fix the copy problem.
+using ObjectPtr = std::shared_ptr<ObjectBase>;
 
 
 template <class T>

@@ -20,11 +20,47 @@ void swap(StateMap& first, StateMap& second)
 }
 
 
+void swap(StateMap::Scope & first, StateMap::Scope & second)
+{
+	using std::swap;
+
+	swap(first.variables, second.variables);
+	swap(first.commands,  second.commands);
+}
+
+
+StateMap::Scope::Scope() {}
+
+StateMap::Scope::Scope(VariableMap variablesSet,
+	                     CommandMap  commandsSet) :
+	variables(variablesSet),
+	commands(commandsSet) {}
+
+StateMap::Scope::Scope(StateMap::Scope && other)
+{
+	swap(*this, other);
+}
+
+
+StateMap::Scope &
+StateMap::Scope::operator=(Scope other)
+{
+  swap(*this, other);
+	return *this;
+}
+
 
 StateMap::StateMap()
 {
 
 }
+
+
+StateMap::StateMap(StateMap && other)
+{
+	swap(*this, other);
+}
+
 
 
 StateMap::StateMap(Scope shared, Scope global) :
@@ -56,7 +92,7 @@ StateMap::pushState(StateIdType name, State state)
     verifyState(state);
 		if (states_.size() == 0)
 			currentState_ = name;
-    states_.insert({std::move(name), std::move(state)});
+    states_.emplace(std::move(name), std::move(state));
   }
 }
 
@@ -93,7 +129,7 @@ StateMap::getVariable(StateIdType const & name)
 StateMap::CommandMap::mapped_type::element_type *
 StateMap::getCommand(StateIdType const & name)
 {
-  auto i = getObject(name, states_.at(currentState_).getCommands(),
+  auto * i = getObject(name, states_.at(currentState_).getCommands(),
                      shared_.commands, global_.commands);
 
   if (i)
@@ -145,7 +181,7 @@ StateMap::pushSharedCommand(NameType    name,
 void
 StateMap::clear()
 {
-	swap(*this, StateMap());
+	*this = StateMap();
 }
 
 
